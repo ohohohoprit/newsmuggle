@@ -98,33 +98,66 @@ export default function AllToolsSection({
       aria-labelledby="all-tools-heading"
     >
       <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8 lg:px-16">
-        {/* Hero Mission Brief */}
-        <div className="mb-16 flex flex-col gap-8 md:flex-row md:justify-between">
+        {/* Hero Mission Brief — premium header with animated visuals */}
+        <div className="mb-20 flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+          {/* Left: title + copy */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="z-10"
+            className="z-10 max-w-[460px]"
           >
-            <h1
+            {/* Eyebrow badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#C09858]/30 bg-[#C09858]/5 px-3.5 py-1.5"
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-[#C09858]"
+                style={{ boxShadow: '0 0 8px rgba(192,152,88,0.6)' }}
+              />
+              <span className="text-[0.65rem] font-bold uppercase tracking-[2.5px] text-[#8C6A3B]">
+                Intelligence Arsenal
+              </span>
+            </motion.div>
+
+            <motion.h1
               id="all-tools-heading"
-              className="mb-2 font-serif text-[2.5rem] font-bold tracking-tight sm:text-[3.2rem]"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut', delay: 0.25 }}
+              className="mb-4 font-serif text-[2.75rem] font-bold leading-[1.05] tracking-tight sm:text-[3.4rem]"
             >
               All Tools
-            </h1>
-            <p className="m-0 max-w-[400px] text-base leading-[1.5] text-[#4A4A4A]">
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1], delay: 0.7 }}
+                className="mt-3 block h-[3px] w-[80px] origin-left rounded-full bg-gradient-to-r from-[#C09858] to-transparent"
+              />
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut', delay: 0.4 }}
+              className="m-0 max-w-[420px] text-[1.05rem] leading-[1.6] text-[#4A4A4A]"
+            >
               {TOOL_COUNT}+ AI-powered tools to ideate, create, optimize, and
               grow your content. Everything you need. One top-secret location.
-            </p>
+            </motion.p>
           </motion.div>
 
+          {/* Right: animated paper visuals */}
           <motion.div
-            className="relative h-[180px] w-full md:w-[400px]"
+            className="relative h-[200px] w-full md:h-[220px] md:w-[420px]"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
           >
-            {/* Mascot polaroid */}
+            {/* Mascot polaroid — entrance spring + gentle drift + hover lift */}
             <motion.div
               className="absolute right-[250px] top-[10px] z-20 h-[110px] w-[100px] rounded bg-white p-1 shadow-[2px_4px_15px_rgba(0,0,0,0.2)]"
               initial={{ rotate: -15, opacity: 0, y: -20 }}
@@ -135,9 +168,13 @@ export default function AllToolsSection({
                 damping: 15,
                 delay: 0.6,
               }}
-              whileHover={{ scale: 1.1, rotate: -2, zIndex: 30 }}
+              whileHover={{ scale: 1.12, rotate: -2, zIndex: 30, transition: { duration: 0.25 } }}
             >
-              <div className="relative h-full w-full border border-[#DDD] bg-[#EAE6D7]">
+              {/* Inner wrapper carries the CSS drift so it doesn't conflict with framer's transform */}
+              <div
+                className="smuggler-drift-1 relative h-full w-full border border-[#DDD] bg-[#EAE6D7]"
+                style={{ animationDelay: '1.5s' }}
+              >
                 <img
                   src="/smuggler/assets/mascot-2.png"
                   alt="Smuggler mascot peeking out of a polaroid"
@@ -146,32 +183,47 @@ export default function AllToolsSection({
               </div>
             </motion.div>
 
-            {/* Remember note */}
+            {/* Remember note — entrance + gentle drift + parallax hover */}
             <motion.div
               className="absolute right-0 top-0 w-[250px] origin-top-right rounded p-5 text-[0.85rem] text-[#333] shadow-[2px_4px_15px_rgba(0,0,0,0.15)]"
               style={{
                 backgroundImage:
                   "url('/smuggler/assets/aged-paper-texture.jpg')",
                 backgroundSize: 'cover',
-                rotate: 3,
               }}
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: 15, rotate: 8 }}
+              animate={{ opacity: 1, y: 0, rotate: 3 }}
+              transition={{
+                type: 'spring',
+                stiffness: 180,
+                damping: 18,
+                delay: 0.45,
+              }}
+              whileHover={{
+                scale: 1.04,
+                rotate: 5,
+                y: -4,
+                transition: { duration: 0.3, ease: 'easeOut' },
+              }}
             >
-              <Paperclip
-                size={32}
-                strokeWidth={1.5}
-                className="absolute -top-3.5 left-5 rotate-12 text-[#555]"
-              />
-              <p className="mb-1 font-semibold">Remember:</p>
-              <p className="mb-2 font-medium leading-relaxed text-[#444]">
-                The best content doesn&rsquo;t get lucky. It gets created with
-                intention.
-              </p>
-              <p className="mt-2.5 text-right font-serif text-[1.1rem] italic">
-                - Agent Smith
-              </p>
+              {/* Drift wrapper (nested to avoid transform conflict) */}
+              <div className="smuggler-drift-2" style={{ animationDelay: '0.8s' }}>
+                <Paperclip
+                  size={32}
+                  strokeWidth={1.5}
+                  className="absolute -top-3.5 left-5 rotate-12 text-[#555]"
+                />
+                <p className="mb-1 font-semibold">Remember:</p>
+                <p className="mb-2 font-medium leading-relaxed text-[#444]">
+                  The best content doesn&rsquo;t get lucky. It gets created with
+                  intention.
+                </p>
+                <p className="mt-2.5 text-right font-serif text-[1.1rem] italic">
+                  - Agent Smith
+                </p>
+              </div>
 
-              {/* TOP SECRET stamp */}
+              {/* TOP SECRET stamp — entrance spring + perpetual wobble */}
               <motion.div
                 className="pointer-events-none absolute -right-8 top-8 z-20 rounded-md border-4 border-[#C0392B] bg-transparent px-3 py-1 text-center font-mono font-black text-[#C0392B] shadow-[0_0_15px_rgba(192,57,43,0.15)]"
                 initial={{ rotate: -50, scale: 2, opacity: 0 }}
@@ -183,12 +235,18 @@ export default function AllToolsSection({
                   delay: 0.8,
                 }}
               >
-                <span className="block text-[1.4rem] tracking-[2px]">
-                  TOP SECRET
-                </span>
-                <span className="block text-[0.7rem] tracking-[1px]">
-                  HANDLE WITH CARE
-                </span>
+                {/* Wobble wrapper (nested) — kicks in after entrance settles */}
+                <div
+                  className="smuggler-stamp-wobble"
+                  style={{ animationDelay: '1.8s' }}
+                >
+                  <span className="block text-[1.4rem] tracking-[2px]">
+                    TOP SECRET
+                  </span>
+                  <span className="block text-[0.7rem] tracking-[1px]">
+                    HANDLE WITH CARE
+                  </span>
+                </div>
               </motion.div>
             </motion.div>
           </motion.div>

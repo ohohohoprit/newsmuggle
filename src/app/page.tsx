@@ -6,6 +6,7 @@ import Navbar, { type AuthMode, type NavView } from '@/smuggler/components/Navba
 import Hero from '@/smuggler/components/Hero';
 import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
+import DashboardView from '@/smuggler/components/DashboardView';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
 import ToolModal from '@/smuggler/components/ToolModal';
@@ -51,7 +52,7 @@ export default function Home() {
   const handleAuthSuccess = useCallback(() => {
     setAuthOpen(false);
     setToast('Welcome, Agent. Your mission awaits. 🕵️‍♂️');
-    setView('home');
+    setView('dashboard');
   }, []);
 
   const handleSelectTool = useCallback((toolId: string) => {
@@ -80,7 +81,7 @@ export default function Home() {
 
       <main className="flex-1 pt-6">
         <AnimatePresence mode="wait">
-          {view === 'home' ? (
+          {view === 'home' && (
             <motion.div
               key="home-view"
               initial={{ opacity: 0 }}
@@ -96,7 +97,24 @@ export default function Home() {
                 onExploreTools={handleExploreTools}
               />
             </motion.div>
-          ) : (
+          )}
+
+          {view === 'dashboard' && (
+            <motion.div
+              key="dashboard-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <DashboardView
+                onSelectTool={handleSelectTool}
+                onExploreTools={handleExploreTools}
+              />
+            </motion.div>
+          )}
+
+          {view === 'tools' && (
             <motion.div
               key="tools-view"
               initial={{ opacity: 0, y: 20 }}

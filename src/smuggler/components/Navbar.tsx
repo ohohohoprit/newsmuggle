@@ -3,13 +3,13 @@
 import { motion } from 'framer-motion';
 import {
   Crosshair,
-  Search,
+  UserRoundSearch,
   Star,
   ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
 
-export type NavView = 'home' | 'tools';
+export type NavView = 'home' | 'tools' | 'dashboard';
 export type AuthMode = 'login' | 'signup';
 
 export interface NavbarProps {
@@ -26,7 +26,7 @@ interface NavLinkConfig {
 }
 
 const NAV_LINKS: NavLinkConfig[] = [
-  { label: 'Dashboard', view: 'home' },
+  { label: 'Dashboard', view: 'dashboard' },
   { label: 'Tools', view: 'tools', hasCaret: true },
   { label: 'Studio' },
   { label: 'Library' },
@@ -70,7 +70,7 @@ export function Navbar({ onOpenAuth, onNavigate, currentView }: NavbarProps) {
                 style={{ color: 'var(--smuggler-gold)' }}
                 aria-hidden="true"
               />
-              <Search
+              <UserRoundSearch
                 className="relative"
                 size={18}
                 strokeWidth={2.5}

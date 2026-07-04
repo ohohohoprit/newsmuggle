@@ -236,3 +236,84 @@ Unresolved Issues / Next Steps:
 - ToolModal form labels use span/div instead of semantic <label> — minor accessibility improvement.
 - Could add real backend (Prisma) for saving generated intel to a vault, user auth via NextAuth, etc.
 - Could add more tools, categories, and tool-specific generation logic (currently all tools use the same sample hooks).
+
+---
+Task ID: 7 (Dashboard restore + Navbar fix + All Tools header polish)
+Agent: main (orchestrator)
+Task: Diagnose and fix missing dashboard + incomplete navbar; improve All Tools header with premium animations
+
+## Diagnosis (before fixing)
+
+### Why the dashboard was missing
+The original repo had a dedicated `DashboardPage` (served at `/dashboard`) with a rich layout: welcome banner (mascot polaroid + "Good morning, Agent Smith." + rotating TOP SECRET stamp), plan widget (Creator Plan, usage 12/100, progress bar, Upgrade button), 5 animated-counter stat cards with sparklines (Views 2.4M / Engagement 142K / Content 86 / Time 28.5 hrs / Top Tool), 3-column grid (Recent Activity / Popular Tools + CTA / Content Calendar + Agent Tip), and a bottom banner (folder stack + trusted-by avatars).
+
+The Next.js port **never ported this DashboardPage**. It only kept a simplified `ToolsSection` (3-col: Popular Tools / Command Center / Top Categories) on the landing page. The "Dashboard" nav link mapped to `view: 'home'` (landing), so the real dashboard was unreachable.
+
+### Why the navbar was "incomplete"
+The Navbar was visually present but the "Dashboard" link was a dead-end — it routed to `'home'` (landing page), not a real dashboard. The logo icon also used `Search` (lucide) instead of a spy/detective-style icon like the original `Detective` (phosphor).
+
+## Files Changed
+
+1. **`src/smuggler/components/DashboardView.tsx`** (NEW) — Faithful recreation of the original `DashboardPage`:
+   - Welcome banner: mascot polaroid (rotated -2deg, paperclip), "Good morning, Agent Smith.", subtitle, italic quote, rotating TOP SECRET + CONSISTENT stamps
+   - Plan widget: dark panel, Creator Plan badge, usage 12/100, animated progress bar, Upgrade button
+   - Stats row: 5 cards with `AnimatedCounter` (framer-motion `animate()`) — Views/Engagement/Content/Time animate from 0; Top Tool shows "Hook Generator". Each has a colored icon + sparkline (inline SVG backgrounds)
+   - 3-col grid: Recent Activity (5 items with tags) / Popular Tools (3 Launch buttons + premium green CTA with smuggler mascot) / Content Calendar (3 scheduled items) + Agent Tip (dashed border, wax-seal "C", magnifying glass)
+   - Bottom banner: folder stack (2 rotated folders + mini TOP SECRET stamp) + "Your content mission is on track!" + 8 trusted-by avatars + "+9.5K" badge
+   - Staggered entrance via framer-motion containerVariants + itemVariants
+   - Card shine sweep on hover (`.smuggler-card-shine-host`)
+
+2. **`src/smuggler/components/Navbar.tsx`** (EDITED):
+   - Added `'dashboard'` to `NavView` union: `'home' | 'tools' | 'dashboard'`
+   - Changed Dashboard nav link from `view: 'home'` → `view: 'dashboard'` (now routes to the real dashboard)
+   - Swapped logo inner icon from `Search` → `UserRoundSearch` (closer to the original spy/detective feel)
+
+3. **`src/app/page.tsx`** (EDITED):
+   - Added `DashboardView` import
+   - Added `view === 'dashboard'` branch in AnimatePresence that renders `<DashboardView onSelectTool={...} onExploreTools={...} />`
+   - Changed `handleAuthSuccess` to navigate to `'dashboard'` view (instead of `'home'`) after login — so users land on the dashboard
+
+4. **`src/app/globals.css`** (EDITED) — Added dashboard + header animation utilities:
+   - `@keyframes smuggler-rotate-stamp` + `.smuggler-stamp-rotate` (10s wobble for TOP SECRET stamp)
+   - `@keyframes smuggler-card-shine` + `.smuggler-card-shine` / `.smuggler-card-shine-host` (hover sheen sweep)
+   - `.smuggler-sparkline` + 5 color variants (inline SVG paths from original dashboard.css)
+   - `.smuggler-ambient-glow` (radial gold glow for dashboard background)
+   - `@keyframes smuggler-drift-1` / `smuggler-drift-2` / `smuggler-stamp-wobble` + classes (gentle float for All Tools header visuals)
+
+5. **`src/smuggler/components/AllToolsSection.tsx`** (EDITED) — Improved ONLY the header (HeroMission Brief):
+   - Added eyebrow badge ("● INTELLIGENCE ARSENAL") with gold glow dot, staggered entrance
+   - Title "All Tools" now has an animated gold underline that scales in after the title
+   - Better spacing/hierarchy: title 2.75rem→3.4rem, copy 1.05rem, max-width 460px
+   - Mascot polaroid: entrance spring + nested `.smuggler-drift-1` gentle float (7s) + hover lift (scale 1.12)
+   - Remember note: entrance spring (rotate 8→3deg) + nested `.smuggler-drift-2` gentle float (8s) + parallax hover (scale 1.04, rotate 5, y -4)
+   - TOP SECRET stamp: entrance spring + nested `.smuggler-stamp-wobble` perpetual wobble (6s, kicks in at 1.8s)
+   - Nested animation wrappers avoid framer-motion transform conflicts with CSS animations
+   - **Search bar, filter bar, tool grid, typewriter — UNTOUCHED**
+
+## Verification (agent-browser)
+
+- ✅ Home view: Hero ("Create Legendary Content"), logo (CONTENT/SMUGGLER), Dashboard nav link present
+- ✅ Dashboard view (after clicking Dashboard): "Good morning, Agent Smith." welcome banner, Creator Plan widget, Views Generated stat card, Recent Activity, Content Calendar, "Your content mission is on track" bottom banner, TOP SECRET stamp — ALL LOADING
+- ✅ Tools view: "Intelligence Arsenal" eyebrow (in DOM), "All Tools" title, Agent Smith note, TOP SECRET stamp, search bar (placeholder intact), Filters button, Sort dropdown, 97 clickable tool cards — all intact
+- ✅ No console errors (only HMR connected + React DevTools info)
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+
+## What was restored
+- The full Content Smuggler dashboard (welcome banner, animated stat counters, recent activity, popular tools, content calendar, agent tip, bottom banner) — faithfully ported from the original `DashboardPage.jsx` + `dashboard.css`
+- The navbar "Dashboard" link now routes to the real dashboard instead of the landing page
+- Login success now lands on the dashboard
+
+## What was improved in the All Tools header
+- Premium eyebrow badge with glowing gold dot
+- Animated gold underline beneath the title
+- Better typographic hierarchy and spacing
+- Gentle drift animations on the mascot polaroid (7s) and Remember note (8s)
+- Perpetual wobble on the TOP SECRET stamp (6s)
+- Smooth spring entrances + parallax-style hover lifts
+- Layout, colors, and all working parts (search, filters, tool grid) kept exactly as they were
+
+Stage Summary:
+- Dashboard and navbar now load correctly and match the original Content Smuggler UI
+- All Tools header is more premium and alive with subtle animations
+- No regressions to the search bar, filters, tool grid, or typewriter
