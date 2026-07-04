@@ -21,6 +21,7 @@ export interface NavbarProps {
   onNavigate: (view: NavView) => void;
   onOpenPalette: () => void;
   currentView: NavView;
+  hidden?: boolean;
 }
 
 interface NavLinkConfig {
@@ -54,11 +55,14 @@ function ThemeToggle() {
   );
 }
 
-export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView }: NavbarProps) {
+export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hidden }: NavbarProps) {
   return (
     <div
-      className="sticky top-0 z-50 w-full border-b border-[var(--smuggler-border)]/50 backdrop-blur-md"
-      style={{ backgroundColor: 'var(--smuggler-navbar-bg)' }}
+      className="sticky top-0 z-50 w-full border-b border-[var(--smuggler-border)]/50 backdrop-blur-md transition-transform duration-300"
+      style={{
+        backgroundColor: 'var(--smuggler-navbar-bg)',
+        transform: hidden ? 'translateY(-100%)' : 'translateY(0)',
+      }}
     >
       <motion.nav
         initial={{ opacity: 0, y: -20 }}

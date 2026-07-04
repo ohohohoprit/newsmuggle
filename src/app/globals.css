@@ -1116,3 +1116,145 @@
 .smuggler-hooks-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(76, 107, 74, 0.6);
 }
+
+/* =====================================================================
+   HOMEPAGE PREMIUM BUTTONS + MOTIONS
+   =====================================================================
+*/
+
+/* Premium CTA button with shine sweep + 3D press */
+.smuggler-cta-premium {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  background-color: var(--smuggler-accent-green);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 4px 0 0 #14542f,
+    0 6px 18px rgba(30, 94, 62, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+.smuggler-cta-premium:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 0 #14552f,
+    0 10px 24px rgba(30, 94, 62, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+.smuggler-cta-premium:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 0 #14552f,
+    0 2px 6px rgba(30, 94, 62, 0.3);
+}
+.smuggler-cta-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-150%);
+  pointer-events: none;
+  z-index: 2;
+}
+.smuggler-cta-premium:hover::after {
+  animation: smuggler-cta-sweep 0.9s ease-out;
+}
+@keyframes smuggler-cta-sweep {
+  0% { transform: translateX(-150%); }
+  60%, 100% { transform: translateX(320%); }
+}
+
+/* Outline CTA with gold hover glow */
+.smuggler-cta-outline {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background-color: transparent;
+  color: var(--smuggler-text);
+  border: 1.5px solid var(--smuggler-border);
+}
+.smuggler-cta-outline:hover {
+  border-color: var(--smuggler-gold);
+  color: var(--smuggler-gold);
+  background-color: var(--smuggler-panel-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(192, 152, 88, 0.15);
+}
+.smuggler-cta-outline:active {
+  transform: translateY(0);
+}
+
+/* Gold CTA with glow */
+.smuggler-cta-gold {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background-color: var(--smuggler-gold);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(192, 152, 88, 0.35);
+}
+.smuggler-cta-gold:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(192, 152, 88, 0.45);
+}
+.smuggler-cta-gold:active {
+  transform: translateY(1px);
+}
+.smuggler-cta-gold::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 70%
+  );
+  transform: translateX(-150%);
+  pointer-events: none;
+}
+.smuggler-cta-gold:hover::after {
+  animation: smuggler-cta-sweep 0.9s ease-out;
+}

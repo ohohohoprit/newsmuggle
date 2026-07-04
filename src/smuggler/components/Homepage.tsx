@@ -7,6 +7,7 @@ import {
   useInView,
   animate,
   useMotionValue,
+  useMotionTemplate,
   useSpring,
   useTransform,
   type Variants,
@@ -44,6 +45,14 @@ import {
   Paperclip,
   CheckSquare,
   Mail,
+  Youtube,
+  Linkedin,
+  Twitter,
+  Instagram,
+  Facebook,
+  Twitch,
+  Github,
+  Rss,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -426,7 +435,7 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
             <button
               type="button"
               onClick={onExploreTools}
-              className="smuggler-btn smuggler-btn-primary"
+              className="smuggler-cta-premium"
             >
               Explore All Tools
               <ArrowRight size={16} aria-hidden="true" />
@@ -434,7 +443,7 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
             <button
               type="button"
               onClick={onExploreTools}
-              className="smuggler-btn smuggler-btn-secondary"
+              className="smuggler-cta-outline"
               aria-label="See how Content Smuggler works"
             >
               <PlayCircle size={20} aria-hidden="true" />
@@ -703,21 +712,22 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
               C
             </div>
 
-            {/* Floating mascot */}
+            {/* Floating mascot — mix-blend-mode multiply removes the white background on light theme */}
             <motion.img
               src="/smuggler/assets/mascot-5.png"
               alt="Content Smuggler AI spy mascot"
               style={{
                 position: 'absolute',
-                left: '-100px',
-                top: '-40px',
-                width: '560px',
-                height: '560px',
+                left: '-160px',
+                top: '-20px',
+                width: '520px',
+                height: '520px',
                 objectFit: 'contain',
                 zIndex: 10,
                 transform: 'translateZ(80px)',
-                filter: 'drop-shadow(0px 20px 40px rgba(0,0,0,0.45))',
+                filter: 'drop-shadow(0px 12px 24px rgba(0,0,0,0.18))',
                 pointerEvents: 'none',
+                mixBlendMode: 'multiply',
               }}
               animate={{ y: [0, -12, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
@@ -730,19 +740,23 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
 }
 
 // =====================================================================
-// 2. TRUSTED BY SECTION
+// 2. TRUSTED BY SECTION — continuously scrolling marquee
 // =====================================================================
 
-const TRUSTED_LOGOS = [
-  'TheScreenPath',
-  'Digital Dhairya',
-  'Creator Lab',
-  'Viral Vault',
-  'Pulse Media',
-  'StoryCraft',
+const TRUSTED_PLATFORMS: Array<{ name: string; icon: typeof Youtube }> = [
+  { name: 'YouTube', icon: Youtube },
+  { name: 'LinkedIn', icon: Linkedin },
+  { name: 'Twitter / X', icon: Twitter },
+  { name: 'Instagram', icon: Instagram },
+  { name: 'Facebook', icon: Facebook },
+  { name: 'Twitch', icon: Twitch },
+  { name: 'GitHub', icon: Github },
+  { name: 'Substack', icon: Rss },
 ];
 
 function TrustedBySection() {
+  // Duplicate the list so the marquee loops seamlessly
+  const loop = [...TRUSTED_PLATFORMS, ...TRUSTED_PLATFORMS];
   return (
     <Section ariaLabel="Trusted by creators worldwide">
       <motion.div
@@ -767,27 +781,54 @@ function TrustedBySection() {
           Trusted by creators worldwide
         </motion.p>
 
-        <motion.div
-          variants={sectionItem}
-          className="grid w-full grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6"
+        {/* Scrolling marquee */}
+        <div
+          className="relative w-full overflow-hidden"
+          style={{
+            maskImage:
+              'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent, black 8%, black 92%, transparent)',
+          }}
         >
-          {TRUSTED_LOGOS.map((logo) => (
-            <div
-              key={logo}
-              className="flex items-center justify-center text-center transition-opacity hover:opacity-100"
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '1.05rem',
-                fontWeight: 600,
-                letterSpacing: '0.5px',
-                color: 'var(--smuggler-text-muted)',
-                opacity: 0.7,
-              }}
-            >
-              {logo}
-            </div>
-          ))}
-        </motion.div>
+          <motion.div
+            className="flex w-max items-center gap-12"
+            animate={{ x: ['0%', '-50%'] }}
+            transition={{
+              duration: 28,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          >
+            {loop.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <div
+                  key={`${p.name}-${i}`}
+                  className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-100"
+                  style={{ opacity: 0.65 }}
+                >
+                  <Icon
+                    size={26}
+                    strokeWidth={1.5}
+                    style={{ color: 'var(--smuggler-text-secondary)' }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      letterSpacing: '0.5px',
+                      color: 'var(--smuggler-text-secondary)',
+                    }}
+                  >
+                    {p.name}
+                  </span>
+                </div>
+              );
+            })}
+          </motion.div>
+        </div>
 
         <motion.div
           variants={sectionItem}
@@ -1409,40 +1450,80 @@ function FeatureHighlightsSection() {
 
 function PopularToolCard({
   tool,
+  index,
   onSelect,
 }: {
   tool: SmugglerTool;
+  index: number;
   onSelect: (id: string) => void;
 }) {
   const Icon = tool.icon;
+  const ref = useRef<HTMLButtonElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const smoothX = useSpring(mouseX, { damping: 25, stiffness: 300 });
+  const smoothY = useSpring(mouseY, { damping: 25, stiffness: 300 });
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]);
+  const background = useMotionTemplate`radial-gradient(400px circle at ${useTransform(smoothX, (v) => (v + 0.5) * 100)}% ${useTransform(smoothY, (v) => (v + 0.5) * 100)}%, rgba(255,255,255,0.7), transparent 45%)`;
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
   return (
     <motion.button
+      ref={ref}
       type="button"
       onClick={() => onSelect(tool.id)}
       variants={sectionItem}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={viewportOnce}
+      transition={{ duration: 0.5, delay: index * 0.07 }}
       whileHover={{ y: -6 }}
-      className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-2xl border p-5 text-left transition-colors"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={{
-        borderColor: 'var(--smuggler-border)',
-        backgroundColor: 'var(--smuggler-bg-panel)',
+        rotateX,
+        rotateY,
+        transformPerspective: 1200,
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(192, 152, 88, 0.5)';
-        e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.08)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--smuggler-border)';
-        e.currentTarget.style.boxShadow = 'none';
-      }}
+      className="smuggler-hook-card group relative flex h-full min-h-[240px] flex-col cursor-pointer items-start gap-3 overflow-hidden rounded-2xl p-6 text-left"
       aria-label={`Launch ${tool.name}`}
     >
-      <div
-        className="flex h-11 w-11 items-center justify-center rounded-xl"
-        style={{ backgroundColor: tool.bgColor, color: tool.color }}
-      >
-        <Icon size={20} aria-hidden="true" />
+      {/* Spotlight */}
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background }}
+      />
+      {/* Gold border glow on hover */}
+      <div className="pointer-events-none absolute inset-0 z-0 rounded-2xl border border-transparent transition-colors duration-300 group-hover:border-[var(--smuggler-gold)]/40" />
+
+      <div className="relative z-10 flex w-full items-start justify-between">
+        <motion.div
+          className="flex h-12 w-12 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:-translate-y-1"
+          style={{ backgroundColor: tool.bgColor, color: tool.color }}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        >
+          <Icon size={22} className="fill-current" aria-hidden="true" />
+        </motion.div>
+        {tool.isPopular && (
+          <span className="rounded-md bg-[var(--smuggler-gold)]/15 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-[var(--smuggler-gold)]">
+            Popular
+          </span>
+        )}
       </div>
-      <div className="flex w-full flex-col gap-1.5">
+
+      <div className="relative z-10 flex w-full flex-col gap-1.5">
         <h3
           style={{
             fontFamily: 'var(--font-heading)',
@@ -1454,6 +1535,7 @@ function PopularToolCard({
           {tool.name}
         </h3>
         <p
+          className="line-clamp-2"
           style={{
             fontSize: '13px',
             lineHeight: 1.5,
@@ -1463,16 +1545,21 @@ function PopularToolCard({
           {tool.desc}
         </p>
       </div>
-      <div
-        className="mt-2 flex items-center gap-1.5 text-xs font-semibold transition-colors"
-        style={{ color: 'var(--smuggler-green)' }}
-      >
-        Launch
-        <ArrowRight
-          size={14}
-          className="transition-transform group-hover:translate-x-1"
-          aria-hidden="true"
-        />
+
+      <div className="relative z-10 mt-auto flex w-full items-center justify-between border-t border-[var(--smuggler-border)]/40 pt-3">
+        <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--smuggler-text-muted)' }}>
+          <Users size={13} aria-hidden="true" />
+          <span>{tool.uses} uses</span>
+        </div>
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--smuggler-border)]/40 text-[var(--smuggler-text-muted)] transition-all duration-300 group-hover:bg-[var(--smuggler-accent-green)] group-hover:text-white"
+        >
+          <ArrowRight
+            size={14}
+            className="transition-transform duration-300 group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </div>
       </div>
     </motion.button>
   );
@@ -1499,8 +1586,8 @@ function PopularToolsSection({
         viewport={viewportOnce}
         className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
       >
-        {POPULAR_TOOLS.map((tool) => (
-          <PopularToolCard key={tool.id} tool={tool} onSelect={onSelectTool} />
+        {POPULAR_TOOLS.map((tool, i) => (
+          <PopularToolCard key={tool.id} tool={tool} index={i} onSelect={onSelectTool} />
         ))}
       </motion.div>
       <motion.div
@@ -1513,7 +1600,7 @@ function PopularToolsSection({
         <button
           type="button"
           onClick={onExploreTools}
-          className="smuggler-btn smuggler-btn-gold"
+          className="smuggler-cta-gold"
         >
           View All {TOOL_COUNT} Tools
           <ArrowRight size={16} aria-hidden="true" />
@@ -2342,13 +2429,7 @@ function FinalCtaSection({
             <button
               type="button"
               onClick={() => onOpenAuth('signup')}
-              className="smuggler-btn"
-              style={{
-                backgroundColor: 'var(--smuggler-gold)',
-                color: '#0B0A08',
-                border: '1px solid var(--smuggler-gold)',
-                fontWeight: 700,
-              }}
+              className="smuggler-cta-gold"
             >
               Get Started Free
               <ArrowRight size={16} aria-hidden="true" />
@@ -2356,11 +2437,10 @@ function FinalCtaSection({
             <button
               type="button"
               onClick={onExploreTools}
-              className="smuggler-btn"
+              className="smuggler-cta-outline"
               style={{
-                backgroundColor: 'transparent',
                 color: '#F4EEDF',
-                border: '1px solid rgba(244, 238, 223, 0.3)',
+                borderColor: 'rgba(244, 238, 223, 0.3)',
               }}
             >
               <PlayCircle size={20} aria-hidden="true" />

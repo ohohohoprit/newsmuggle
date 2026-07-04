@@ -102,6 +102,34 @@ export default function Home() {
     setView('tools');
   }, []);
 
+  // Scroll-direction-aware navbar: hide on scroll down, show on scroll up
+  const [navbarHidden, setNavbarHidden] = useState(false);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    const threshold = 120; // ignore tiny scrolls near the top
+    const update = () => {
+      const y = window.scrollY;
+      if (y < threshold) {
+        setNavbarHidden(false);
+      } else if (y > lastY + 8) {
+        setNavbarHidden(true);
+      } else if (y < lastY - 8) {
+        setNavbarHidden(false);
+      }
+      lastY = y;
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <div className="smuggler-app flex min-h-screen flex-col">
       <Navbar
@@ -109,6 +137,7 @@ export default function Home() {
         onNavigate={handleNavigate}
         onOpenPalette={() => setPaletteOpen(true)}
         currentView={view}
+        hidden={navbarHidden}
       />
 
       <main className="flex-1 pt-6">

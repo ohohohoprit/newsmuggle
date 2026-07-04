@@ -923,3 +923,69 @@ Stage Summary:
 - Theme toggle in navbar works across entire app
 - All existing tools/dashboard/routing preserved and functional
 - Zero lint/tsc errors, zero runtime errors
+
+---
+Task ID: 15 (Homepage UX improvements: auto-hide navbar, mascot bg removal, marquee, premium cards/buttons)
+Agent: main (orchestrator)
+Task: 5 specific UX/visual improvements requested by user
+
+## Completed Modifications
+
+### 1. Auto-hide navbar on scroll
+- **`src/smuggler/components/Navbar.tsx`**: added `hidden?: boolean` prop; navbar container now has `transition-transform duration-300` + `transform: hidden ? translateY(-100%) : translateY(0)`
+- **`src/app/page.tsx`**: added scroll-direction detection (`navbarHidden` state) — hides navbar when scrolling down past 120px, shows when scrolling up. Uses `requestAnimationFrame` + passive scroll listener for performance.
+
+### 2. Mascot background removed + repositioned
+- **`src/smuggler/components/Homepage.tsx`**: mascot `<motion.img>` now has `mixBlendMode: 'multiply'` — the white background blends into the cream page background, making it transparent-looking. Also repositioned: `left: '-160px'` (further left, out of the way of the typewriter text), `top: '-20px'`, width reduced from 560px to 520px. Drop shadow softened from 0.45 to 0.18 opacity.
+
+### 3. Trusted By — scrolling marquee with platform icons
+- Replaced the static 6-column grid of fake creator names with a **continuously scrolling horizontal marquee**
+- 8 real platforms: YouTube, LinkedIn, Twitter/X, Instagram, Facebook, Twitch, GitHub, Substack (each with lucide icon + name in Playfair Display)
+- Marquee: `animate={{ x: ['0%', '-50%'] }}` with 28s linear infinite loop, list duplicated for seamless wrap
+- Edge fade mask: `maskImage: linear-gradient(to right, transparent, black 8%, black 92%, transparent)` for premium fade-in/out at edges
+
+### 4. Popular tool cards now match AllTools style
+- **`src/smuggler/components/Homepage.tsx`**: `PopularToolCard` completely rewritten to match the AllTools `ToolCard` design:
+  - Uses `smuggler-hook-card` CSS class (warm neutral bg + layered shadows + hover elevation)
+  - 3D tilt: `useMotionValue` + `useSpring` + `useTransform` for mouse-driven rotateX/rotateY
+  - Spotlight effect: `useMotionTemplate` radial gradient following cursor
+  - Gold border glow on hover
+  - Icon box with spring hover (scale 1.1, rotate 5deg)
+  - "Popular" badge for popular tools
+  - Footer with uses count + arrow circle (turns green on hover)
+  - Staggered entrance with `delay: index * 0.07`
+
+### 5. Premium animated CTA buttons
+- **`src/app/globals.css`**: added 3 new premium button classes:
+  - `.smuggler-cta-premium` — green 3D press button with 4px bottom shadow + shine sweep on hover
+  - `.smuggler-cta-outline` — transparent with gold border glow on hover
+  - `.smuggler-cta-gold` — gold button with glow + shine sweep
+  - All have `@keyframes smuggler-cta-sweep` shine animation (0.9s ease-out)
+- **`src/smuggler/components/Homepage.tsx`**: applied these classes to all homepage CTAs:
+  - Hero "Explore All Tools" → `smuggler-cta-premium`
+  - Hero "See How It Works" → `smuggler-cta-outline`
+  - "View All 95 Tools" → `smuggler-cta-gold`
+  - Final CTA "Get Started Free" → `smuggler-cta-gold`
+  - Final CTA "Explore Tools" → `smuggler-cta-outline`
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - Navbar auto-hide: scroll down → transform translateY(-101px) (hidden) ✓, scroll up → translateY(0) (visible) ✓
+  - Trusted By marquee: YouTube/LinkedIn/Twitter/Instagram/Facebook/Twitch/GitHub/Substack present ✓, old fake logos removed ✓
+  - Mascot: mixBlendMode=multiply ✓ (white bg blends into cream page)
+  - Premium buttons: all 3 classes present ✓
+  - Popular tool cards: smuggler-hook-card class ✓, uses count ✓, 3D tilt + spotlight
+  - Functional: hero renders ✓, "Explore All Tools" navigates to tools view ✓
+  - No console errors ✓
+
+Stage Summary:
+- All 5 user-requested UX improvements implemented and verified
+- Navbar hides on scroll down, shows on scroll up (after hero section)
+- Mascot white background removed via mix-blend-mode multiply, repositioned to not shift typewriter text
+- Trusted By section now scrolls continuously with real platform icons
+- Homepage tool cards now match the AllTools section cards (3D tilt, spotlight, warm neutral bg, hover effects)
+- All CTA buttons upgraded to premium animated styles (shine sweep, 3D press, gold glow)
+- No regressions, no errors
