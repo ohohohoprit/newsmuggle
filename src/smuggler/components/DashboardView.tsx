@@ -237,7 +237,7 @@ export function DashboardView({
     <section
       className="relative min-h-screen overflow-hidden"
       style={{
-        backgroundColor: '#EAE3D2',
+        backgroundColor: 'var(--smuggler-bg)',
         backgroundImage:
           "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")",
         color: '#222',
@@ -263,7 +263,7 @@ export function DashboardView({
             variants={itemVariants}
             className="smuggler-card-shine-host relative flex flex-1 flex-col items-start gap-6 rounded-xl border border-black/5 p-6 sm:flex-row sm:items-center sm:p-8"
             style={{
-              background: 'linear-gradient(135deg, #F4EDDC, #E5DCB8)',
+              background: 'linear-gradient(135deg, var(--smuggler-bg-panel), var(--smuggler-border))',
               boxShadow:
                 '0 4px 15px rgba(0,0,0,0.05), inset 0 0 40px rgba(0,0,0,0.05)',
             }}
@@ -274,7 +274,7 @@ export function DashboardView({
             <div
               className="relative shrink-0 rounded p-2.5"
               style={{
-                backgroundColor: '#D8CEB7',
+                backgroundColor: 'var(--smuggler-border)',
                 boxShadow: '2px 4px 10px rgba(0,0,0,0.1)',
                 transform: 'rotate(-2deg)',
               }}
@@ -346,7 +346,7 @@ export function DashboardView({
             >
               <span>YOUR PLAN</span>
               <span
-                className="flex items-center gap-1 rounded bg-[rgba(228,216,180,0.15)] px-2 py-1 text-[0.7rem] text-[#E4D8B4]"
+                className="flex items-center gap-1 rounded bg-[rgba(228,216,180,0.15)] px-2 py-1 text-[0.7rem] text-[var(--smuggler-gold)]"
               >
                 <Crown size={12} className="fill-current" /> Creator Plan
               </span>
@@ -396,7 +396,7 @@ export function DashboardView({
                 key={stat.label}
                 className="smuggler-card-shine-host relative flex flex-col overflow-hidden rounded-[10px] border border-black/5 p-5"
                 style={{
-                  backgroundColor: '#F8F4EA',
+                  backgroundColor: 'var(--smuggler-bg-panel)',
                   boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
                 }}
               >
@@ -443,7 +443,7 @@ export function DashboardView({
             variants={itemVariants}
             className="smuggler-card-shine-host relative flex flex-col rounded-xl border border-black/5 p-6"
             style={{
-              backgroundColor: '#F8F4EA',
+              backgroundColor: 'var(--smuggler-bg-panel)',
               boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
             }}
           >
@@ -514,7 +514,7 @@ export function DashboardView({
             variants={itemVariants}
             className="smuggler-card-shine-host relative flex flex-col rounded-xl border border-black/5 p-6"
             style={{
-              backgroundColor: '#F8F4EA',
+              backgroundColor: 'var(--smuggler-bg-panel)',
               boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
             }}
           >
@@ -576,7 +576,7 @@ export function DashboardView({
                 }}
               >
                 <div className="relative z-10">
-                  <h4 className="m-0 mb-1.5 text-[1.1rem] text-[#E4D8B4]">
+                  <h4 className="m-0 mb-1.5 text-[1.1rem] text-[var(--smuggler-gold)]">
                     Discover Your Next Mission
                   </h4>
                   <p className="m-0 mb-4 text-[0.8rem] text-[#888]">
@@ -610,7 +610,7 @@ export function DashboardView({
               variants={itemVariants}
               className="smuggler-card-shine-host relative flex flex-col rounded-xl border border-black/5 p-6"
               style={{
-                backgroundColor: '#F8F4EA',
+                backgroundColor: 'var(--smuggler-bg-panel)',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
               }}
             >
@@ -681,7 +681,7 @@ export function DashboardView({
               variants={itemVariants}
               className="relative flex-1 rounded-xl border border-dashed border-[#C8BC9D] p-6"
               style={{
-                background: 'linear-gradient(135deg, #F0E8D5, #E5DCB8)',
+                background: 'linear-gradient(135deg, var(--smuggler-border), var(--smuggler-border))',
                 boxShadow: 'inset 0 0 20px rgba(0,0,0,0.05)',
               }}
             >
@@ -715,7 +715,7 @@ export function DashboardView({
           variants={itemVariants}
           className="flex flex-col items-center justify-between gap-6 rounded-xl p-6 sm:p-8 md:flex-row"
           style={{
-            background: 'linear-gradient(135deg, #E5DCB8, #D8CEB7)',
+            background: 'linear-gradient(135deg, var(--smuggler-border), var(--smuggler-border))',
             boxShadow: 'inset 0 0 40px rgba(0,0,0,0.05)',
           }}
         >
@@ -772,11 +772,11 @@ export function DashboardView({
                   key={i}
                   src={`https://i.pravatar.cc/100?img=${i}`}
                   alt={`Creator ${i}`}
-                  className="h-8 w-8 rounded-full border-2 border-[#E5DCB8] object-cover -ml-2.5 first:ml-0"
+                  className="h-8 w-8 rounded-full border-2 border-[var(--smuggler-border)] object-cover -ml-2.5 first:ml-0"
                 />
               ))}
               <div
-                className="z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#E5DCB8] bg-[#111] text-[0.65rem] font-bold text-white -ml-2.5"
+                className="z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--smuggler-border)] bg-[#111] text-[0.65rem] font-bold text-white -ml-2.5"
               >
                 +9.5K
               </div>

@@ -82,7 +82,7 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
         rotateY,
         transformPerspective: 1200,
       }}
-      className="group relative flex h-full min-h-[320px] flex-col cursor-pointer rounded-2xl border border-black/5 bg-[#FFFDFC] p-8 shadow-sm transition-shadow duration-300 hover:shadow-[0_15px_45px_rgba(0,0,0,0.1)]"
+      className="group relative flex h-full min-h-[320px] flex-col cursor-pointer rounded-2xl border border-black/5 bg-[var(--smuggler-bg-panel)] p-8 shadow-sm transition-shadow duration-300 hover:shadow-[0_15px_45px_rgba(0,0,0,0.1)]"
     >
       {/* Spotlight Effect */}
       <motion.div
@@ -119,7 +119,7 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
               <motion.span
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="rounded-md bg-[#EAE3D2] px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-[#8C6A3B] shadow-sm transition-colors group-hover:bg-[#C09858] group-hover:text-white"
+                className="rounded-md bg-[var(--smuggler-border)] px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-[#8C6A3B] shadow-sm transition-colors group-hover:bg-[#C09858] group-hover:text-white"
               >
                 Popular
               </motion.span>
@@ -156,16 +156,16 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
         </div>
 
         {/* Title + description */}
-        <h3 className="mb-2 truncate text-[1.2rem] font-extrabold tracking-tight text-[#111]">
+        <h3 className="mb-2 truncate text-[1.2rem] font-extrabold tracking-tight text-[var(--smuggler-text)]">
           {tool.name}
         </h3>
-        <p className="mb-4 line-clamp-2 text-[0.9rem] leading-[1.6] text-[#555]">
+        <p className="mb-4 line-clamp-2 text-[0.9rem] leading-[1.6] text-[var(--smuggler-text-secondary)]">
           {tool.desc}
         </p>
 
         {/* Agent Tip */}
         {tool.agentTip && (
-          <div className="relative mt-2 overflow-hidden rounded-lg border border-[#D5CFC4]/50 bg-[#FDFBF7] p-3 opacity-0 -translate-y-2 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+          <div className="relative mt-2 overflow-hidden rounded-lg border border-[#D5CFC4]/50 bg-[var(--smuggler-bg-panel)] p-3 opacity-0 -translate-y-2 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
             <div
               className="pointer-events-none absolute inset-0 z-0 opacity-0 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-30"
               style={{
@@ -176,7 +176,7 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
               <span className="mb-1 flex items-center gap-1.5 text-[0.65rem] font-black uppercase tracking-[1px] text-[#8C6A3B]">
                 <span aria-hidden>🕵️</span> Agent Tip
               </span>
-              <p className="font-serif text-[0.85rem] italic leading-snug text-[#444]">
+              <p className="font-serif text-[0.85rem] italic leading-snug text-[var(--smuggler-text-secondary)]">
                 &ldquo;{tool.agentTip}&rdquo;
               </p>
               <div className="mt-1.5 h-[1px] w-0 bg-[#C09858]/40 transition-all delay-100 duration-700 ease-out group-hover:w-full" />
@@ -189,11 +189,11 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
 
         {/* Footer */}
         <div className="mt-4 flex items-center justify-between border-t border-black/5 pt-4">
-          <div className="flex items-center gap-1.5 text-[0.8rem] font-semibold text-[#666]">
-            <Users size={16} className="text-[#888]" strokeWidth={2} />
+          <div className="flex items-center gap-1.5 text-[0.8rem] font-semibold text-[var(--smuggler-text-secondary)]">
+            <Users size={16} className="text-[var(--smuggler-text-muted)]" strokeWidth={2} />
             <span>{tool.uses} uses</span>
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-[#888] transition-colors duration-300 group-hover:bg-[#1A3620] group-hover:text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-[var(--smuggler-text-muted)] transition-colors duration-300 group-hover:bg-[#1A3620] group-hover:text-white">
             <ArrowRight
               size={14}
               strokeWidth={2.5}

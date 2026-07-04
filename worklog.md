@@ -989,3 +989,76 @@ Stage Summary:
 - Homepage tool cards now match the AllTools section cards (3D tilt, spotlight, warm neutral bg, hover effects)
 - All CTA buttons upgraded to premium animated styles (shine sweep, 3D press, gold glow)
 - No regressions, no errors
+
+---
+Task ID: 16 (Full dark mode support for all tool pages + dashboard)
+Agent: main (orchestrator)
+Task: Fix hardcoded light-mode colors in ToolPageEngine, HookGeneratorPage, DashboardView, AllToolsSection, ToolCard, and CSS classes so dark mode works across the entire app
+
+## Current Project Status Assessment
+
+The app had a theme system (Task 14) with light/dark CSS variables, but tool pages (ToolPageEngine, HookGeneratorPage) and DashboardView had hardcoded hex colors (`#F8F5E6`, `#FFFDF5`, `#111`, `#444`, etc.) instead of CSS variables. In dark mode, this caused light cream backgrounds with dark text — unreadable panels on dark sections. The `.smuggler-surface-warm` and `.smuggler-panel-premium` CSS classes also had `!important` hardcoded backgrounds that overrode the theme variables.
+
+## Completed Modifications
+
+### 1. ToolPageEngine.tsx — 40+ hardcoded colors → CSS variables
+Bulk-replaced all hardcoded hex colors with `var(--smuggler-*)` CSS variables:
+- Section bg: `#F8F5E6` → `var(--smuggler-bg)`
+- Panel bg: `#FFFDF5` → `var(--smuggler-bg-panel)`
+- Empty state bg: `#FAF6EC` → `var(--smuggler-bg-panel)`
+- Hover bg: `#F0E8D5` → `var(--smuggler-border)`
+- Text colors: `#111`, `#222` → `var(--smuggler-text)`; `#444`, `#555`, `#666` → `var(--smuggler-text-secondary)`; `#888`, `#999` → `var(--smuggler-text-muted)`
+- Borders: `#E5DDC8`, `#D5C9AA` → `var(--smuggler-border)`
+- Green accent: `#1E5E3E` → `var(--smuggler-accent-green)`
+- Gold: `#8C6A3B`, `#C09A4D` → `var(--smuggler-gold)`
+- Button bg: `bg-white` → `bg-[var(--smuggler-bg-panel)]`
+- Semantic colors preserved: score colors (`#4C6B4A`, `#8B9E5E`, `#C28B5E`, `#9B3D3D`), stamp red (`#C0392B`), platform brand colors
+
+### 2. HookGeneratorPage.tsx — same treatment
+Identical bulk replacement for the dedicated Hook Generator page.
+
+### 3. DashboardView.tsx — 6 hardcoded bg colors → CSS variables
+- `#EAE3D2` → `var(--smuggler-bg)`
+- `#F8F4EA` → `var(--smuggler-bg-panel)`
+- `#F4EDDC` → `var(--smuggler-bg-panel)`
+- `#E5DCB8` → `var(--smuggler-border)`
+- `#D8CEB7` → `var(--smuggler-border)`
+- `#F0E8D5` → `var(--smuggler-border)`
+
+### 4. AllToolsSection.tsx + ToolCard.tsx — hardcoded colors → CSS variables
+- `#FDFBF7` → `var(--smuggler-bg)` / `var(--smuggler-bg-panel)`
+- `#1A120D` → `var(--smuggler-text)`
+- `#1A3620` → `var(--smuggler-accent-green)`
+- `#FFFDFC` → `var(--smuggler-bg-panel)`
+- `#EAE3D2` → `var(--smuggler-border)`
+- Text colors: `#111` → `var(--smuggler-text)`, `#555`/`#444`/`#666` → `var(--smuggler-text-secondary)`, `#888` → `var(--smuggler-text-muted)`
+
+### 5. globals.css — CSS class backgrounds → CSS variables
+- `.smuggler-panel-premium` background: `#FFFDF5` → `var(--smuggler-bg-panel)`
+- `.smuggler-panel-analysis` background: `#FFFDF5` → `var(--smuggler-bg-panel)`
+- `.smuggler-hook-card` background: `#FBF8F1` → `var(--smuggler-bg-panel)`
+- `.smuggler-input-premium` background: `#FCFAF4` → `var(--smuggler-bg-panel)`
+- `.smuggler-surface-warm` background: `#FBF8F1 !important` → `var(--smuggler-bg-panel) !important`
+- `.smuggler-surface-warm-deep` background: `#F7F3EA !important` → `var(--smuggler-bg-panel) !important`
+- `.smuggler-protip-card` background: `#FFFDF5` → `var(--smuggler-bg-panel)`
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser dark mode QA on tool page:
+  - Section bg: `rgb(11,10,8)` (dark) ✓
+  - Panel bg: `rgb(19,17,14)` (dark panel) ✓
+  - Text color: `rgb(244,238,223)` (cream) ✓
+  - Generate works ✓, analysis section renders ✓
+- ✅ agent-browser light mode QA on tool page:
+  - Panel bg: `rgb(255,253,245)` (cream) ✓
+  - Text color: `rgb(26,26,26)` (dark) ✓
+- ✅ No console errors
+- ✅ Semantic colors preserved (score colors, stamps, platform brands)
+
+Stage Summary:
+- Dark mode now works across the ENTIRE app — homepage, dashboard, all tools, all tools list
+- All hardcoded hex colors replaced with CSS variables (except semantic colors like score badges and platform brand colors)
+- CSS classes with `!important` backgrounds now use theme-aware variables
+- Zero lint/tsc errors, zero runtime errors

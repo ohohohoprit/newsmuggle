@@ -94,7 +94,7 @@ export default function AllToolsSection({
 
   return (
     <section
-      className="relative bg-[#FDFBF7] text-[#1A120D]"
+      className="relative bg-[var(--smuggler-bg)] text-[var(--smuggler-text)]"
       aria-labelledby="all-tools-heading"
     >
       <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-8 lg:px-16">
@@ -317,7 +317,7 @@ export default function AllToolsSection({
                       }}
                       className={`w-full cursor-pointer px-5 py-2.5 text-left text-sm font-medium transition-colors hover:bg-black/5 ${
                         sortBy === opt
-                          ? 'bg-black/5 font-bold text-[#1A3620]'
+                          ? 'bg-black/5 font-bold text-[var(--smuggler-accent-green)]'
                           : 'text-[#555]'
                       }`}
                     >
@@ -341,7 +341,7 @@ export default function AllToolsSection({
               <SlidersHorizontal size={18} strokeWidth={2} className="text-[#555]" />
               <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#1A3620] px-1.5 text-[0.7rem] font-bold text-white">
+                <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--smuggler-accent-green)] px-1.5 text-[0.7rem] font-bold text-white">
                   {activeFilterCount}
                 </span>
               )}
@@ -354,7 +354,7 @@ export default function AllToolsSection({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute right-0 top-full z-50 mt-4 w-[360px] origin-top-right rounded-2xl border border-black/10 bg-[#FDFBF7] p-6 shadow-2xl"
+                  className="absolute right-0 top-full z-50 mt-4 w-[360px] origin-top-right rounded-2xl border border-black/10 bg-[var(--smuggler-bg)] p-6 shadow-2xl"
                   role="dialog"
                   aria-modal="true"
                 >
@@ -389,7 +389,7 @@ export default function AllToolsSection({
           {filteredTools.length === 0 && (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <Search className="mb-4 h-12 w-12 text-[#888]" strokeWidth={1.5} />
-              <h3 className="mb-2 font-serif text-2xl font-bold text-[#1A120D]">
+              <h3 className="mb-2 font-serif text-2xl font-bold text-[var(--smuggler-text)]">
                 No tools found
               </h3>
               <p className="text-[#666]">
@@ -406,7 +406,7 @@ export default function AllToolsSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1A3620] to-[#213A28] p-12 text-center text-[#F4EEDF] md:p-16"
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--smuggler-accent-green)] to-[#213A28] p-12 text-center text-[#F4EEDF] md:p-16"
           >
             {/* paper grain overlay */}
             <div
@@ -439,7 +439,7 @@ export default function AllToolsSection({
               <button
                 type="button"
                 onClick={() => onSelectTool('request-tool')}
-                className="group inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-[#C09858] px-8 py-4 font-bold text-[#1A120D] shadow-lg transition-all hover:bg-[#D4AB6A] hover:shadow-[0_8px_30px_rgba(192,152,88,0.35)]"
+                className="group inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-[#C09858] px-8 py-4 font-bold text-[var(--smuggler-text)] shadow-lg transition-all hover:bg-[#D4AB6A] hover:shadow-[0_8px_30px_rgba(192,152,88,0.35)]"
               >
                 Request a Tool
                 <ArrowRight
