@@ -1,0 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Smuggler brand colors */
+  --color-smuggler-bg: var(--smuggler-bg);
+  --color-smuggler-bg-panel: var(--smuggler-bg-panel);
+  --color-smuggler-border: var(--smuggler-border);
+  --color-smuggler-text: var(--smuggler-text);
+  --color-smuggler-text-secondary: var(--smuggler-text-secondary);
+  --color-smuggler-text-muted: var(--smuggler-text-muted);
+  --color-smuggler-green: var(--smuggler-green);
+  --color-smuggler-gold: var(--smuggler-gold);
+  --color-smuggler-red: var(--smuggler-red);
+  --color-smuggler-blue: var(--smuggler-blue);
+  --color-smuggler-purple: var(--smuggler-purple);
+  --color-smuggler-orange: var(--smuggler-orange);
+  --color-smuggler-yellow: var(--smuggler-yellow);
+  --color-smuggler-cream: var(--smuggler-cream);
+  --color-smuggler-forest: var(--smuggler-forest);
+
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-serif: 'Lora', serif;
+  --font-mono-brand: 'JetBrains Mono', monospace;
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Content Smuggler brand palette - dark vintage paper / secret agent aesthetic */
+  --smuggler-bg: #0B0A08;
+  --smuggler-bg-panel: #13110E;
+  --smuggler-border: #24211D;
+  --smuggler-text: #F4EEDF;
+  --smuggler-text-secondary: #9A9386;
+  --smuggler-text-muted: #6B655E;
+  --smuggler-green: #597F56;
+  --smuggler-gold: #C09858;
+  --smuggler-red: #A84841;
+  --smuggler-blue: #4A7A8C;
+  --smuggler-purple: #755B8F;
+  --smuggler-orange: #B87B3E;
+  --smuggler-yellow: #B8A03E;
+  --smuggler-cream: #E6D5B8;
+  --smuggler-forest: #213A28;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ===========================
+   Content Smuggler Design System
+   ===========================
+*/
+
+.smuggler-app {
+  background-color: var(--smuggler-bg);
+  color: var(--smuggler-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(192, 152, 88, 0.04), transparent 35%),
+    radial-gradient(circle at 80% 90%, rgba(89, 127, 86, 0.04), transparent 35%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-blend-mode: overlay;
+}
+
+.smuggler-text-green { color: var(--smuggler-green) !important; }
+.smuggler-text-gold { color: var(--smuggler-gold) !important; }
+.smuggler-text-red { color: var(--smuggler-red) !important; }
+.smuggler-text-orange { color: var(--smuggler-orange) !important; }
+.smuggler-text-blue { color: var(--smuggler-blue) !important; }
+.smuggler-text-purple { color: var(--smuggler-purple) !important; }
+.smuggler-text-yellow { color: var(--smuggler-yellow) !important; }
+.smuggler-text-muted { color: var(--smuggler-text-muted) !important; }
+
+.smuggler-bg-green { background-color: rgba(89, 127, 86, 0.15); color: var(--smuggler-green); }
+.smuggler-bg-orange { background-color: rgba(184, 123, 62, 0.15); color: var(--smuggler-orange); }
+.smuggler-bg-blue { background-color: rgba(74, 122, 140, 0.15); color: var(--smuggler-blue); }
+.smuggler-bg-purple { background-color: rgba(117, 91, 143, 0.15); color: var(--smuggler-purple); }
+.smuggler-bg-yellow { background-color: rgba(184, 160, 62, 0.15); color: var(--smuggler-yellow); }
+.smuggler-bg-red { background-color: rgba(168, 72, 65, 0.15); color: var(--smuggler-red); }
+
+/* Buttons */
+.smuggler-btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+}
+.smuggler-btn-primary {
+  background-color: #213A28;
+  color: #F4EEDF;
+  border: 1px solid #33543D;
+  box-shadow: 0 2px 8px rgba(33, 58, 40, 0.4);
+}
+.smuggler-btn-primary:hover {
+  background-color: #2A4833;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 58, 40, 0.55);
+}
+.smuggler-btn-secondary {
+  background-color: transparent;
+  color: var(--smuggler-text);
+  border: 1px solid var(--smuggler-border);
+}
+.smuggler-btn-secondary:hover {
+  background-color: rgba(255,255,255,0.05);
+  border-color: rgba(192, 152, 88, 0.3);
+}
+.smuggler-btn-gold {
+  background-color: rgba(192, 152, 88, 0.1);
+  color: var(--smuggler-gold);
+  border: 1px solid rgba(192, 152, 88, 0.35);
+}
+.smuggler-btn-gold:hover {
+  background-color: rgba(192, 152, 88, 0.18);
+  border-color: rgba(192, 152, 88, 0.6);
+}
+
+/* Paper / Document Effects */
+.smuggler-paper {
+  background-color: #E6D5B8;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+  color: #1A120D;
+  border-radius: 2px;
+  box-shadow: 2px 4px 12px rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Wax Seal */
+.smuggler-wax-seal {
+  background-color: #213A28;
+  border-radius: 50%;
+  color: #4C6B4A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: bold;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 2px 4px 6px rgba(0,0,0,0.5);
+  border: 2px solid #16261A;
+}
+
+/* Stamps */
+.smuggler-stamp-secret {
+  border: 2px solid #8B2C24;
+  color: #8B2C24;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 4px 8px;
+  transform: rotate(-15deg);
+  opacity: 0.85;
+}
+.smuggler-stamp-classified {
+  border: 3px solid #8B2C24;
+  color: #8B2C24;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 16px;
+  padding: 4px 12px;
+  transform: rotate(-10deg);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Panels */
+.smuggler-panel {
+  background-color: var(--smuggler-bg-panel);
+  border: 1px solid var(--smuggler-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Custom scrollbar */
+.smuggler-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.smuggler-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.smuggler-scroll::-webkit-scrollbar-thumb {
+  background: rgba(192, 152, 88, 0.3);
+  border-radius: 3px;
+}
+.smuggler-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(192, 152, 88, 0.5);
+}
+
+/* Light scrollbar (for paper sections) */
+.smuggler-scroll-light::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.smuggler-scroll-light::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+.smuggler-scroll-light::-webkit-scrollbar-thumb {
+  background: rgba(192, 152, 88, 0.5);
+  border-radius: 4px;
+}
+.smuggler-scroll-light::-webkit-scrollbar-thumb:hover {
+  background: rgba(192, 152, 88, 0.7);
+}
+
+/* Typewriter caret blink */
+@keyframes smuggler-caret {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.smuggler-caret {
+  display: inline-block;
+  width: 2px;
+  background: var(--smuggler-gold);
+  animation: smuggler-caret 1s steps(2) infinite;
+  margin-left: 2px;
+}
+
+/* Radar scan animation */
+@keyframes smuggler-radar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.smuggler-radar {
+  animation: smuggler-radar 3s linear infinite;
+}
+
+/* Subtle floating animation */
+@keyframes smuggler-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.smuggler-float {
+  animation: smuggler-float 4s ease-in-out infinite;
+}
+
+/* Text shadow for hero title */
+.smuggler-hero-title-shadow {
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Pulse glow for badges */
+@keyframes smuggler-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 152, 88, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(192, 152, 88, 0); }
+}
+.smuggler-glow {
+  animation: smuggler-glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* Hide scrollbar but allow scroll */
+.smuggler-scroll-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.smuggler-scroll-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Texture overlay utility */
+.smuggler-texture-overlay {
+  background-image: url('/smuggler/assets/paper-grain-noise.jpg');
+  background-blend-mode: multiply;
+  background-size: cover;
+}
