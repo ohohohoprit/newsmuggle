@@ -1,12 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useTheme } from 'next-themes';
 import {
   Crosshair,
   UserRoundSearch,
   Star,
   ChevronDown,
   Search,
+  Sun,
+  Moon,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -36,11 +39,26 @@ const NAV_LINKS: NavLinkConfig[] = [
   { label: 'Resources', hasCaret: true },
 ];
 
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 text-[var(--smuggler-text-secondary)] transition-all hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-gold)]"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      {isDark ? <Sun size={16} /> : <Moon size={16} />}
+    </button>
+  );
+}
+
 export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView }: NavbarProps) {
   return (
     <div
       className="sticky top-0 z-50 w-full border-b border-[var(--smuggler-border)]/50 backdrop-blur-md"
-      style={{ backgroundColor: 'rgba(11, 10, 8, 0.72)' }}
+      style={{ backgroundColor: 'var(--smuggler-navbar-bg)' }}
     >
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
@@ -178,17 +196,18 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView }: N
           </ul>
         </div>
 
-        {/* Right: Search trigger + Auth Buttons */}
+        {/* Right: Search trigger + Theme Toggle + Auth Buttons */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <button
             type="button"
             onClick={onOpenPalette}
-            className="group hidden items-center gap-2 rounded-lg border border-[var(--smuggler-border)] bg-black/20 px-3 py-2 text-[0.8rem] text-[var(--smuggler-text-muted)] transition-colors hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-text)] md:flex"
+            className="group hidden items-center gap-2 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/30 px-3 py-2 text-[0.8rem] text-[var(--smuggler-text-muted)] transition-colors hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-text)] md:flex"
             aria-label="Open command palette"
           >
             <Search size={14} />
             <span>Search tools...</span>
-            <kbd className="ml-2 rounded border border-[var(--smuggler-border)] bg-black/40 px-1.5 py-0.5 font-mono text-[0.6rem] text-[var(--smuggler-text-muted)]">
+            <kbd className="ml-2 rounded border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 px-1.5 py-0.5 font-mono text-[0.6rem] text-[var(--smuggler-text-muted)]">
               ⌘K
             </kbd>
           </button>

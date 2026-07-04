@@ -68,39 +68,96 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
 
-  /* Content Smuggler brand palette - dark vintage paper / secret agent aesthetic */
+  /* shadcn vars — LIGHT THEME (default) */
+  --background: #F8F5E6;
+  --foreground: #1A1A1A;
+  --card: #FFFDF5;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFDF5;
+  --popover-foreground: #1A1A1A;
+  --primary: #1E5E3E;
+  --primary-foreground: #ffffff;
+  --secondary: #F0E8D5;
+  --secondary-foreground: #1A1A1A;
+  --muted: #F0E8D5;
+  --muted-foreground: #6b6354;
+  --accent: #F0E8D5;
+  --accent-foreground: #1A1A1A;
+  --destructive: #C0392B;
+  --border: #E5DDC8;
+  --input: #E5DDC8;
+  --ring: #C09858;
+  --chart-1: #4C6B4A;
+  --chart-2: #C09A4D;
+  --chart-3: #4A7A8C;
+  --chart-4: #755B8F;
+  --chart-5: #C28B5E;
+  --sidebar: #FFFDF5;
+  --sidebar-foreground: #1A1A1A;
+  --sidebar-primary: #1E5E3E;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #F0E8D5;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: #E5DDC8;
+  --sidebar-ring: #C09858;
+
+  /* Content Smuggler brand palette — LIGHT MODE (warm cream/paper) */
+  --smuggler-bg: #F8F5E6;
+  --smuggler-bg-panel: #FFFDF5;
+  --smuggler-border: #E5DDC8;
+  --smuggler-text: #1A1A1A;
+  --smuggler-text-secondary: #5a5448;
+  --smuggler-text-muted: #8a8170;
+  --smuggler-green: #2D5A3D;
+  --smuggler-gold: #C09858;
+  --smuggler-red: #C0392B;
+  --smuggler-blue: #3B648C;
+  --smuggler-purple: #624B8B;
+  --smuggler-orange: #B87B3E;
+  --smuggler-yellow: #B8A03E;
+  --smuggler-cream: #E6D5B8;
+  --smuggler-forest: #1E5E3E;
+  --smuggler-accent-green: #1E5E3E;
+  --smuggler-navbar-bg: rgba(248, 245, 230, 0.8);
+  --smuggler-hero-bg: #F8F5E6;
+  --smuggler-panel-hover: rgba(192, 152, 88, 0.06);
+}
+
+.dark {
+  --background: #0B0A08;
+  --foreground: #F4EEDF;
+  --card: #13110E;
+  --card-foreground: #F4EEDF;
+  --popover: #13110E;
+  --popover-foreground: #F4EEDF;
+  --primary: #C09858;
+  --primary-foreground: #0B0A08;
+  --secondary: #1A1815;
+  --secondary-foreground: #F4EEDF;
+  --muted: #1A1815;
+  --muted-foreground: #9A9386;
+  --accent: #1A1815;
+  --accent-foreground: #F4EEDF;
+  --destructive: #A84841;
+  --border: #24211D;
+  --input: #24211D;
+  --ring: #C09858;
+  --chart-1: #597F56;
+  --chart-2: #C09858;
+  --chart-3: #4A7A8C;
+  --chart-4: #755B8F;
+  --chart-5: #B87B3E;
+  --sidebar: #13110E;
+  --sidebar-foreground: #F4EEDF;
+  --sidebar-primary: #C09858;
+  --sidebar-primary-foreground: #0B0A08;
+  --sidebar-accent: #1A1815;
+  --sidebar-accent-foreground: #F4EEDF;
+  --sidebar-border: #24211D;
+  --sidebar-ring: #C09858;
+
+  /* Content Smuggler brand palette — DARK MODE */
   --smuggler-bg: #0B0A08;
   --smuggler-bg-panel: #13110E;
   --smuggler-border: #24211D;
@@ -116,27 +173,10 @@
   --smuggler-yellow: #B8A03E;
   --smuggler-cream: #E6D5B8;
   --smuggler-forest: #213A28;
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --smuggler-accent-green: #4C6B4A;
+  --smuggler-navbar-bg: rgba(11, 10, 8, 0.72);
+  --smuggler-hero-bg: #0B0A08;
+  --smuggler-panel-hover: rgba(255, 255, 255, 0.03);
 }
 
 @layer base {

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar, { type AuthMode, type NavView } from '@/smuggler/components/Navbar';
-import Hero from '@/smuggler/components/Hero';
+import Homepage from '@/smuggler/components/Homepage';
 import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
 import DashboardView from '@/smuggler/components/DashboardView';
@@ -121,12 +121,10 @@ export default function Home() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
             >
-              <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-8 lg:px-16">
-                <Hero onExploreTools={handleExploreTools} />
-              </div>
-              <ToolsSection
-                onSelectTool={handleSelectTool}
+              <Homepage
                 onExploreTools={handleExploreTools}
+                onSelectTool={handleSelectTool}
+                onOpenAuth={handleOpenAuth}
               />
             </motion.div>
           )}
@@ -184,9 +182,11 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      <div className="mt-auto">
-        <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
-      </div>
+      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && (
+        <div className="mt-auto">
+          <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
+        </div>
+      )}
 
       {/* Modals */}
       <AuthModal
