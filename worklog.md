@@ -1062,3 +1062,68 @@ Stage Summary:
 - All hardcoded hex colors replaced with CSS variables (except semantic colors like score badges and platform brand colors)
 - CSS classes with `!important` backgrounds now use theme-aware variables
 - Zero lint/tsc errors, zero runtime errors
+
+---
+Task ID: 17 (Visual consistency + homepage image/logo replacement)
+Agent: main (orchestrator)
+Task: Replace hero image + logo, fix typewriter layout shift, add more platforms to trusted-by strip, make tool page plates match All Tools card style
+
+## Completed Modifications
+
+### 1. New hero image + logo
+- Copied `upload/craiyon_004148_image.png` → `public/smuggler/assets/hero-mascot-new.png`
+- Copied `upload/ChatGPT Image Jul 3, 2026, 09_05_19 PM.png` → `public/smuggler/assets/logo-new.png`
+- **Homepage**: replaced all `mascot-5.png` references with `hero-mascot-new.png` (hero section + final CTA)
+- **Homepage hero**: mascot uses `mixBlendMode: 'multiply'` to blend white bg into cream page
+- **Homepage final CTA**: mascot in circular badge (380px, gold border, drop-shadow) — works on dark gradient
+- **Navbar**: replaced Crosshair+UserRoundSearch icon combo with `<img src="logo-new.png">` in circular container with `mixBlendMode: 'multiply'`
+- **Footer**: replaced Crosshair icon with `<img src="logo-new.png">` in circular container
+- **HookGeneratorPage**: replaced `mascot-5.png` with `hero-mascot-new.png` in circular badge (180px, gold border)
+- **ToolPageEngine**: same — circular badge for all 94 tools
+
+### 2. Typewriter layout shift fix
+- Changed typewriter container `minHeight` from `1.1em` to `2.4em` — reserves space for 2 lines, preventing page jump when text changes
+- Reduced font-size from `clamp(2.5rem, 6vw, 4.5rem)` to `clamp(2rem, 5vw, 3.8rem)` — fits better, less wrapping
+- Changed `lineHeight` from `1.05` to `1.1` — smoother wrapping
+
+### 3. Trusted-by strip — 10 real platforms
+- Replaced 8 platforms with 10: YouTube, LinkedIn, Instagram, TikTok, Twitter/X, Facebook, Discord, Pinterest, Reddit, Medium
+- Added lucide imports: `Music2` (TikTok), `MessageCircle` (Discord), `Globe` (Reddit), `ImageIcon` (Pinterest)
+- Marquee: 28s linear infinite scroll, edge-fade mask, duplicated list for seamless loop
+
+### 4. Tool page plates — premium interactive style
+- **Analysis panels** (`.smuggler-panel-analysis` CSS): added `transform: translateY(-3px)` on hover + `transition: transform 0.35s ease` — matches the hover lift of All Tools cards
+- **Result cards**: already use `.smuggler-hook-card` class with layered shadows + hover elevation
+- **Input/output panels**: already use `.smuggler-panel-premium` with hover elevation
+- All panels now have consistent background treatment (`var(--smuggler-bg-panel)`) and hover behavior
+
+### 5. Files changed
+- `public/smuggler/assets/hero-mascot-new.png` — NEW (new hero image)
+- `public/smuggler/assets/logo-new.png` — NEW (new logo)
+- `src/smuggler/components/Homepage.tsx` — hero image, logo, typewriter min-height, platforms, final CTA mascot
+- `src/smuggler/components/Navbar.tsx` — logo image replacement
+- `src/smuggler/components/Footer.tsx` — logo image replacement
+- `src/smuggler/components/HookGeneratorPage.tsx` — mascot image + circular badge
+- `src/smuggler/components/ToolPageEngine.tsx` — mascot image + circular badge
+- `src/app/globals.css` — analysis panel hover lift
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - New hero image on homepage ✓
+  - New logo on navbar ✓
+  - TikTok, Discord, Pinterest, Reddit, Medium in trusted-by strip ✓
+  - Typewriter min-height: 2.4em (layout stable) ✓
+  - Tool page mascot: circular badge ✓
+  - Generate works (5 results) ✓
+  - No console errors ✓
+
+Stage Summary:
+- New hero image + logo integrated across entire app
+- Typewriter layout shift fixed with reserved min-height
+- Trusted-by strip now has 10 real platforms with seamless marquee
+- Tool page mascots in circular badges (work in both light/dark mode)
+- Analysis panels have hover lift matching All Tools cards
+- All existing functionality preserved, no errors

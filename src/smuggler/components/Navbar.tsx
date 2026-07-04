@@ -79,27 +79,19 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
             className="flex items-center gap-3 text-left"
             aria-label="Content Smuggler home"
           >
-            {/* Logo badge */}
+            {/* Logo image */}
             <div
-              className="relative flex h-11 w-11 items-center justify-center rounded-full"
+              className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full"
               style={{
                 backgroundColor: 'rgba(192,152,88,0.08)',
                 border: '1px solid rgba(192,152,88,0.25)',
               }}
             >
-              <Crosshair
-                className="absolute"
-                size={44}
-                strokeWidth={1}
-                style={{ color: 'var(--smuggler-gold)' }}
-                aria-hidden="true"
-              />
-              <UserRoundSearch
-                className="relative"
-                size={18}
-                strokeWidth={2.5}
-                style={{ color: 'var(--smuggler-cream)' }}
-                aria-hidden="true"
+              <img
+                src="/smuggler/assets/logo-new.png"
+                alt="Content Smuggler logo"
+                className="h-full w-full object-cover"
+                style={{ mixBlendMode: 'multiply' }}
               />
             </div>
 

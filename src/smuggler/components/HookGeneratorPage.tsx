@@ -717,13 +717,14 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}
             >
-              {/* Mascot — fully visible, gentle float + soft shadow */}
+              {/* Mascot — circular badge for both themes */}
               <motion.img
-                src="/smuggler/assets/mascot-5.png"
+                src="/smuggler/assets/hero-mascot-new.png"
                 alt="Content Smuggler spy mascot carrying classified documents"
-                className="smuggler-mascot-float relative z-10 h-[180px] w-auto object-contain"
+                className="smuggler-mascot-float relative z-10 h-[180px] w-[180px] rounded-full border-2 object-cover"
                 style={{
-                  filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18)) drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                  borderColor: 'rgba(192,152,88,0.3)',
+                  filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18))',
                 }}
               />
               {/* TOP SECRET stamp — bottom-right, over the briefcase/documents, never on the face */}

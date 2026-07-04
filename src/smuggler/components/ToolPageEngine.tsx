@@ -628,7 +628,7 @@ export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
 
             {/* Mascot + stamp */}
             <motion.div className="relative hidden h-[180px] w-[200px] justify-center lg:flex" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}>
-              <motion.img src="/smuggler/assets/mascot-5.png" alt="Content Smuggler spy mascot" className="smuggler-mascot-float relative z-10 h-[180px] w-auto object-contain" style={{ filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18)) drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
+              <motion.img src="/smuggler/assets/hero-mascot-new.png" alt="Content Smuggler spy mascot" className="smuggler-mascot-float relative z-10 h-[180px] w-[180px] rounded-full border-2 object-cover" style={{ borderColor: 'rgba(192,152,88,0.3)', filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18))' }} />
               <motion.div className="smuggler-stamp-entrance smuggler-stamp-swing-loop pointer-events-none absolute bottom-[6px] right-[-4px] z-20 rounded-md border-[3px] border-[#C0392B] bg-[var(--smuggler-bg-panel)]/30 px-3 py-1.5 text-center backdrop-blur-[1px]" style={{ opacity: 0.92 }}>
                 <span className="block text-[0.85rem] font-black tracking-[2px] text-[#C0392B]" style={{ fontFamily: '"JetBrains Mono", monospace' }}>TOP SECRET</span>
                 <span className="block text-[0.5rem] font-bold tracking-[1px] text-[#C0392B]" style={{ fontFamily: '"JetBrains Mono", monospace' }}>HANDLE WITH CARE</span>

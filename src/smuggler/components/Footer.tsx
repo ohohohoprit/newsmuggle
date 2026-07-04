@@ -109,10 +109,15 @@ export default function Footer({ onNavigate, onOpenAuth }: FooterProps) {
           <div className="max-w-[340px]">
             <div className="flex items-center gap-3 mb-5">
               <div
-                className="w-12 h-12 rounded-full border-2 border-[var(--smuggler-gold)] flex items-center justify-center"
+                className="w-12 h-12 rounded-full border-2 border-[var(--smuggler-gold)] overflow-hidden flex items-center justify-center"
                 aria-hidden="true"
               >
-                <Crosshair className="text-[var(--smuggler-gold)]" size={22} />
+                <img
+                  src="/smuggler/assets/logo-new.png"
+                  alt=""
+                  className="h-full w-full object-cover"
+                  style={{ mixBlendMode: 'multiply' }}
+                />
               </div>
               <div className="flex flex-col leading-[1.1]">
                 <span className="font-[family-name:var(--font-heading)] font-black text-xl text-[var(--smuggler-text)] flex items-center gap-2">

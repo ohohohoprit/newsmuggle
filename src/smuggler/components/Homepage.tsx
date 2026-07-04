@@ -53,6 +53,10 @@ import {
   Twitch,
   Github,
   Rss,
+  Music2,
+  MessageCircle,
+  Globe,
+  ImageIcon,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -398,11 +402,11 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
             className="mb-7 flex items-baseline"
             style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
-              lineHeight: 1.05,
+              fontSize: 'clamp(2rem, 5vw, 3.8rem)',
+              lineHeight: 1.1,
               fontWeight: 800,
               color: 'var(--smuggler-green)',
-              minHeight: '1.1em',
+              minHeight: '2.4em',
             }}
           >
             <span>{typed}</span>
@@ -714,14 +718,14 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
 
             {/* Floating mascot — mix-blend-mode multiply removes the white background on light theme */}
             <motion.img
-              src="/smuggler/assets/mascot-5.png"
+              src="/smuggler/assets/hero-mascot-new.png"
               alt="Content Smuggler AI spy mascot"
               style={{
                 position: 'absolute',
-                left: '-160px',
-                top: '-20px',
-                width: '520px',
-                height: '520px',
+                left: '-140px',
+                top: '-10px',
+                width: '500px',
+                height: '500px',
                 objectFit: 'contain',
                 zIndex: 10,
                 transform: 'translateZ(80px)',
@@ -746,12 +750,14 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
 const TRUSTED_PLATFORMS: Array<{ name: string; icon: typeof Youtube }> = [
   { name: 'YouTube', icon: Youtube },
   { name: 'LinkedIn', icon: Linkedin },
-  { name: 'Twitter / X', icon: Twitter },
   { name: 'Instagram', icon: Instagram },
+  { name: 'TikTok', icon: Music2 },
+  { name: 'Twitter / X', icon: Twitter },
   { name: 'Facebook', icon: Facebook },
-  { name: 'Twitch', icon: Twitch },
-  { name: 'GitHub', icon: Github },
-  { name: 'Substack', icon: Rss },
+  { name: 'Discord', icon: MessageCircle },
+  { name: 'Pinterest', icon: ImageIcon },
+  { name: 'Reddit', icon: Globe },
+  { name: 'Medium', icon: PenLine },
 ];
 
 function TrustedBySection() {
@@ -2479,13 +2485,15 @@ function FinalCtaSection({
           aria-hidden="true"
         >
           <motion.img
-            src="/smuggler/assets/mascot-5.png"
+            src="/smuggler/assets/hero-mascot-new.png"
             alt=""
             style={{
-              width: '440px',
-              height: '440px',
-              objectFit: 'contain',
-              filter: 'drop-shadow(0px 30px 60px rgba(0,0,0,0.5))',
+              width: '380px',
+              height: '380px',
+              objectFit: 'cover',
+              borderRadius: '50%',
+              border: '3px solid rgba(192, 152, 88, 0.4)',
+              boxShadow: '0px 20px 50px rgba(0,0,0,0.5)',
               marginLeft: 'auto',
               pointerEvents: 'none',
             }}
