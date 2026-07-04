@@ -7,6 +7,7 @@ import Hero from '@/smuggler/components/Hero';
 import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
 import DashboardView from '@/smuggler/components/DashboardView';
+import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
 import ToolModal from '@/smuggler/components/ToolModal';
@@ -58,6 +59,11 @@ export default function Home() {
   const handleSelectTool = useCallback((toolId: string) => {
     if (toolId === 'request-tool') {
       setToast('📡 Request logged. Our agents are on it.');
+      return;
+    }
+    // Hook Generator gets its own dedicated full page
+    if (toolId === 'hook-generator') {
+      setView('hook-generator');
       return;
     }
     setSelectedToolId(toolId);
@@ -123,6 +129,18 @@ export default function Home() {
               transition={{ duration: 0.4, ease: 'easeInOut' }}
             >
               <AllToolsSection onSelectTool={handleSelectTool} />
+            </motion.div>
+          )}
+
+          {view === 'hook-generator' && (
+            <motion.div
+              key="hook-generator-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <HookGeneratorPage onBack={() => setView('tools')} />
             </motion.div>
           )}
         </AnimatePresence>

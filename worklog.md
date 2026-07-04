@@ -317,3 +317,56 @@ Stage Summary:
 - Dashboard and navbar now load correctly and match the original Content Smuggler UI
 - All Tools header is more premium and alive with subtle animations
 - No regressions to the search bar, filters, tool grid, or typewriter
+
+---
+Task ID: 8 (Hook Generator dedicated page)
+Agent: main (orchestrator)
+Task: Design the Hook Generator page to match the attached reference image
+
+Work Log:
+- Analyzed the reference image (`upload/tool page.png`) via VLM to extract exact layout, colors, spacing, and composition
+- Analyzed the mascot image (`upload/mascot 5.png`) — spy with fedora + trench coat holding TOP SECRET/CONFIDENTIAL documents
+- Copied mascot to `/public/smuggler/assets/mascot-5.png`
+- Added Hook Generator CSS animations to `globals.css`:
+  - `smuggler-mascot-float` (5s gentle float)
+  - `smuggler-stamp-entrance` + `smuggler-stamp-swing-loop` (entrance settle + perpetual swing)
+  - `smuggler-radar-sweep` (4s radar for empty state)
+  - `smuggler-pulse-dot` (2s pulsing classified dot)
+  - `smuggler-shimmer-text` (3s shimmer for "Awaiting Mission Brief")
+  - `smuggler-press` (button soft press active:scale-0.97)
+  - `smuggler-input-glow` (focus gold glow on inputs)
+- Created `src/smuggler/components/HookGeneratorPage.tsx` — full dedicated page:
+  - HERO: breadcrumb (Dashboard / Tools / Hook Generator), "Hook Generator" title, green "AI Powered" pill, subtitle, mascot (floating), TOP SECRET stamp (entrance settle + swing), Pro Tip card (paperclip, "The best hooks create curiosity..." — Content Smuggler)
+  - LEFT PANEL (Mission Parameters): "1. Describe your content" — textarea with 500 char count, Audience dropdown, 4 Platform icon buttons (YouTube/Instagram/TikTok/LinkedIn), Tone + Language dropdowns (2-col), Number of hooks (5/10/15/20 toggle), "Generate Hooks" button (dark green #1E5E3E, sparkles icon, loading state with spinning RefreshCw)
+  - RIGHT PANEL (Generated Hooks): "2. Your Generated Hooks" + credits-used pill, Save All + Export buttons, empty state (radar sweep + "Awaiting Mission Brief..." shimmer + classified dot + agent tip), generated state (numbered paper hook cards with score badges + copy/bookmark/star/more icons, Copy All + Generate More buttons)
+  - BOTTOM ANALYSIS: Hook Score Guide (color-coded legend), Why this hook works (4 animated metric bars: Curiosity/Specificity/Benefit Driven/Emotional Impact), Circular Score (animated SVG ring with score/100 + trophy + "Excellent Hook" label)
+  - FOOTER: trust row (shield + "Your data is encrypted and secure" + "Trusted by 10,000+ creators worldwide") + share row ("Share this tool:" + Twitter/LinkedIn/Facebook)
+- Added `'hook-generator'` to NavView union in Navbar.tsx
+- Updated page.tsx: imported HookGeneratorPage, added `view === 'hook-generator'` branch, intercepted `hook-generator` tool ID to route to the full page (instead of ToolModal)
+- All animations: stamp settle+swing, mascot float, cards lift on hover, buttons soft press, inputs glow on focus, results stagger reveal, score bars fill, circular score ring draws, shimmer text on empty state, radar sweep — no flashy gaming animations
+
+Verification (agent-browser):
+- ✅ Hook Generator title visible
+- ✅ AI Powered pill
+- ✅ Subtitle "Create scroll-stopping hooks"
+- ✅ TOP SECRET stamp
+- ✅ Pro Tip card
+- ✅ Mission Parameters left panel
+- ✅ Empty state "Awaiting Mission Brief" with radar
+- ✅ Mascot image (mascot-5.png)
+- ✅ After Generate: generated header, Save All, Export, Copy All, Generate More
+- ✅ Hook Score Guide, Why this hook works, Curiosity metrics
+- ✅ Circular Overall Score (animated ring)
+- ✅ Footer trust row + share row + "Trusted by 10,000"
+- ✅ No console errors
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors)
+
+Stage Summary:
+- Hook Generator page fully implemented matching the reference image
+- Three-part structure preserved (hero / workspace / analysis)
+- Empty state is premium classified/mission-brief style (no dead white void)
+- Generated state shows light paper hook cards + bottom score section
+- All functional controls preserved (generate, copy, save, export, favorite)
+- Navbar intact, no sidebar built (left conceptually for later)
+- No other tool pages touched
