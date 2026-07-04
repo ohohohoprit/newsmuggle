@@ -86,6 +86,154 @@ const SCORE_GUIDE = [
   { range: 'Below 50', label: 'Poor', color: '#9B3D3D' },
 ];
 
+/* ---------- Typewriter Text (Pro Tip) ----------
+ * Types out `text` char-by-char, shows a blinking caret while typing,
+ * holds the full text briefly, then erases and restarts the loop.
+ */
+function TypewriterText({
+  text,
+  typeSpeed = 32,
+  holdMs = 2600,
+  eraseSpeed = 14,
+  pauseBetweenMs = 600,
+  className,
+}: {
+  text: string;
+  typeSpeed?: number;
+  holdMs?: number;
+  eraseSpeed?: number;
+  pauseBetweenMs?: number;
+  className?: string;
+}) {
+  const [display, setDisplay] = useState('');
+  const [phase, setPhase] = useState<'typing' | 'holding' | 'erasing' | 'paused'>('typing');
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (phase === 'typing') {
+      if (display.length < text.length) {
+        timer = setTimeout(() => setDisplay(text.slice(0, display.length + 1)), typeSpeed);
+      } else {
+        timer = setTimeout(() => setPhase('holding'), 220);
+      }
+    } else if (phase === 'holding') {
+      timer = setTimeout(() => setPhase('erasing'), holdMs);
+    } else if (phase === 'erasing') {
+      if (display.length > 0) {
+        timer = setTimeout(() => setDisplay(text.slice(0, display.length - 1)), eraseSpeed);
+      } else {
+        timer = setTimeout(() => setPhase('paused'), 120);
+      }
+    } else {
+      // paused
+      timer = setTimeout(() => setPhase('typing'), pauseBetweenMs);
+    }
+    return () => clearTimeout(timer);
+  }, [display, phase, text, typeSpeed, holdMs, eraseSpeed, pauseBetweenMs]);
+
+  return (
+    <span className={className}>
+      {display}
+      <span className="smuggler-caret-blink" aria-hidden="true" />
+    </span>
+  );
+}
+
+/* ---------- Loading Sequence (cycling classified lines) ----------
+ * Cycles through a list of "mission status" lines with a typewriter feel.
+ */
+const LOADING_LINES = [
+  'Mission Accepted',
+  'Analyzing psychology',
+  'Ranking viral patterns',
+  'Generating classified hooks',
+];
+
+function LoadingSequence() {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % LOADING_LINES.length);
+    }, 1100);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="flex w-full max-w-[300px] flex-col items-center gap-1.5">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={index}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          className="font-mono text-[0.8rem] font-bold uppercase tracking-[2px] text-[#1E5E3E]"
+        >
+          {LOADING_LINES[index]}
+          <span className="smuggler-caret-blink ml-0.5" aria-hidden="true" />
+        </motion.p>
+      </AnimatePresence>
+      <p className="text-[0.7rem] text-[#888]">
+        Step {index + 1} of {LOADING_LINES.length}
+      </p>
+    </div>
+  );
+}
+
+/* ---------- Generate Button with 3D press + ripple ---------- */
+function GenerateButton({
+  onClick,
+  disabled,
+  isGenerating,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  isGenerating?: boolean;
+}) {
+  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number; size: number }>>([]);
+  const idRef = useRef(0);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 0.6;
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const id = ++idRef.current;
+    setRipples((r) => [...r, { id, x, y, size }]);
+    setTimeout(() => setRipples((r) => r.filter((rp) => rp.id !== id)), 650);
+    onClick();
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={disabled}
+      className="smuggler-press-3d relative overflow-hidden flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[0.95rem] font-bold text-white"
+      style={{ backgroundColor: '#1E5E3E' }}
+    >
+      {ripples.map((r) => (
+        <span
+          key={r.id}
+          className="smuggler-ripple-span"
+          style={{ left: r.x, top: r.y, width: r.size, height: r.size }}
+        />
+      ))}
+      {isGenerating ? (
+        <>
+          <RefreshCw size={18} className="animate-spin" />
+          Decrypting Hooks...
+        </>
+      ) : (
+        <>
+          <Sparkles size={18} className="fill-current" />
+          Generate Hooks
+        </>
+      )}
+    </button>
+  );
+}
+
 /* ---------- Circular Score Ring ---------- */
 
 function CircularScore({ score }: { score: number }) {
@@ -581,7 +729,8 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-              className="relative rounded-xl border border-[#D5C9AA] bg-[#FFFDF5] p-5 shadow-sm"
+              whileHover={{ y: -3, transition: { duration: 0.2 } }}
+              className="relative rounded-xl border border-[#D5C9AA] bg-[#FFFDF5] p-5 shadow-sm transition-shadow duration-300 hover:shadow-[0_8px_24px_rgba(140,106,59,0.12)]"
             >
               {/* Paperclip */}
               <div className="absolute -top-2 left-4 text-[#999]">
@@ -600,9 +749,8 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                   Pro Tip
                 </span>
               </div>
-              <p className="m-0 text-[0.85rem] leading-[1.55] text-[#444]">
-                The best hooks create curiosity, promise value, or challenge
-                the status quo.
+              <p className="m-0 min-h-[3.2rem] text-[0.85rem] leading-[1.55] text-[#444]">
+                <TypewriterText text="The best hooks create curiosity, promise value, or challenge the status quo." />
               </p>
               <p
                 className="mt-2 text-right text-[0.8rem] italic text-[#888]"
@@ -778,26 +926,12 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               </div>
             </div>
 
-            {/* Generate button */}
-            <button
-              type="button"
+            {/* Generate button — 3D press + ripple */}
+            <GenerateButton
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="smuggler-press flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[0.95rem] font-bold text-white shadow-[0_4px_14px_rgba(30,94,62,0.3)] transition-all disabled:opacity-70"
-              style={{ backgroundColor: '#1E5E3E' }}
-            >
-              {isGenerating ? (
-                <>
-                  <RefreshCw size={18} className="animate-spin" />
-                  Decrypting Hooks...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} className="fill-current" />
-                  Generate Hooks
-                </>
-              )}
-            </button>
+              isGenerating={isGenerating}
+            />
           </motion.div>
 
           {/* ---- RIGHT PANEL: Generated Hooks ---- */}
@@ -875,9 +1009,10 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex min-h-[400px] flex-col items-center justify-center"
+                  className="flex min-h-[400px] flex-col items-center justify-center gap-5"
                 >
-                  <div className="relative mb-6 h-[100px] w-[100px]">
+                  {/* Radar + sparkles */}
+                  <div className="relative h-[100px] w-[100px]">
                     <div className="smuggler-radar-sweep absolute inset-0 rounded-full border-2 border-[#1E5E3E]/30">
                       <div
                         className="absolute left-1/2 top-1/2 h-1/2 w-1 origin-top"
@@ -891,12 +1026,12 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                       <Sparkles size={28} className="text-[#1E5E3E] animate-pulse" />
                     </div>
                   </div>
-                  <p className="font-mono text-[0.8rem] font-bold uppercase tracking-[2px] text-[#1E5E3E]">
-                    Analyzing target data...
-                  </p>
-                  <p className="mt-1 text-[0.75rem] text-[#888]">
-                    Agent is decrypting your hooks
-                  </p>
+                  {/* Cycling classified loading lines */}
+                  <LoadingSequence />
+                  {/* Scanning dossier bar */}
+                  <div className="relative mt-1 h-1 w-full max-w-[280px] overflow-hidden rounded-full bg-[#E5DDC8]">
+                    <div className="smuggler-scan-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[#1E5E3E] to-transparent" />
+                  </div>
                 </motion.div>
               )}
 

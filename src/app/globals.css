@@ -571,3 +571,82 @@
   box-shadow: 0 0 0 4px rgba(192, 152, 88, 0.12), 0 2px 8px rgba(192, 152, 88, 0.15) !important;
   background-color: #fffef9 !important;
 }
+
+/* ===========================
+   Hook Generator premium enhancements
+   ===========================
+*/
+
+/* 3D press button (Generate) */
+.smuggler-press-3d {
+  position: relative;
+  transform: translateY(0);
+  transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow:
+    0 4px 0 0 #14542f,
+    0 6px 14px rgba(30, 94, 62, 0.35);
+}
+.smuggler-press-3d:hover {
+  filter: brightness(1.06);
+  box-shadow:
+    0 5px 0 0 #14552f,
+    0 9px 18px rgba(30, 94, 62, 0.45);
+}
+.smuggler-press-3d:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 0 #14552f,
+    0 2px 6px rgba(30, 94, 62, 0.3);
+}
+.smuggler-press-3d:disabled {
+  transform: translateY(0);
+  filter: grayscale(0.3) brightness(0.9);
+  box-shadow: 0 2px 0 0 #14552f;
+}
+
+/* Ripple effect on click */
+@keyframes smuggler-ripple {
+  0% { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0; }
+}
+.smuggler-ripple-span {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  transform: scale(0);
+  animation: smuggler-ripple 0.6s ease-out forwards;
+}
+
+/* Blinking typewriter caret (reusable, stronger blink) */
+@keyframes smuggler-caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.smuggler-caret-blink {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 1px;
+  background: currentColor;
+  vertical-align: text-bottom;
+  animation: smuggler-caret-blink 1s steps(1) infinite;
+}
+
+/* Loading line fade-in (for cycling typewriter loading lines) */
+@keyframes smuggler-line-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.smuggler-line-fade {
+  animation: smuggler-line-fade 0.35s ease-out forwards;
+}
+
+/* Scanning dossier bar (empty state / loading accent) */
+@keyframes smuggler-scan-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.smuggler-scan-bar {
+  animation: smuggler-scan-bar 2.2s ease-in-out infinite;
+}
