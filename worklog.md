@@ -612,3 +612,88 @@ Stage Summary:
 - All 16 polish points addressed (typography, textures, shadows, borders, micro-interactions)
 - Zero functionality changes — all existing workflows intact
 - Cream/paper/spy aesthetic preserved and enhanced
+
+---
+Task ID: 12 (Fixed-height dashboard panel + warm neutral cards + premium scrollbar)
+Agent: main (orchestrator)
+Task: Pure UX polish — fixed-height Generated Hooks panel with internal scroll, warm neutral card backgrounds, premium thin scrollbar. NO functionality changes.
+
+## Current Project Status Assessment
+
+Project fully stable. All views, real AI generation, command palette, favorites persistence, and prior polish pass (Task 11) working. This round addresses the user's UX concern: the Generated Hooks panel was growing the page height when generating 10/15/20 hooks. Pure layout/visual fix — zero functionality changes.
+
+## Completed Modifications
+
+### 1. Fixed-height Generated Hooks panel (dashboard behavior)
+**Problem**: Generating 20 hooks made the panel grow to 2274px, pushing the whole page down to 3531px — felt like a long webpage, not a dashboard.
+
+**Fix**: Restructured the right panel into a flex column with 3 zones:
+- **Fixed header** (`.smuggler-hooks-header`) — "Your Generated Hooks" + credits badge + Save All + Export buttons. Never scrolls.
+- **Scrollable middle** (`.smuggler-hooks-scroll`) — `flex: 1 1 0; min-height: 0; overflow-y: auto`. Contains the loading state, empty state, or hook cards. Only this region scrolls.
+- **Fixed footer** (`.smuggler-hooks-footer`) — Copy All Hooks + Generate More buttons. Never scrolls. Separated by a subtle gold-tinted top border.
+
+CSS: `.smuggler-hooks-panel { display: flex; flex-direction: column; height: 720px; max-height: 720px; overflow: hidden; }` — enforces constant height. `min-height: 560px` ensures it never collapses too small.
+
+**Verified**: Panel height = 720px and page height = 1977px whether generating 5 or 20 hooks. Scroll area scrollHeight (2264) > clientHeight (545) = scrollable.
+
+### 2. Warm neutral card backgrounds (replace pure white)
+**Problem**: Pure white cards (`#FFFDF5` / `#ffffff`) looked flat and slightly broke the premium Old Money aesthetic.
+
+**Fix**: Added two warm neutral surface classes:
+- `.smuggler-surface-warm` — `#FBF8F1` (soft ivory/linen, bright but warm)
+- `.smuggler-surface-warm-deep` — `#F7F3EA` (parchment, slightly deeper for the Overall Score panel)
+
+Applied to:
+- Left panel (Describe Your Content) → `smuggler-surface-warm`
+- Right panel (Generated Hooks) → `smuggler-surface-warm`
+- Hook Score Guide → `smuggler-surface-warm`
+- Why This Hooks Works → `smuggler-surface-warm`
+- Overall Score → `smuggler-surface-warm-deep`
+- Hook cards (`.smuggler-hook-card` background updated to `#FBF8F1`)
+- Input fields (`.smuggler-input-premium` background updated to `#FCFAF4`)
+
+Colors are subtle — bright but warmer than pure white, never yellow/dirty.
+
+### 3. Premium thin scrollbar
+**Fix**: `.smuggler-hooks-scroll` scrollbar styling:
+- 6px width (thin)
+- Rounded full pill thumb
+- Gold tint (`rgba(192, 152, 88, 0.45)`) matching the site palette
+- Green tint on thumb:hover (`rgba(76, 107, 74, 0.6)`)
+- **Hidden by default, appears on hover** (thumb is transparent until the scroll area is hovered)
+- Smooth scrolling (`scroll-behavior: smooth`)
+- Firefox: `scrollbar-width: thin; scrollbar-color` for native thin scrollbar
+
+### 4. Files changed
+- `src/app/globals.css` — added `.smuggler-surface-warm`, `.smuggler-surface-warm-deep`, `.smuggler-hooks-panel`, `.smuggler-hooks-header`, `.smuggler-hooks-scroll`, `.smuggler-hooks-footer`, premium scrollbar rules; updated `.smuggler-hook-card` and `.smuggler-input-premium` background colors to warm tones
+- `src/smuggler/components/HookGeneratorPage.tsx` — restructured right panel into flex column (fixed header / scrollable middle / fixed footer); moved bottom buttons outside the scroll area; applied `smuggler-surface-warm` to all panels; reduced EmptyState min-height from 440px to 360px to fit the scroll area
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - `.smuggler-hooks-panel` present ✓
+  - `.smuggler-hooks-scroll` present ✓
+  - `.smuggler-surface-warm` present ✓
+  - **Panel height = 720px with 5 hooks** ✓
+  - **Panel height = 720px with 20 hooks** ✓ (constant!)
+  - **Page height = 1977px with 5 hooks** ✓
+  - **Page height = 1977px with 20 hooks** ✓ (constant!)
+  - Scroll area scrollable (2264 > 545) ✓
+  - 20 hook cards all rendered ✓
+  - No console errors ✓
+
+## What still differs from reference (unchanged)
+
+- Sidebar not built (per standing instruction)
+- Mascot framing: floating cutout vs polaroid frame
+- Per-hook sub-scores shown at set level, not per-card
+- Credits count is a static placeholder
+
+Stage Summary:
+- Generated Hooks panel now behaves like a premium desktop dashboard (Linear/Notion/Cursor style) — fixed height, internal scroll only
+- All cards now use warm neutral surfaces (ivory/linen/parchment) instead of flat pure white
+- Premium thin scrollbar with gold/green palette, hidden until hover
+- Page height remains constant regardless of hook count (5/10/15/20)
+- Zero functionality changes — all existing workflows intact

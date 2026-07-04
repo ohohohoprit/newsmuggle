@@ -728,8 +728,8 @@
 .smuggler-hook-card {
   position: relative;
   border: 1px solid rgba(192, 152, 88, 0.22);
-  background-color: #FFFDF5;
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 14%);
+  background-color: #FBF8F1;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 14%);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
     0 1px 2px rgba(60, 40, 10, 0.03),
@@ -835,7 +835,7 @@
 /* --- Premium input field --- */
 .smuggler-input-premium {
   border: 1px solid #E5DDC8;
-  background-color: #ffffff;
+  background-color: #FCFAF4;
   background-image: linear-gradient(180deg, rgba(245, 235, 210, 0.18) 0%, transparent 30%);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
@@ -848,7 +848,7 @@
 .smuggler-input-premium:focus-within,
 .smuggler-input-premium:focus {
   border-color: rgba(192, 152, 88, 0.65) !important;
-  background-color: #fffef9;
+  background-color: #FFFDF7;
   box-shadow:
     0 0 0 3px rgba(192, 152, 88, 0.14),
     0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
@@ -1002,4 +1002,77 @@
 .smuggler-bg-premium > * {
   position: relative;
   z-index: 1;
+}
+
+/* =====================================================================
+   HOOK GENERATOR — FIXED-HEIGHT DASHBOARD + WARM NEUTRAL CARDS
+   =====================================================================
+*/
+
+/* --- Warm neutral card surfaces (replace pure white) ---
+ * Soft ivory/linen/parchment — bright but warm, never yellow/dirty.
+ */
+.smuggler-surface-warm {
+  background-color: #FBF8F1 !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 16%) !important;
+}
+.smuggler-surface-warm-deep {
+  background-color: #F7F3EA !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 14%) !important;
+}
+
+/* --- Fixed-height right panel (Generated Hooks) --- */
+.smuggler-hooks-panel {
+  display: flex;
+  flex-direction: column;
+  height: 720px;
+  max-height: 720px;
+  min-height: 560px;
+  overflow: hidden;
+}
+.smuggler-hooks-header {
+  flex-shrink: 0;
+}
+.smuggler-hooks-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  padding-right: 4px;
+  margin-right: -4px;
+}
+.smuggler-hooks-footer {
+  flex-shrink: 0;
+}
+
+/* --- Premium thin scrollbar (green/gold neutral palette, hidden until hover) --- */
+.smuggler-hooks-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(192, 152, 88, 0.4) transparent;
+  transition: scrollbar-color 0.25s ease;
+}
+.smuggler-hooks-scroll:hover {
+  scrollbar-color: rgba(192, 152, 88, 0.55) transparent;
+}
+.smuggler-hooks-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.smuggler-hooks-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+/* Hidden by default, appears on hover */
+.smuggler-hooks-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background 0.25s ease;
+}
+.smuggler-hooks-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(192, 152, 88, 0.45);
+}
+.smuggler-hooks-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(76, 107, 74, 0.6);
 }

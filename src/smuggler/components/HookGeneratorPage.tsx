@@ -455,7 +455,7 @@ function HookCard({
 
 function EmptyState() {
   return (
-    <div className="relative flex min-h-[440px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#D5C9AA] bg-[#FAF6EC] p-8 text-center">
+    <div className="relative flex min-h-[360px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#D5C9AA] bg-[#FAF6EC] p-8 text-center">
       {/* Soft glow behind radar */}
       <div className="smuggler-empty-glow" />
 
@@ -797,7 +797,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="smuggler-panel-premium smuggler-paper-grain rounded-2xl p-6"
+            className="smuggler-panel-premium smuggler-paper-grain smuggler-surface-warm rounded-2xl p-6"
           >
             <div className="mb-5 flex items-center gap-2.5">
               <span
@@ -965,15 +965,15 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
             />
           </motion.div>
 
-          {/* ---- RIGHT PANEL: Generated Hooks ---- */}
+          {/* ---- RIGHT PANEL: Generated Hooks (fixed-height dashboard) ---- */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="smuggler-panel-premium smuggler-paper-grain rounded-2xl p-6"
+            className="smuggler-panel-premium smuggler-paper-grain smuggler-surface-warm smuggler-hooks-panel rounded-2xl p-6"
           >
-            {/* Panel header */}
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            {/* Panel header — fixed */}
+            <div className="smuggler-hooks-header mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <span
                   className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1E5E3E]/10 text-[0.75rem] font-bold text-[#1E5E3E]"
@@ -1012,14 +1012,14 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               )}
             </div>
 
-            {/* Error banner */}
+            {/* Error banner — fixed (above scroll area) */}
             <AnimatePresence>
               {apiError && !isGenerating && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mb-4 flex items-center gap-2 overflow-hidden rounded-xl border border-[#C0392B]/30 bg-[#C0392B]/5 px-4 py-3 text-[0.8rem] text-[#C0392B]"
+                  className="smuggler-hooks-header mb-3 flex items-center gap-2 overflow-hidden rounded-xl border border-[#C0392B]/30 bg-[#C0392B]/5 px-4 py-3 text-[0.8rem] text-[#C0392B]"
                 >
                   <AlertTriangle size={16} className="shrink-0" />
                   <span className="flex-1">
@@ -1037,93 +1037,97 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               )}
             </AnimatePresence>
 
-            {/* Content area */}
-            <AnimatePresence mode="wait">
-              {isGenerating && (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex min-h-[400px] flex-col items-center justify-center gap-5"
-                >
-                  {/* Radar + sparkles */}
-                  <div className="relative h-[100px] w-[100px]">
-                    <div className="smuggler-radar-sweep absolute inset-0 rounded-full border-2 border-[#1E5E3E]/30">
-                      <div
-                        className="absolute left-1/2 top-1/2 h-1/2 w-1 origin-top"
-                        style={{
-                          background:
-                            'linear-gradient(to bottom, rgba(30,94,62,0.6), transparent)',
-                        }}
-                      />
+            {/* Scrollable content area — only this region scrolls */}
+            <div className="smuggler-hooks-scroll">
+              <AnimatePresence mode="wait">
+                {isGenerating && (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex min-h-[360px] flex-col items-center justify-center gap-5"
+                  >
+                    {/* Radar + sparkles */}
+                    <div className="relative h-[100px] w-[100px]">
+                      <div className="smuggler-radar-sweep absolute inset-0 rounded-full border-2 border-[#1E5E3E]/30">
+                        <div
+                          className="absolute left-1/2 top-1/2 h-1/2 w-1 origin-top"
+                          style={{
+                            background:
+                              'linear-gradient(to bottom, rgba(30,94,62,0.6), transparent)',
+                          }}
+                        />
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Sparkles size={28} className="text-[#1E5E3E] animate-pulse" />
+                      </div>
                     </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Sparkles size={28} className="text-[#1E5E3E] animate-pulse" />
+                    {/* Cycling classified loading lines */}
+                    <LoadingSequence />
+                    {/* Scanning dossier bar */}
+                    <div className="relative mt-1 h-1 w-full max-w-[280px] overflow-hidden rounded-full bg-[#E5DDC8]">
+                      <div className="smuggler-scan-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[#1E5E3E] to-transparent" />
                     </div>
-                  </div>
-                  {/* Cycling classified loading lines */}
-                  <LoadingSequence />
-                  {/* Scanning dossier bar */}
-                  <div className="relative mt-1 h-1 w-full max-w-[280px] overflow-hidden rounded-full bg-[#E5DDC8]">
-                    <div className="smuggler-scan-bar absolute inset-y-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-[#1E5E3E] to-transparent" />
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                )}
 
-              {!isGenerating && !hasGenerated && (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                {!isGenerating && !hasGenerated && (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <EmptyState />
+                  </motion.div>
+                )}
+
+                {!isGenerating && hasGenerated && (
+                  <motion.div
+                    key="generated"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {/* Hook cards — scrollable */}
+                    <div className="flex flex-col gap-3 pb-2">
+                      {hooks.map((hook, i) => (
+                        <HookCard
+                          key={hook.id}
+                          hook={hook}
+                          index={i}
+                          onCopy={handleCopy}
+                          onToggleFavorite={handleToggleFavorite}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom buttons — fixed (outside scroll area) */}
+            {hasGenerated && !isGenerating && (
+              <div className="smuggler-hooks-footer mt-4 flex flex-col gap-2 border-t border-[#E5DDC8]/60 pt-4 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleCopyAll}
+                  className="smuggler-press flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDC8] bg-white py-2.5 text-[0.85rem] font-semibold text-[#555] transition-colors hover:border-[#C09858] hover:text-[#8C6A3B]"
                 >
-                  <EmptyState />
-                </motion.div>
-              )}
-
-              {!isGenerating && hasGenerated && (
-                <motion.div
-                  key="generated"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  <Copy size={15} />
+                  Copy All Hooks
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  className="smuggler-press flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDC8] bg-white py-2.5 text-[0.85rem] font-semibold text-[#555] transition-colors hover:border-[#1E5E3E] hover:text-[#1E5E3E]"
                 >
-                  {/* Hook cards */}
-                  <div className="mb-5 flex flex-col gap-3">
-                    {hooks.map((hook, i) => (
-                      <HookCard
-                        key={hook.id}
-                        hook={hook}
-                        index={i}
-                        onCopy={handleCopy}
-                        onToggleFavorite={handleToggleFavorite}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Copy All + Generate More */}
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <button
-                      type="button"
-                      onClick={handleCopyAll}
-                      className="smuggler-press flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDC8] bg-white py-2.5 text-[0.85rem] font-semibold text-[#555] transition-colors hover:border-[#C09858] hover:text-[#8C6A3B]"
-                    >
-                      <Copy size={15} />
-                      Copy All Hooks
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleGenerate}
-                      className="smuggler-press flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#E5DDC8] bg-white py-2.5 text-[0.85rem] font-semibold text-[#555] transition-colors hover:border-[#1E5E3E] hover:text-[#1E5E3E]"
-                    >
-                      <RefreshCw size={15} />
-                      Generate More
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <RefreshCw size={15} />
+                  Generate More
+                </button>
+              </div>
+            )}
           </motion.div>
         </div>
 
@@ -1140,7 +1144,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.4fr_auto]"
             >
               {/* Hook Score Guide */}
-              <div className="smuggler-panel-analysis smuggler-paper-grain rounded-2xl p-6">
+              <div className="smuggler-panel-analysis smuggler-paper-grain smuggler-surface-warm rounded-2xl p-6">
                 <div className="mb-1 flex items-center gap-2">
                   <ShieldCheck size={15} className="text-[#8C6A3B]" />
                   <h3 className="smuggler-section-heading m-0 text-[1rem] text-[#111]">
@@ -1167,7 +1171,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               </div>
 
               {/* Why this hook works */}
-              <div className="smuggler-panel-analysis smuggler-paper-grain rounded-2xl p-6">
+              <div className="smuggler-panel-analysis smuggler-paper-grain smuggler-surface-warm rounded-2xl p-6">
                 <div className="mb-1 flex items-center gap-2">
                   <Sparkles size={15} className="text-[#8C6A3B]" />
                   <h3 className="smuggler-section-heading m-0 text-[1rem] text-[#111]">
@@ -1185,7 +1189,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               </div>
 
               {/* Circular Score */}
-              <div className="smuggler-panel-analysis smuggler-paper-grain flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFFDF5] to-[#F0E8D5] p-6">
+              <div className="smuggler-panel-analysis smuggler-paper-grain smuggler-surface-warm-deep flex flex-col items-center justify-center rounded-2xl p-6">
                 <CircularScore score={overallScore} />
               </div>
             </motion.div>
