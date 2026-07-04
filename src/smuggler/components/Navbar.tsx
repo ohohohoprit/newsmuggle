@@ -6,6 +6,7 @@ import {
   UserRoundSearch,
   Star,
   ChevronDown,
+  Search,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -15,6 +16,7 @@ export type AuthMode = 'login' | 'signup';
 export interface NavbarProps {
   onOpenAuth: (mode: AuthMode) => void;
   onNavigate: (view: NavView) => void;
+  onOpenPalette: () => void;
   currentView: NavView;
 }
 
@@ -34,7 +36,7 @@ const NAV_LINKS: NavLinkConfig[] = [
   { label: 'Resources', hasCaret: true },
 ];
 
-export function Navbar({ onOpenAuth, onNavigate, currentView }: NavbarProps) {
+export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView }: NavbarProps) {
   return (
     <div
       className="sticky top-0 z-50 w-full border-b border-[var(--smuggler-border)]/50 backdrop-blur-md"
@@ -176,8 +178,28 @@ export function Navbar({ onOpenAuth, onNavigate, currentView }: NavbarProps) {
           </ul>
         </div>
 
-        {/* Right: Auth Buttons */}
+        {/* Right: Search trigger + Auth Buttons */}
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onOpenPalette}
+            className="group hidden items-center gap-2 rounded-lg border border-[var(--smuggler-border)] bg-black/20 px-3 py-2 text-[0.8rem] text-[var(--smuggler-text-muted)] transition-colors hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-text)] md:flex"
+            aria-label="Open command palette"
+          >
+            <Search size={14} />
+            <span>Search tools...</span>
+            <kbd className="ml-2 rounded border border-[var(--smuggler-border)] bg-black/40 px-1.5 py-0.5 font-mono text-[0.6rem] text-[var(--smuggler-text-muted)]">
+              ⌘K
+            </kbd>
+          </button>
+          <button
+            type="button"
+            onClick={onOpenPalette}
+            className="smuggler-btn smuggler-btn-secondary md:hidden"
+            aria-label="Search tools"
+          >
+            <Search size={16} />
+          </button>
           <button
             type="button"
             onClick={() => onOpenAuth('login')}

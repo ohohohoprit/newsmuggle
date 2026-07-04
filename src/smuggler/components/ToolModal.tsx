@@ -26,9 +26,11 @@ import {
   FileSearch,
   Crosshair,
   ChevronDown,
+  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
-import { ALL_TOOLS, SAMPLE_HOOKS } from '@/smuggler/data/tools';
+import { ALL_TOOLS } from '@/smuggler/data/tools';
+import { generateContent } from '@/smuggler/lib/generate-client';
 
 export interface ToolModalProps {
   toolId: string | null;
@@ -137,6 +139,10 @@ export function ToolModal({ toolId, onClose }: ToolModalProps) {
   const [hasGenerated, setHasGenerated] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
   const [savedVault, setSavedVault] = useState(false);
+  const [generatedItems, setGeneratedItems] = useState<
+    Array<{ text: string; score: number; rationale: string }>
+  >([]);
+  const [genError, setGenError] = useState<string | null>(null);
 
   const tool = ALL_TOOLS.find((t) => t.id === toolId);
   const open = toolId !== null;
@@ -156,17 +162,39 @@ export function ToolModal({ toolId, onClose }: ToolModalProps) {
       setHasGenerated(false);
       setCopiedAll(false);
       setSavedVault(false);
+      setGeneratedItems([]);
+      setGenError(null);
     }
   }
 
-  const handleGenerate = () => {
-    if (isGenerating) return;
+  const handleGenerate = async () => {
+    if (isGenerating || !toolId) return;
     setIsGenerating(true);
     setHasGenerated(false);
-    window.setTimeout(() => {
-      setIsGenerating(false);
+    setGenError(null);
+    try {
+      const result = await generateContent(
+        toolId,
+        {
+          content: topic,
+          topic,
+          audience,
+          tone,
+          platform,
+          toolName: tool?.name ?? toolId,
+        },
+        5,
+      );
+      setGeneratedItems(result.items);
       setHasGenerated(true);
-    }, 2500);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Generation failed';
+      setGenError(msg);
+      setHasGenerated(true);
+      setGeneratedItems([]);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopyAll = () => {
@@ -516,12 +544,33 @@ export function ToolModal({ toolId, onClose }: ToolModalProps) {
                       </div>
                     )}
 
-                    {hasGenerated && (
+                    {hasGenerated && genError && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mb-3 flex items-center gap-2 rounded-lg border border-[#C0392B]/30 bg-[#C0392B]/5 px-4 py-3 text-[0.8rem] text-[#C0392B]"
+                      >
+                        <AlertTriangle size={14} className="shrink-0" />
+                        <span>Transmission failed: {genError}</span>
+                      </motion.div>
+                    )}
+
+                    {hasGenerated && generatedItems.length === 0 && !genError && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center justify-center py-8 text-[0.85rem] text-[#888]"
+                      >
+                        No results returned. Try different parameters.
+                      </motion.div>
+                    )}
+
+                    {hasGenerated && generatedItems.length > 0 && (
                       <AnimatePresence>
-                        {SAMPLE_HOOKS.map((text, i) => (
+                        {generatedItems.map((item, i) => (
                           <IntelCard
                             key={`intel-${i}`}
-                            text={text}
+                            text={item.text}
                             index={i}
                             number={i + 1}
                           />

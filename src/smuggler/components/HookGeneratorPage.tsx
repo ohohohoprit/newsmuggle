@@ -21,8 +21,10 @@ import {
   Facebook,
   Youtube,
   Instagram,
+  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
+import { generateContent } from '@/smuggler/lib/generate-client';
 
 export interface HookGeneratorPageProps {
   onBack: () => void;
@@ -375,6 +377,11 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
   const [hasGenerated, setHasGenerated] = useState(false);
   const [hooks, setHooks] = useState<GeneratedHook[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [analysisSummary, setAnalysisSummary] = useState(
+    'This hook creates curiosity by highlighting a big benefit (saving 10+ hours) and sets up a promise of valuable, actionable tips.',
+  );
+  const [liveMetrics, setLiveMetrics] = useState(SCORE_METRICS);
 
   const overallScore =
     hooks.length > 0
@@ -386,19 +393,67 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
     setTimeout(() => setToast(null), 2000);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
     setHasGenerated(false);
-    setTimeout(() => {
-      const generated = SAMPLE_HOOKS.slice(0, hookCount).map((h, i) => ({
-        ...h,
+    setApiError(null);
+    try {
+      const result = await generateContent(
+        'hook-generator',
+        {
+          content,
+          audience,
+          platform,
+          tone,
+          language,
+          toolName: 'Hook Generator',
+        },
+        hookCount,
+      );
+      const generated: GeneratedHook[] = result.items.map((item, i) => ({
         id: i + 1,
+        text: item.text,
+        score: item.score,
         favorited: false,
       }));
       setHooks(generated);
-      setIsGenerating(false);
+      if (result.summary) setAnalysisSummary(result.summary);
+      if (result.metrics) {
+        setLiveMetrics([
+          {
+            label: 'Curiosity',
+            value: result.metrics.curiosity,
+            percent: Math.round(result.metrics.curiosity * 10),
+            color: result.metrics.curiosity >= 8.5 ? '#4C6B4A' : '#8B9E5E',
+          },
+          {
+            label: 'Specificity',
+            value: result.metrics.specificity,
+            percent: Math.round(result.metrics.specificity * 10),
+            color: result.metrics.specificity >= 8.5 ? '#4C6B4A' : '#8B9E5E',
+          },
+          {
+            label: 'Benefit Driven',
+            value: result.metrics.benefitDriven,
+            percent: Math.round(result.metrics.benefitDriven * 10),
+            color: result.metrics.benefitDriven >= 8.5 ? '#4C6B4A' : '#8B9E5E',
+          },
+          {
+            label: 'Emotional Impact',
+            value: result.metrics.emotionalImpact,
+            percent: Math.round(result.metrics.emotionalImpact * 10),
+            color: result.metrics.emotionalImpact >= 8.5 ? '#4C6B4A' : '#8B9E5E',
+          },
+        ]);
+      }
       setHasGenerated(true);
-    }, 2200);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Generation failed';
+      setApiError(msg);
+      showToast('Generation failed — please retry');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopy = (text: string) => {
@@ -787,6 +842,31 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               )}
             </div>
 
+            {/* Error banner */}
+            <AnimatePresence>
+              {apiError && !isGenerating && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-4 flex items-center gap-2 overflow-hidden rounded-xl border border-[#C0392B]/30 bg-[#C0392B]/5 px-4 py-3 text-[0.8rem] text-[#C0392B]"
+                >
+                  <AlertTriangle size={16} className="shrink-0" />
+                  <span className="flex-1">
+                    Agent transmission failed: {apiError}. Using fallback
+                    intelligence — retry for fresh results.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    className="smuggler-press shrink-0 rounded-lg border border-[#C0392B]/40 px-3 py-1 text-[0.75rem] font-bold hover:bg-[#C0392B]/10"
+                  >
+                    Retry
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Content area */}
             <AnimatePresence mode="wait">
               {isGenerating && (
@@ -918,12 +998,10 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                   Why this hook works?
                 </h3>
                 <p className="mb-4 text-[0.8rem] leading-relaxed text-[#666]">
-                  This hook creates curiosity by highlighting a big benefit
-                  (saving 10+ hours) and sets up a promise of valuable,
-                  actionable tips.
+                  {analysisSummary}
                 </p>
                 <div className="flex flex-col gap-3">
-                  {SCORE_METRICS.map((m, i) => (
+                  {liveMetrics.map((m, i) => (
                     <ScoreMetric key={m.label} metric={m} index={i} />
                   ))}
                 </div>

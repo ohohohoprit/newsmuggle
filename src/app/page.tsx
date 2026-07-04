@@ -8,9 +8,11 @@ import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
 import DashboardView from '@/smuggler/components/DashboardView';
 import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
+import CommandPalette from '@/smuggler/components/CommandPalette';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
 import ToolModal from '@/smuggler/components/ToolModal';
+import { useToolsStore } from '@/smuggler/store/useToolsStore';
 
 export default function Home() {
   const [view, setView] = useState<NavView>('home');
@@ -18,13 +20,25 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
-  // Scroll to top whenever the view changes
+  // Hydrate favorites from localStorage on mount
+  const hydrateFavorites = useToolsStore((s) => s.hydrateFavorites);
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [view]);
+    hydrateFavorites();
+  }, [hydrateFavorites]);
+
+  // Cmd/Ctrl+K to open command palette
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   // Auto-dismiss toast after 3.5s
   useEffect(() => {
@@ -32,6 +46,13 @@ export default function Home() {
     const t = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // Scroll to top whenever the view changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [view]);
 
   const handleNavigate = useCallback((next: NavView) => {
     setView(next);
@@ -82,6 +103,7 @@ export default function Home() {
       <Navbar
         onOpenAuth={handleOpenAuth}
         onNavigate={handleNavigate}
+        onOpenPalette={() => setPaletteOpen(true)}
         currentView={view}
       />
 
@@ -160,6 +182,14 @@ export default function Home() {
       />
 
       <ToolModal toolId={selectedToolId} onClose={handleCloseTool} />
+
+      {/* Command Palette (Cmd/Ctrl+K) */}
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onSelectTool={handleSelectTool}
+        onNavigate={handleNavigate}
+      />
 
       {/* Toast */}
       <AnimatePresence>

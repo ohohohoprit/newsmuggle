@@ -370,3 +370,100 @@ Stage Summary:
 - All functional controls preserved (generate, copy, save, export, favorite)
 - Navbar intact, no sidebar built (left conceptually for later)
 - No other tool pages touched
+
+---
+Task ID: 9 (Real AI generation + Command Palette + Favorites persistence)
+Agent: main (orchestrator)
+Task: Add real LLM-powered tool generation, Cmd+K command palette, and localStorage favorites persistence
+
+## Current Project Status Assessment
+
+The project was stable across all 4 views (home, dashboard, tools, hook-generator) with zero lint/tsc errors and zero runtime errors. However, it had three major feature gaps:
+1. **No real AI generation** — all tools (Hook Generator + 74 tools via ToolModal) used static `SAMPLE_HOOKS` arrays
+2. **No persistence** — favorites were in-memory only, lost on refresh
+3. **No quick search** — the original TopNav had a search bar; our port didn't
+
+## Completed Modifications
+
+### 1. Real LLM-powered tool generation backend
+- **`src/smuggler/lib/tool-prompts.ts`** (NEW) — Maps each tool ID to a system prompt + user-message builder. Includes 15 tool-specific prompt configs (hook-generator, title-optimizer, script-writer, ai-writer, caption-generator, youtube-description-generator, linkedin-post-generator, twitter-thread-generator, blog-ideas, email-writer, summarizer, humanizer, content-improver, keyword-research, viral-topic-finder, prompt-generator) + a generic fallback for all other tools. Each prompt instructs the LLM to return JSON with `{items:[{text,score,rationale}],summary,metrics:{curiosity,specificity,benefitDriven,emotionalImpact}}`.
+- **`src/app/api/generate/route.ts`** (NEW) — POST endpoint that:
+  - Validates `{toolId, inputs, count}` body
+  - Calls `z-ai-web-dev-sdk` LLM with the tool's system prompt
+  - Extracts JSON from the LLM response (handles markdown fences, leading/trailing prose)
+  - **Regex-based fallback extractor** (`extractItemsByRegex`) that recovers items from malformed JSON where the LLM put duplicate `"text"` keys in a single object (a real LLM bug we discovered and fixed)
+  - Regex summary extractor as fallback
+  - Sanitizes/clamps scores (50-100), metrics (0-10)
+  - Pads with deterministic fallback items if the LLM returns fewer than requested
+  - 60s max duration, nodejs runtime
+- **`src/smuggler/lib/generate-client.ts`** (NEW) — Client-side `generateContent(toolId, inputs, count, signal?)` fetch helper
+
+### 2. HookGeneratorPage wired to real API
+- **`src/smuggler/components/HookGeneratorPage.tsx`** (EDITED):
+  - `handleGenerate` now calls `generateContent('hook-generator', {content, audience, platform, tone, language}, hookCount)` instead of using `SAMPLE_HOOKS`
+  - New state: `apiError`, `analysisSummary`, `liveMetrics` (all driven by API response)
+  - Bottom analysis section now shows **dynamic** summary text + **dynamic** metric bars from the LLM response
+  - Error banner with AlertTriangle icon + Retry button when the API fails
+  - Removed the static `SAMPLE_HOOKS` import dependency (data still kept as fallback reference)
+
+### 3. ToolModal wired to real API (all 74 other tools)
+- **`src/smuggler/components/ToolModal.tsx`** (EDITED):
+  - Removed `SAMPLE_HOOKS` import
+  - Added `generateContent` import
+  - `handleGenerate` now calls `generateContent(toolId, {content, topic, audience, tone, platform, toolName}, 5)`
+  - New state: `generatedItems`, `genError`
+  - Renders real LLM-generated items in the Intel Acquired panel
+  - Error banner with AlertTriangle icon when generation fails
+  - Empty state when LLM returns 0 items
+  - State reset on toolId change (render-time pattern)
+
+### 4. Favorites persistence (localStorage)
+- **`src/smuggler/store/useToolsStore.ts`** (EDITED):
+  - Added `loadFavorites()` / `saveFavorites()` SSR-safe localStorage helpers
+  - Added `hydrateFavorites()` action + `isFavoritesHydrated` flag
+  - `toggleFavorite` now writes to localStorage on every change
+  - Storage key: `smuggler:favorites`
+- **`src/app/page.tsx`** (EDITED): calls `hydrateFavorites()` on mount
+
+### 5. Cmd+K Command Palette
+- **`src/smuggler/components/CommandPalette.tsx`** (NEW) — Premium command palette dialog:
+  - Dark theme matching smuggler aesthetic (gold accents, cream text)
+  - Search input with autofocus
+  - Two sections: "Navigate" (Home/Dashboard/All Tools) + "Tools" (all 75 tools with icons + categories)
+  - Full keyboard nav: ↑/↓ to move, Enter to select, Escape to close
+  - Active item highlighted with gold background + arrow indicator
+  - Category badges on tool results
+  - Footer with keyboard hints
+  - Scroll active item into view
+  - Empty state with search icon
+- **`src/smuggler/components/Navbar.tsx`** (EDITED):
+  - Added `onOpenPalette` prop
+  - Added "Search tools... ⌘K" button (desktop) + icon button (mobile) in the right side
+  - Added `Search` lucide icon import
+- **`src/app/page.tsx`** (EDITED):
+  - Added `paletteOpen` state
+  - `Cmd/Ctrl+K` global keyboard listener toggles the palette
+  - Renders `<CommandPalette>` with `onSelectTool` + `onNavigate` callbacks
+  - Passes `onOpenPalette` to Navbar
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors) — fixed 3 `react-hooks/set-state-in-effect` lint errors by switching to React's "adjust state during render" pattern
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ API endpoint tested directly with curl:
+  - hook-generator: 3 real LLM hooks returned with scores 91-95, dynamic summary, dynamic metrics
+  - title-optimizer: 3 real LLM titles returned with scores 88-95, dynamic summary
+- ✅ agent-browser end-to-end test:
+  - Cmd+K palette opens ✓, search input present ✓
+  - Hook Generator: Generate button → real LLM content rendered ✓
+  - No console errors ✓
+- ✅ Discovered and fixed a real LLM bug: the model sometimes returns malformed JSON with duplicate `"text"` keys in a single object. Fixed with regex-based `extractItemsByRegex` fallback that recovers all items.
+
+## Unresolved Issues / Risks / Next-Phase Recommendations
+
+1. **Sidebar not built** — the original repo had a dashboard sidebar with CREATE/STUDIO/LIBRARY/ACCOUNT menu groups. Still left conceptually for later.
+2. **Only Hook Generator has a dedicated full page** — 74 other tools use the generic ToolModal. High-traffic tools (Title Optimizer, Script Writer, AI Writer) could get dedicated pages like Hook Generator.
+3. **LLM latency** — generation takes 2-3 seconds. Could add streaming for a better UX (show partial results as they arrive).
+4. **No user accounts** — favorites are device-local only. NextAuth integration would sync across devices.
+5. **No content history/vault** — the "Save to Vault" button is a toast-only placeholder. A real vault (Prisma + SQLite) would persist generated content per user.
+6. **Command palette could support commands** — currently only navigates. Could add actions like "Toggle dark mode", "Clear filters", "Export all favorites".
