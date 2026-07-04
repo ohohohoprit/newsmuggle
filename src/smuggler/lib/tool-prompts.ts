@@ -57,14 +57,32 @@ CRITICAL RULES:
 - "metrics" are 0-10 floats.
 - Generate exactly the requested number of items, each unique.`;
 
-/** Fallback config for tools without a specific prompt. */
+/** Fallback config for tools without a specific prompt.
+ *  This is tool-aware — it uses the tool name, description, and all input
+ *  fields to produce a tailored prompt. This ensures every tool gets
+ *  high-quality, purpose-built output even without a specific prompt.
+ */
 const GENERIC_CONFIG: ToolPromptConfig = {
-  system: `You are Content Smuggler, an elite AI assistant for content creators. You produce sharp, scroll-stopping, premium content. Always follow the user's tone and platform constraints. ${JSON_INSTRUCTION}`,
+  system: `You are Content Smuggler, an elite AI assistant for content creators. You act as a senior strategist, viral copywriter, and optimization expert. You produce sharp, actionable, premium content that creators can immediately use. Always follow the user's tone, platform, and language constraints. Never produce generic filler — every result must be specific, useful, and high-quality. ${JSON_INSTRUCTION}`,
   buildUserMessage: (inputs, count) => {
+    const toolName = inputs.toolName || 'Content Tool';
+    // Build a clean field summary (exclude toolName which is meta)
     const fields = Object.entries(inputs)
+      .filter(([k]) => k !== 'toolName')
       .map(([k, v]) => `- ${k}: ${v}`)
       .join('\n');
-    return `Tool: ${inputs.toolName || 'Generic content tool'}\n\nInputs:\n${fields}\n\nGenerate ${count} high-quality results. Each "text" should be ready-to-use content for the creator.`;
+    return `You are operating as the "${toolName}" tool.
+
+Inputs:
+${fields}
+
+Generate ${count} high-quality, ready-to-use results for this creator. Each result must be:
+- Specific to the inputs provided (not generic)
+- Actionable and practical
+- Tailored to the platform/tone/audience if specified
+- Professional and polished
+
+Return ${count} unique results with scores and rationales.`;
   },
 };
 

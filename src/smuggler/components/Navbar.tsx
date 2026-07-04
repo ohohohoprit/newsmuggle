@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-export type NavView = 'home' | 'tools' | 'dashboard' | 'hook-generator';
+export type NavView = 'home' | 'tools' | 'dashboard' | 'hook-generator' | 'tool-page';
 export type AuthMode = 'login' | 'signup';
 
 export interface NavbarProps {

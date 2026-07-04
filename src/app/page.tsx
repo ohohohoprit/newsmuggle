@@ -8,6 +8,7 @@ import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
 import DashboardView from '@/smuggler/components/DashboardView';
 import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
+import ToolPageEngine from '@/smuggler/components/ToolPageEngine';
 import CommandPalette from '@/smuggler/components/CommandPalette';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
@@ -19,6 +20,7 @@ export default function Home() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
+  const [activeToolId, setActiveToolId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -82,12 +84,14 @@ export default function Home() {
       setToast('📡 Request logged. Our agents are on it.');
       return;
     }
-    // Hook Generator gets its own dedicated full page
+    // Hook Generator keeps its dedicated page
     if (toolId === 'hook-generator') {
       setView('hook-generator');
       return;
     }
-    setSelectedToolId(toolId);
+    // All other tools use the generic ToolPageEngine
+    setActiveToolId(toolId);
+    setView('tool-page');
   }, []);
 
   const handleCloseTool = useCallback(() => {
@@ -163,6 +167,18 @@ export default function Home() {
               transition={{ duration: 0.4, ease: 'easeInOut' }}
             >
               <HookGeneratorPage onBack={() => setView('tools')} />
+            </motion.div>
+          )}
+
+          {view === 'tool-page' && activeToolId && (
+            <motion.div
+              key={`tool-page-${activeToolId}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <ToolPageEngine toolId={activeToolId} onBack={() => setView('tools')} />
             </motion.div>
           )}
         </AnimatePresence>
