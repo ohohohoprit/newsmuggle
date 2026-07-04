@@ -542,3 +542,73 @@ Stage Summary:
 - Exact hook count (5/10/15/20) verified working with real LLM generation
 - No regressions to existing functionality
 - Cream/paper/spy aesthetic preserved
+
+---
+Task ID: 11 (Final UI polish pass — Hook Generator visual elevation)
+Agent: main (orchestrator)
+Task: Pure visual polish — typography, textures, shadows, borders, micro-interactions. NO functionality changes.
+
+## Current Project Status Assessment
+
+Project fully stable. All views, real AI generation, command palette, favorites persistence working. This round is strictly a luxury visual polish pass on the Hook Generator page per the user's 16-point spec. Zero functionality changes.
+
+## Completed Modifications
+
+### CSS additions (`src/app/globals.css`) — 12 new premium utility classes:
+- `.smuggler-bg-premium` — faint radial lighting (gold top-left, green bottom-right) + soft vignette via ::before/::after
+- `.smuggler-paper-grain` — faint paper-grain texture overlay (multiply blend, 4.5% opacity) for panels
+- `.smuggler-panel-premium` — layered shadow (inset highlight + 2 drop shadows), soft gold border, hover elevation (-2px)
+- `.smuggler-panel-analysis` — lighter layered shadow for analysis cards, hover border gold tint
+- `.smuggler-hook-card` — premium hook card with layered shadow + hover elevation
+- `.smuggler-hero-title` — Playfair Display 800, dark→gold gradient text fill, tighter letter-spacing
+- `.smuggler-hero-title-wrap` + `@keyframes smuggler-title-shimmer` — 7s gold shimmer sweep across the title
+- `.smuggler-title-divider` — 64px gold gradient underline beneath title
+- `.smuggler-section-heading` — Playfair Display 700 for all section headings
+- `.smuggler-protip-card` — premium layered shadow + paper-grain ::before + radial gold corner glow
+- `.smuggler-input-premium` — inset shadow + hover gold border + focus 3px gold ring with glow
+- `.smuggler-platform-btn` — hover translateY(-2px) + active scale(0.97) + soft shadow
+- `.smuggler-count-btn` / `.smuggler-count-btn-active` — hover lift + active press + active green glow shadow
+- `.smuggler-generate-shine` + `@keyframes smuggler-generate-sweep` — 0.9s shine sweep on hover
+- `.smuggler-footer-link` / `.smuggler-share-btn` — hover translateY + scale micro-interactions
+- `.smuggler-empty-glow` — radial gold glow behind radar
+- `.smuggler-particle` + `@keyframes smuggler-particle-float` — 4 floating gold particles in empty state
+
+### HookGeneratorPage.tsx edits (visual only, no logic changes):
+1. **Section background**: added `smuggler-bg-premium` class for radial lighting + vignette
+2. **Hero title**: wrapped in `smuggler-hero-title-wrap` + `smuggler-hero-title` class (Playfair, gradient fill, shimmer animation); added `smuggler-title-divider` gold underline; AI Powered pill got inset highlight + drop shadow
+3. **Subtitle**: softer color (#6b6354), increased line-height (1.65), fade-in animation (delay 0.45s), slightly larger (1.02rem)
+4. **Mascot/stamp fix**: moved TOP SECRET stamp from `top-[2px]` (overlapping face) to `bottom-[6px] right-[-4px]` (over briefcase/documents); added stronger drop-shadow on mascot (0 10px 18px + 0 2px 4px); stamp now has semi-transparent bg + backdrop-blur for "stamped on document" feel
+5. **Pro Tip card**: applied `smuggler-protip-card smuggler-paper-grain` classes; title now Playfair + tracking-[2px] + sparkle icon; body text softer (#5a5448) + line-height 1.7; signature more elegant italic (#9a8f78); added small gold dot accent
+6. **Mission Parameters panel**: applied `smuggler-panel-premium smuggler-paper-grain`; section heading now uses numbered badge (green tinted square) + `smuggler-section-heading` serif
+7. **All 4 input containers**: replaced `smuggler-input-glow border bg-white` with `smuggler-input-premium` (inset shadow + gold focus ring)
+8. **Platform buttons**: applied `smuggler-platform-btn` class; active state now has colored glow ring
+9. **Number selector**: applied `smuggler-count-btn` + `smuggler-count-btn-active` classes (hover lift, active green glow)
+10. **Generate button**: added `smuggler-generate-shine` class for shine sweep on hover (in addition to existing 3D press + ripple)
+11. **Right panel (Generated Hooks)**: applied `smuggler-panel-premium smuggler-paper-grain`; numbered badge + serif heading
+12. **Hook cards**: applied `smuggler-hook-card` class (layered shadow + hover elevation)
+13. **3 analysis panels**: applied `smuggler-panel-analysis smuggler-paper-grain`; added intelligence-themed icons (ShieldCheck for Score Guide, Sparkles for Why It Works); score-guide dots now have colored glow
+14. **Empty state**: added `smuggler-empty-glow` radial glow + 4 floating `smuggler-particle` dots with staggered animation delays
+15. **Footer**: added gold gradient top-edge accent; premium separator between trust items; `smuggler-footer-link` hover lift; `smuggler-share-btn` hover lift+scale; softer text color
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser visual + functional QA:
+  - premium bg ✓, hero title gradient ✓, gold divider ✓, protip card ✓, premium panels ✓, premium inputs ✓, platform btns ✓, count btns ✓, generate shine ✓, empty glow ✓, 4 particles ✓
+  - **Stamp no longer overlaps face**: stamp top=306px, mascot face zone ends at 258px (stamp is 48px below face zone)
+  - **Functional intact**: Generate Hooks → 5 hook cards rendered ✓, analysis panels rendered ✓
+  - No console errors ✓
+
+## What still differs from reference (unchanged from prior round)
+
+- Sidebar not built (per standing instruction)
+- Mascot framing: floating cutout vs polaroid frame
+- Per-hook sub-scores shown at set level, not per-card
+- Credits count is a static placeholder
+
+Stage Summary:
+- Hook Generator elevated to luxury intelligence-dashboard aesthetic
+- All 16 polish points addressed (typography, textures, shadows, borders, micro-interactions)
+- Zero functionality changes — all existing workflows intact
+- Cream/paper/spy aesthetic preserved and enhanced

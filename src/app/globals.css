@@ -650,3 +650,356 @@
 .smuggler-scan-bar {
   animation: smuggler-scan-bar 2.2s ease-in-out infinite;
 }
+
+/* =====================================================================
+   HOOK GENERATOR — FINAL VISUAL POLISH LAYER
+   (typography, textures, shadows, borders, micro-interactions only)
+   =====================================================================
+*/
+
+/* --- Premium paper texture (faint grain overlay for panels) --- */
+.smuggler-paper-grain {
+  position: relative;
+}
+.smuggler-paper-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url('/smuggler/assets/paper-grain-noise.jpg');
+  background-size: 220px 220px;
+  mix-blend-mode: multiply;
+  opacity: 0.045;
+  pointer-events: none;
+  z-index: 0;
+}
+.smuggler-paper-grain > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Premium panel (layered shadow + soft gold border + inner highlight) --- */
+.smuggler-panel-premium {
+  position: relative;
+  border: 1px solid rgba(192, 152, 88, 0.22);
+  background-color: #FFFDF5;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 18%),
+    radial-gradient(circle at 0% 0%, rgba(192, 152, 88, 0.04), transparent 40%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 1px 2px rgba(60, 40, 10, 0.04),
+    0 6px 16px -4px rgba(140, 106, 59, 0.10),
+    0 12px 28px -8px rgba(140, 106, 59, 0.06);
+  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+}
+.smuggler-panel-premium:hover {
+  border-color: rgba(192, 152, 88, 0.4);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+    0 2px 4px rgba(60, 40, 10, 0.06),
+    0 10px 24px -4px rgba(140, 106, 59, 0.14),
+    0 18px 40px -10px rgba(140, 106, 59, 0.08);
+  transform: translateY(-2px);
+}
+
+/* --- Premium analysis panel (analysis cards) --- */
+.smuggler-panel-analysis {
+  position: relative;
+  border: 1px solid rgba(192, 152, 88, 0.2);
+  background-color: #FFFDF5;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 16%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.55) inset,
+    0 1px 2px rgba(60, 40, 10, 0.03),
+    0 4px 12px -3px rgba(140, 106, 59, 0.08);
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.smuggler-panel-analysis:hover {
+  border-color: rgba(192, 152, 88, 0.34);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.65) inset,
+    0 2px 4px rgba(60, 40, 10, 0.05),
+    0 8px 20px -4px rgba(140, 106, 59, 0.12);
+}
+
+/* --- Hook card premium --- */
+.smuggler-hook-card {
+  position: relative;
+  border: 1px solid rgba(192, 152, 88, 0.22);
+  background-color: #FFFDF5;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 14%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 1px 2px rgba(60, 40, 10, 0.03),
+    0 3px 8px -2px rgba(140, 106, 59, 0.07);
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+.smuggler-hook-card:hover {
+  border-color: rgba(192, 152, 88, 0.38);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+    0 2px 5px rgba(60, 40, 10, 0.05),
+    0 10px 24px -4px rgba(140, 106, 59, 0.14);
+}
+
+/* --- Hero title (serif + gold gradient + shimmer) --- */
+.smuggler-hero-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  background: linear-gradient(180deg, #1a1a1a 0%, #3a3328 60%, #5a4a2a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  display: inline-block;
+}
+@keyframes smuggler-title-shimmer {
+  0%, 92%, 100% { transform: translateX(-130%); }
+  45% { transform: translateX(130%); }
+}
+.smuggler-hero-title-wrap {
+  position: relative;
+  display: inline-block;
+}
+.smuggler-hero-title-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(192, 152, 88, 0.28) 50%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  pointer-events: none;
+  animation: smuggler-title-shimmer 7s ease-in-out infinite;
+}
+
+/* --- Decorative underline divider (gold) --- */
+.smuggler-title-divider {
+  display: block;
+  height: 2px;
+  width: 64px;
+  background: linear-gradient(90deg, #C09858 0%, rgba(192, 152, 88, 0.3) 60%, transparent 100%);
+  border-radius: 2px;
+  margin-top: 10px;
+}
+
+/* --- Section heading premium (small icon + divider) --- */
+.smuggler-section-heading {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  position: relative;
+}
+
+/* --- Pro Tip card premium --- */
+.smuggler-protip-card {
+  position: relative;
+  border: 1px solid rgba(192, 152, 88, 0.3);
+  background-color: #FFFDF5;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 20%),
+    radial-gradient(circle at 100% 0%, rgba(192, 152, 88, 0.06), transparent 50%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 1px 2px rgba(60, 40, 10, 0.04),
+    0 6px 16px -4px rgba(140, 106, 59, 0.1),
+    0 10px 24px -6px rgba(140, 106, 59, 0.06);
+  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+}
+.smuggler-protip-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url('/smuggler/assets/paper-grain-noise.jpg');
+  background-size: 200px 200px;
+  mix-blend-mode: multiply;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.smuggler-protip-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Premium input field --- */
+.smuggler-input-premium {
+  border: 1px solid #E5DDC8;
+  background-color: #ffffff;
+  background-image: linear-gradient(180deg, rgba(245, 235, 210, 0.18) 0%, transparent 30%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 1px 2px rgba(60, 40, 10, 0.03) inset;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+.smuggler-input-premium:hover {
+  border-color: rgba(192, 152, 88, 0.45);
+}
+.smuggler-input-premium:focus-within,
+.smuggler-input-premium:focus {
+  border-color: rgba(192, 152, 88, 0.65) !important;
+  background-color: #fffef9;
+  box-shadow:
+    0 0 0 3px rgba(192, 152, 88, 0.14),
+    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+    0 2px 8px rgba(192, 152, 88, 0.12) !important;
+}
+
+/* --- Premium platform button --- */
+.smuggler-platform-btn {
+  position: relative;
+  border: 2px solid #E5DDC8;
+  background-color: #ffffff;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 40%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 1px 2px rgba(60, 40, 10, 0.04);
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.smuggler-platform-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+    0 6px 14px -2px rgba(60, 40, 10, 0.12);
+}
+.smuggler-platform-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* --- Premium number selector button --- */
+.smuggler-count-btn {
+  position: relative;
+  border: 2px solid #E5DDC8;
+  background-color: #ffffff;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 40%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 1px 2px rgba(60, 40, 10, 0.04);
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.smuggler-count-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(192, 152, 88, 0.5);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+    0 5px 12px -2px rgba(60, 40, 10, 0.1);
+}
+.smuggler-count-btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 1px 2px rgba(60, 40, 10, 0.06) inset;
+}
+.smuggler-count-btn-active {
+  border-color: #1E5E3E !important;
+  background-color: #1E5E3E !important;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 40%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
+    0 2px 6px rgba(30, 94, 62, 0.3),
+    0 4px 12px rgba(30, 94, 62, 0.18) !important;
+}
+
+/* --- Generate button shine sweep --- */
+.smuggler-generate-shine {
+  position: relative;
+  overflow: hidden;
+}
+.smuggler-generate-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 70%
+  );
+  transform: translateX(-150%);
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes smuggler-generate-sweep {
+  0% { transform: translateX(-150%); }
+  60%, 100% { transform: translateX(320%); }
+}
+.smuggler-generate-shine:hover::after {
+  animation: smuggler-generate-sweep 0.9s ease-out;
+}
+
+/* --- Footer premium separator + link hover --- */
+.smuggler-footer-link {
+  position: relative;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+.smuggler-footer-link:hover {
+  transform: translateY(-1px);
+}
+.smuggler-share-btn {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.smuggler-share-btn:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 4px 10px rgba(60, 40, 10, 0.1);
+}
+
+/* --- Empty state: extra glow + particles --- */
+.smuggler-empty-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at center, rgba(192, 152, 88, 0.08), transparent 70%);
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 0;
+}
+@keyframes smuggler-particle-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+  50% { transform: translateY(-12px) scale(1.2); opacity: 0.7; }
+}
+.smuggler-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(192, 152, 88, 0.4);
+  pointer-events: none;
+  animation: smuggler-particle-float 4s ease-in-out infinite;
+}
+
+/* --- Background: faint radial lighting + vignette --- */
+.smuggler-bg-premium {
+  position: relative;
+}
+.smuggler-bg-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(192, 152, 88, 0.06), transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(76, 107, 74, 0.04), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.smuggler-bg-premium::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(40, 28, 8, 0.06) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+.smuggler-bg-premium > * {
+  position: relative;
+  z-index: 1;
+}

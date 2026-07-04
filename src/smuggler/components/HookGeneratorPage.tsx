@@ -209,7 +209,7 @@ function GenerateButton({
       type="button"
       onClick={handleClick}
       disabled={disabled}
-      className="smuggler-press-3d relative overflow-hidden flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[0.95rem] font-bold text-white"
+      className="smuggler-press-3d smuggler-generate-shine relative overflow-hidden flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[0.95rem] font-bold text-white"
       style={{ backgroundColor: '#1E5E3E' }}
     >
       {ripples.map((r) => (
@@ -377,7 +377,7 @@ function HookCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: 'easeOut' }}
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
-      className="group relative flex items-start gap-4 rounded-xl border border-[#E5DDC8] bg-[#FFFDF5] p-5 transition-shadow duration-300 hover:shadow-[0_8px_24px_rgba(140,106,59,0.1)]"
+      className="smuggler-hook-card group relative flex items-start gap-4 rounded-xl p-5"
     >
       {/* Number */}
       <div
@@ -455,9 +455,18 @@ function HookCard({
 
 function EmptyState() {
   return (
-    <div className="flex min-h-[440px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#D5C9AA] bg-[#FAF6EC] p-8 text-center">
+    <div className="relative flex min-h-[440px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-[#D5C9AA] bg-[#FAF6EC] p-8 text-center">
+      {/* Soft glow behind radar */}
+      <div className="smuggler-empty-glow" />
+
+      {/* Floating particles */}
+      <span className="smuggler-particle" style={{ width: 4, height: 4, top: '20%', left: '20%', animationDelay: '0s' }} aria-hidden="true" />
+      <span className="smuggler-particle" style={{ width: 3, height: 3, top: '30%', right: '25%', animationDelay: '1.2s' }} aria-hidden="true" />
+      <span className="smuggler-particle" style={{ width: 5, height: 5, bottom: '25%', left: '25%', animationDelay: '2s' }} aria-hidden="true" />
+      <span className="smuggler-particle" style={{ width: 3, height: 3, bottom: '30%', right: '22%', animationDelay: '0.6s' }} aria-hidden="true" />
+
       {/* Radar visual */}
-      <div className="relative mb-6 h-[120px] w-[120px]">
+      <div className="relative z-10 mb-6 h-[120px] w-[120px]">
         {/* Concentric rings */}
         <div className="absolute inset-0 rounded-full border-2 border-[#C09858]/20" />
         <div className="absolute inset-[15px] rounded-full border-2 border-[#C09858]/25" />
@@ -630,7 +639,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
 
   return (
     <section
-      className="relative min-h-screen"
+      className="smuggler-bg-premium relative min-h-screen"
       style={{
         backgroundColor: '#F8F5E6',
         backgroundImage:
@@ -670,24 +679,35 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
               <div className="mb-3 flex items-center gap-3">
-                <h1
-                  className="m-0 font-serif text-[2.2rem] font-bold leading-none tracking-tight text-[#111] sm:text-[2.6rem]"
-                  style={{ fontFamily: 'var(--font-heading)' }}
-                >
-                  Hook Generator
-                </h1>
+                <span className="smuggler-hero-title-wrap">
+                  <h1
+                    className="smuggler-hero-title m-0 text-[2.2rem] leading-none sm:text-[2.6rem]"
+                  >
+                    Hook Generator
+                  </h1>
+                </span>
                 {/* AI Powered pill */}
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.7rem] font-bold text-white"
-                  style={{ backgroundColor: '#1E5E3E' }}
+                  style={{
+                    backgroundColor: '#1E5E3E',
+                    boxShadow: '0 2px 6px rgba(30,94,62,0.3), 0 1px 0 rgba(255,255,255,0.2) inset',
+                  }}
                 >
                   <Sparkles size={12} className="fill-current" />
                   AI Powered
                 </span>
               </div>
-              <p className="m-0 max-w-[460px] text-[1rem] leading-[1.55] text-[#555]">
+              <span className="smuggler-title-divider mb-3" aria-hidden="true" />
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: 'easeOut', delay: 0.45 }}
+                className="m-0 max-w-[460px] text-[1.02rem] leading-[1.65] text-[#6b6354]"
+                style={{ letterSpacing: '0.005em' }}
+              >
                 Create scroll-stopping hooks that grab attention instantly.
-              </p>
+              </motion.p>
             </motion.div>
 
             {/* Mascot + TOP SECRET stamp */}
@@ -697,26 +717,28 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}
             >
-              {/* Mascot */}
+              {/* Mascot — fully visible, gentle float + soft shadow */}
               <motion.img
                 src="/smuggler/assets/mascot-5.png"
                 alt="Content Smuggler spy mascot carrying classified documents"
                 className="smuggler-mascot-float relative z-10 h-[180px] w-auto object-contain"
-                style={{ filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }}
+                style={{
+                  filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18)) drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                }}
               />
-              {/* TOP SECRET stamp — top-right, overlapping mascot corner */}
+              {/* TOP SECRET stamp — bottom-right, over the briefcase/documents, never on the face */}
               <motion.div
-                className="smuggler-stamp-entrance smuggler-stamp-swing-loop pointer-events-none absolute right-[-8px] top-[2px] z-20 rounded-md border-[3px] border-[#C0392B] bg-transparent px-3 py-1.5 text-center"
-                style={{ opacity: 0.88 }}
+                className="smuggler-stamp-entrance smuggler-stamp-swing-loop pointer-events-none absolute bottom-[6px] right-[-4px] z-20 rounded-md border-[3px] border-[#C0392B] bg-[#FFFDF5]/30 px-3 py-1.5 text-center backdrop-blur-[1px]"
+                style={{ opacity: 0.92 }}
               >
                 <span
-                  className="block text-[1rem] font-black tracking-[2px] text-[#C0392B]"
+                  className="block text-[0.85rem] font-black tracking-[2px] text-[#C0392B]"
                   style={{ fontFamily: '"JetBrains Mono", monospace' }}
                 >
                   TOP SECRET
                 </span>
                 <span
-                  className="block text-[0.55rem] font-bold tracking-[1px] text-[#C0392B]"
+                  className="block text-[0.5rem] font-bold tracking-[1px] text-[#C0392B]"
                   style={{ fontFamily: '"JetBrains Mono", monospace' }}
                 >
                   HANDLE WITH CARE
@@ -730,7 +752,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
               whileHover={{ y: -3, transition: { duration: 0.2 } }}
-              className="relative rounded-xl border border-[#D5C9AA] bg-[#FFFDF5] p-5 shadow-sm transition-shadow duration-300 hover:shadow-[0_8px_24px_rgba(140,106,59,0.12)]"
+              className="smuggler-protip-card smuggler-paper-grain relative rounded-xl p-5"
             >
               {/* Paperclip */}
               <div className="absolute -top-2 left-4 text-[#999]">
@@ -743,17 +765,21 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                   />
                 </svg>
               </div>
-              <div className="mb-1.5 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-[#C09A4D]" />
-                <span className="text-[0.8rem] font-bold uppercase tracking-[1px] text-[#8C6A3B]">
+              <div className="mb-2 flex items-center gap-2">
+                <Sparkles size={13} className="text-[#C09A4D]" />
+                <span
+                  className="text-[0.72rem] font-bold uppercase tracking-[2px] text-[#8C6A3B]"
+                  style={{ fontFamily: 'var(--font-heading)' }}
+                >
                   Pro Tip
                 </span>
+                <span className="ml-auto inline-block h-1 w-1 rounded-full bg-[#C09A4D]/50" aria-hidden="true" />
               </div>
-              <p className="m-0 min-h-[3.2rem] text-[0.85rem] leading-[1.55] text-[#444]">
+              <p className="m-0 min-h-[3.4rem] text-[0.88rem] leading-[1.7] text-[#5a5448]">
                 <TypewriterText text="The best hooks create curiosity, promise value, or challenge the status quo." />
               </p>
               <p
-                className="mt-2 text-right text-[0.8rem] italic text-[#888]"
+                className="mt-2.5 text-right text-[0.82rem] italic text-[#9a8f78]"
                 style={{ fontFamily: 'var(--font-heading)' }}
               >
                 — Content Smuggler
@@ -771,19 +797,26 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-2xl border border-[#E5DDC8] bg-[#FFFDF5] p-6 shadow-[0_2px_12px_rgba(140,106,59,0.06)]"
+            className="smuggler-panel-premium smuggler-paper-grain rounded-2xl p-6"
           >
-            <h2 className="mb-5 text-[1.1rem] font-bold text-[#111]">
-              <span className="mr-2 text-[#1E5E3E]">1.</span>
-              Describe your content
-            </h2>
+            <div className="mb-5 flex items-center gap-2.5">
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1E5E3E]/10 text-[0.75rem] font-bold text-[#1E5E3E]"
+                style={{ fontFamily: 'var(--font-heading)' }}
+              >
+                1
+              </span>
+              <h2 className="smuggler-section-heading m-0 text-[1.12rem] text-[#111]">
+                Describe your content
+              </h2>
+            </div>
 
             {/* Content textarea */}
             <div className="mb-5">
               <label className="mb-1.5 block text-[0.85rem] font-semibold text-[#444]">
                 What is your video/post about?
               </label>
-              <div className="smuggler-input-glow relative rounded-xl border border-[#E5DDC8] bg-white transition-all">
+              <div className="smuggler-input-premium relative rounded-xl transition-all">
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value.slice(0, 500))}
@@ -802,7 +835,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               <label className="mb-1.5 block text-[0.85rem] font-semibold text-[#444]">
                 Audience <span className="text-[#999]">(Optional)</span>
               </label>
-              <div className="smuggler-input-glow relative rounded-xl border border-[#E5DDC8] bg-white">
+              <div className="smuggler-input-premium relative rounded-xl">
                 <select
                   value={audience}
                   onChange={(e) => setAudience(e.target.value)}
@@ -835,10 +868,13 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                       key={p.name}
                       type="button"
                       onClick={() => setPlatform(p.name)}
-                      className={`smuggler-press flex h-11 w-11 items-center justify-center rounded-xl border-2 transition-all`}
+                      className={`smuggler-platform-btn smuggler-press flex h-11 w-11 items-center justify-center rounded-xl transition-all`}
                       style={{
-                        borderColor: isActive ? p.color : '#E5DDC8',
-                        backgroundColor: isActive ? p.color + '10' : '#fff',
+                        borderColor: isActive ? p.color : undefined,
+                        backgroundColor: isActive ? p.color + '10' : undefined,
+                        boxShadow: isActive
+                          ? `0 0 0 3px ${p.color}20, 0 1px 0 0 rgba(255,255,255,0.8) inset, 0 6px 14px -2px rgba(60,40,10,0.12)`
+                          : undefined,
                       }}
                       aria-label={p.name}
                       aria-pressed={isActive}
@@ -860,7 +896,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                 <label className="mb-1.5 block text-[0.85rem] font-semibold text-[#444]">
                   Tone
                 </label>
-                <div className="smuggler-input-glow relative rounded-xl border border-[#E5DDC8] bg-white">
+                <div className="smuggler-input-premium relative rounded-xl">
                   <select
                     value={tone}
                     onChange={(e) => setTone(e.target.value)}
@@ -880,7 +916,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                 <label className="mb-1.5 block text-[0.85rem] font-semibold text-[#444]">
                   Language
                 </label>
-                <div className="smuggler-input-glow relative rounded-xl border border-[#E5DDC8] bg-white">
+                <div className="smuggler-input-premium relative rounded-xl">
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
@@ -911,12 +947,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                       key={n}
                       type="button"
                       onClick={() => setHookCount(n)}
-                      className="smuggler-press flex h-10 flex-1 items-center justify-center rounded-lg border-2 text-[0.85rem] font-bold transition-all"
-                      style={{
-                        borderColor: isActive ? '#1E5E3E' : '#E5DDC8',
-                        backgroundColor: isActive ? '#1E5E3E' : '#fff',
-                        color: isActive ? '#fff' : '#555',
-                      }}
+                      className={`smuggler-count-btn smuggler-press flex h-10 flex-1 items-center justify-center rounded-lg text-[0.85rem] font-bold transition-all ${isActive ? 'smuggler-count-btn-active' : ''}`}
                       aria-pressed={isActive}
                     >
                       {n}
@@ -939,13 +970,18 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="rounded-2xl border border-[#E5DDC8] bg-[#FFFDF5] p-6 shadow-[0_2px_12px_rgba(140,106,59,0.06)]"
+            className="smuggler-panel-premium smuggler-paper-grain rounded-2xl p-6"
           >
             {/* Panel header */}
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <h2 className="m-0 text-[1.1rem] font-bold text-[#111]">
-                  <span className="mr-2 text-[#1E5E3E]">2.</span>
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1E5E3E]/10 text-[0.75rem] font-bold text-[#1E5E3E]"
+                  style={{ fontFamily: 'var(--font-heading)' }}
+                >
+                  2
+                </span>
+                <h2 className="smuggler-section-heading m-0 text-[1.12rem] text-[#111]">
                   Your Generated Hooks
                 </h2>
                 {hasGenerated && (
@@ -1104,11 +1140,14 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.4fr_auto]"
             >
               {/* Hook Score Guide */}
-              <div className="rounded-2xl border border-[#E5DDC8] bg-[#FFFDF5] p-6">
-                <h3 className="mb-1 text-[1rem] font-bold text-[#111]">
-                  Hook Score Guide
-                </h3>
-                <p className="mb-4 text-[0.8rem] text-[#666]">
+              <div className="smuggler-panel-analysis smuggler-paper-grain rounded-2xl p-6">
+                <div className="mb-1 flex items-center gap-2">
+                  <ShieldCheck size={15} className="text-[#8C6A3B]" />
+                  <h3 className="smuggler-section-heading m-0 text-[1rem] text-[#111]">
+                    Hook Score Guide
+                  </h3>
+                </div>
+                <p className="mb-4 text-[0.8rem] text-[#6b6354]">
                   We score hooks based on proven engagement factors.
                 </p>
                 <div className="flex flex-col gap-2.5">
@@ -1116,7 +1155,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                     <div key={g.range} className="flex items-center gap-2.5">
                       <span
                         className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: g.color }}
+                        style={{ backgroundColor: g.color, boxShadow: `0 0 6px ${g.color}40` }}
                       />
                       <span className="text-[0.8rem] font-semibold text-[#333]">
                         {g.range}
@@ -1128,11 +1167,14 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               </div>
 
               {/* Why this hook works */}
-              <div className="rounded-2xl border border-[#E5DDC8] bg-[#FFFDF5] p-6">
-                <h3 className="mb-1 text-[1rem] font-bold text-[#111]">
-                  Why this hook works?
-                </h3>
-                <p className="mb-4 text-[0.8rem] leading-relaxed text-[#666]">
+              <div className="smuggler-panel-analysis smuggler-paper-grain rounded-2xl p-6">
+                <div className="mb-1 flex items-center gap-2">
+                  <Sparkles size={15} className="text-[#8C6A3B]" />
+                  <h3 className="smuggler-section-heading m-0 text-[1rem] text-[#111]">
+                    Why this hook works?
+                  </h3>
+                </div>
+                <p className="mb-4 text-[0.8rem] leading-relaxed text-[#6b6354]">
                   {analysisSummary}
                 </p>
                 <div className="flex flex-col gap-3">
@@ -1143,7 +1185,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
               </div>
 
               {/* Circular Score */}
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#E5DDC8] bg-gradient-to-br from-[#FFFDF5] to-[#F0E8D5] p-6">
+              <div className="smuggler-panel-analysis smuggler-paper-grain flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFFDF5] to-[#F0E8D5] p-6">
                 <CircularScore score={overallScore} />
               </div>
             </motion.div>
@@ -1153,43 +1195,50 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
         {/* ===========================
             4. FOOTER
             =========================== */}
-        <footer className="border-t border-[#E5DDC8] pt-6">
+        <footer className="relative border-t border-[#E5DDC8] pt-6">
+          {/* subtle gold tint top edge */}
+          <span
+            className="pointer-events-none absolute -top-px left-1/2 h-px w-40 -translate-x-1/2"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(192,152,88,0.5), transparent)' }}
+            aria-hidden="true"
+          />
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             {/* Trust row */}
-            <div className="flex items-center gap-4 text-[0.78rem] text-[#666]">
-              <span className="flex items-center gap-1.5">
+            <div className="flex items-center gap-4 text-[0.78rem] text-[#6b6354]">
+              <span className="smuggler-footer-link flex items-center gap-1.5">
                 <ShieldCheck size={14} className="text-[#1E5E3E]" />
                 Your data is encrypted and secure.
               </span>
-              <span className="hidden items-center gap-1.5 sm:flex">
+              <span className="hidden h-3 w-px bg-[#E5DDC8] sm:block" aria-hidden="true" />
+              <span className="hidden items-center gap-1.5 sm:flex smuggler-footer-link">
                 <Users size={14} className="text-[#8C6A3B]" />
                 Trusted by 10,000+ creators worldwide.
               </span>
             </div>
 
             {/* Share row */}
-            <div className="flex items-center gap-2 text-[0.78rem] text-[#666]">
+            <div className="flex items-center gap-2 text-[0.78rem] text-[#6b6354]">
               <span className="flex items-center gap-1.5">
                 <Share2 size={13} />
                 Share this tool:
               </span>
               <button
                 type="button"
-                className="smuggler-press flex h-7 w-7 items-center justify-center rounded-lg text-[#666] transition-colors hover:bg-[#F0E8D5] hover:text-[#1DA1F2]"
+                className="smuggler-share-btn flex h-7 w-7 items-center justify-center rounded-lg text-[#666] hover:bg-[#F0E8D5] hover:text-[#1DA1F2]"
                 aria-label="Share on Twitter"
               >
                 <Twitter size={14} />
               </button>
               <button
                 type="button"
-                className="smuggler-press flex h-7 w-7 items-center justify-center rounded-lg text-[#666] transition-colors hover:bg-[#F0E8D5] hover:text-[#0A66C2]"
+                className="smuggler-share-btn flex h-7 w-7 items-center justify-center rounded-lg text-[#666] hover:bg-[#F0E8D5] hover:text-[#0A66C2]"
                 aria-label="Share on LinkedIn"
               >
                 <Linkedin size={14} />
               </button>
               <button
                 type="button"
-                className="smuggler-press flex h-7 w-7 items-center justify-center rounded-lg text-[#666] transition-colors hover:bg-[#F0E8D5] hover:text-[#1877F2]"
+                className="smuggler-share-btn flex h-7 w-7 items-center justify-center rounded-lg text-[#666] hover:bg-[#F0E8D5] hover:text-[#1877F2]"
                 aria-label="Share on Facebook"
               >
                 <Facebook size={14} />
