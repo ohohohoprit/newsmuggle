@@ -10,10 +10,11 @@ import {
   Search,
   Sun,
   Moon,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 
-export type NavView = 'home' | 'tools' | 'hook-generator' | 'tool-page' | 'library' | 'studio' | 'pricing' | 'auth';
+export type NavView = 'home' | 'tools' | 'hook-generator' | 'tool-page' | 'library' | 'studio' | 'pricing' | 'auth' | 'settings';
 export type AuthMode = 'login' | 'signup';
 
 export interface NavbarProps {
@@ -190,9 +191,17 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
           </ul>
         </div>
 
-        {/* Right: Search trigger + Theme Toggle + Auth Buttons */}
+        {/* Right: Search trigger + Theme Toggle + Settings + Auth Buttons */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => onNavigate('settings')}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 text-[var(--smuggler-text-secondary)] transition-all hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-gold)]"
+            aria-label="Account settings"
+          >
+            <Settings size={16} />
+          </button>
           <button
             type="button"
             onClick={onOpenPalette}

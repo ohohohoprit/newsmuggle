@@ -12,11 +12,13 @@ import LibraryView from '@/smuggler/components/LibraryView';
 import StudioView from '@/smuggler/components/StudioView';
 import PricingView from '@/smuggler/components/PricingView';
 import AuthPages from '@/smuggler/components/AuthPages';
+import SettingsView from '@/smuggler/components/SettingsView';
 import CommandPalette from '@/smuggler/components/CommandPalette';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
 import ToolModal from '@/smuggler/components/ToolModal';
 import { useToolsStore } from '@/smuggler/store/useToolsStore';
+import { useUserStore } from '@/smuggler/store/useUserStore';
 
 export default function Home() {
   const [view, setView] = useState<NavView>('home');
@@ -29,9 +31,11 @@ export default function Home() {
 
   // Hydrate favorites from localStorage on mount
   const hydrateFavorites = useToolsStore((s) => s.hydrateFavorites);
+  const hydrateUser = useUserStore((s) => s.hydrate);
   useEffect(() => {
     hydrateFavorites();
-  }, [hydrateFavorites]);
+    hydrateUser();
+  }, [hydrateFavorites, hydrateUser]);
 
   // Cmd/Ctrl+K to open command palette
   useEffect(() => {
@@ -251,10 +255,22 @@ export default function Home() {
               />
             </motion.div>
           )}
+
+          {view === 'settings' && (
+            <motion.div
+              key="settings-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <SettingsView onNavigate={handleNavigate} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
-      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && view !== 'library' && view !== 'studio' && view !== 'pricing' && view !== 'auth' && (
+      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && view !== 'library' && view !== 'studio' && view !== 'pricing' && view !== 'auth' && view !== 'settings' && (
         <div className="mt-auto">
           <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
         </div>
