@@ -40,6 +40,7 @@ import {
 } from '@/smuggler/store/useUserStore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import BackButton from '@/smuggler/components/BackButton';
 
 /* ============================================================
    Props & Constants
@@ -2312,20 +2313,9 @@ export function SettingsView({ onNavigate }: SettingsViewProps) {
         style={{ borderColor: 'var(--smuggler-border)' }}
       >
         <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-8 lg:px-16">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="mb-6 inline-flex items-center gap-2 text-sm font-medium transition-colors"
-            style={{ color: 'var(--smuggler-text-secondary)' }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = 'var(--smuggler-gold)')
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = 'var(--smuggler-text-secondary)')
-            }
-          >
-            <ArrowLeft size={16} /> Back to Studio
-          </button>
+          <div className="mb-6">
+            <BackButton onBack={handleBack} label="Studio" />
+          </div>
           <div className="smuggler-hero-title-wrap">
             <h1
               className="smuggler-section-heading text-4xl sm:text-5xl"

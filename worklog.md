@@ -1605,3 +1605,76 @@ Stage Summary:
 - Default avatar (logo-hq.png) with uploadable custom avatar
 - Settings gear icon in navbar for easy access
 - Zero lint/tsc errors, zero runtime errors
+
+---
+Task ID: 23 (Global navigation: Home icon + Back button + Responsive optimization)
+Agent: main (orchestrator)
+Task: Add custom Home icon to navbar, universal Back button, and global responsive fixes
+
+## Completed Modifications
+
+### 1. Custom Home Icon in Navbar
+- Copied `upload/craiyon_211320_image.png` → `public/smuggler/assets/home-icon.png` (optimized 128x128 RGBA)
+- Added to Navbar (`src/smuggler/components/Navbar.tsx`):
+  - Home icon button placed on the far left, before the Content Smuggler logo
+  - **Hidden on Homepage** (`currentView !== 'home'`) and auth pages
+  - **Shown on all other pages** (Studio, Library, Tools, Tool pages, Pricing, Settings)
+  - Premium hover: `whileHover={{ scale: 1.1 }}` + soft gold glow shadow
+  - Click feedback: `whileTap={{ scale: 0.92 }}`
+  - Clicking navigates to Homepage (`onNavigate('home')`)
+  - `mixBlendMode: multiply` for clean integration in light mode
+  - Entrance/exit animation: opacity + scale
+
+### 2. Universal Back Button Component
+- Created `src/smuggler/components/BackButton.tsx`:
+  - Reusable component with `onBack` callback + optional `label` prop
+  - Premium styling: border, bg, hover lift (`whileHover={{ x: -3 }}`), press (`whileTap={{ scale: 0.96 }}`)
+  - ArrowLeft icon + label text (hidden on mobile, icon-only on small screens)
+  - Smooth entrance animation
+- Added BackButton to all major internal pages:
+  - **StudioView**: Back to Home (before hero header)
+  - **LibraryView**: Back to Home (before hero header)
+  - **SettingsView**: Back to Studio (replaced existing inline back button)
+  - **PricingView**: Back to Home (before hero title)
+  - **ToolPageEngine**: Already had back breadcrumb (preserved)
+  - **HookGeneratorPage**: Already had back breadcrumb (preserved)
+
+### 3. Global Responsive Optimization
+Added comprehensive responsive CSS to `globals.css`:
+- **Prevent horizontal scroll**: `overflow-x: hidden` on html/body
+- **Responsive navbar**: smaller padding on mobile
+- **Responsive typography**: `clamp()` font sizes for h1/h2 on mobile
+- **Responsive hooks panel**: auto height on mobile (instead of fixed 720px)
+- **Touch-friendly**: minimum 36px tap targets on mobile
+- **Responsive mascot**: scale(0.7) on mobile
+- **Responsive panels**: reduced padding on mobile
+- **Small screen text**: smaller hero title on <480px
+- **Smooth scrolling**: `scroll-behavior: smooth` globally
+- **Accessibility**: `prefers-reduced-motion` support (disables animations)
+
+### 4. Files changed
+- `public/smuggler/assets/home-icon.png` — NEW (128x128 RGBA custom home icon)
+- `src/smuggler/components/Navbar.tsx` — EDITED (home icon button + Settings import)
+- `src/smuggler/components/BackButton.tsx` — NEW (universal back button)
+- `src/smuggler/components/StudioView.tsx` — EDITED (BackButton added)
+- `src/smuggler/components/LibraryView.tsx` — EDITED (BackButton added)
+- `src/smuggler/components/SettingsView.tsx` — EDITED (BackButton replaced inline back)
+- `src/smuggler/components/PricingView.tsx` — EDITED (BackButton added)
+- `src/app/globals.css` — EDITED (global responsive optimizations)
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - Home icon **hidden** on Homepage ✓
+  - Home icon **visible** on Studio page ✓
+  - Clicking Home icon navigates back to Homepage ✓
+  - Back button present on Studio, Library, Settings, Pricing ✓
+  - No console errors ✓
+
+Stage Summary:
+- Custom Home icon integrated into navbar (hidden on homepage, shown on all internal pages)
+- Universal BackButton component created and added to all major pages
+- Global responsive optimizations (mobile-first, touch-friendly, reduced-motion support)
+- Zero lint/tsc errors, zero runtime errors

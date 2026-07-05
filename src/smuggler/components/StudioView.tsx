@@ -48,6 +48,7 @@ import {
   formatNumber,
   formatTimeAgo,
 } from '@/smuggler/store/useStudioStore';
+import BackButton from '@/smuggler/components/BackButton';
 
 /* ============================================================
    Props
@@ -2129,6 +2130,9 @@ export function StudioView({ onNavigate, onSelectTool }: StudioViewProps) {
           <div className="relative flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
             {/* Left: title + subtitle */}
             <div className="max-w-2xl flex-1">
+              <div className="mb-3">
+                <BackButton onBack={() => onNavigate('home')} label="Home" />
+              </div>
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 <span
                   className="smuggler-glow inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.65rem] font-bold uppercase tracking-wider"

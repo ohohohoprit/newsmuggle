@@ -71,8 +71,31 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
         className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-4 sm:px-8 lg:px-16"
         aria-label="Primary"
       >
-        {/* Left: Logo + Nav Links */}
-        <div className="flex items-center gap-6 md:gap-10 lg:gap-16">
+        {/* Left: Home Icon (hidden on homepage) + Logo + Nav Links */}
+        <div className="flex items-center gap-3 md:gap-6 lg:gap-10">
+          {/* Home icon — hidden on homepage, shown on all other pages */}
+          {currentView !== 'home' && currentView !== 'auth' && (
+            <motion.button
+              type="button"
+              onClick={() => onNavigate('home')}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.25 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.92 }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all hover:shadow-[0_0_12px_rgba(192,152,88,0.3)]"
+              style={{ border: '1px solid var(--smuggler-border)', backgroundColor: 'var(--smuggler-bg-panel)' }}
+              aria-label="Return to homepage"
+            >
+              <img
+                src="/smuggler/assets/home-icon.png"
+                alt="Home"
+                className="h-6 w-6 object-contain"
+                style={{ mixBlendMode: 'multiply' }}
+              />
+            </motion.button>
+          )}
           <button
             type="button"
             onClick={() => onNavigate('home')}

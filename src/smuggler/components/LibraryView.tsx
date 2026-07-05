@@ -60,6 +60,7 @@ import {
   LIBRARY_TYPE_LABELS,
   formatTimeAgo,
 } from '@/smuggler/store/useLibraryStore';
+import BackButton from '@/smuggler/components/BackButton';
 
 /* ============================================================
    Types & Constants
@@ -2057,6 +2058,10 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
               >
                 100% Secure · Encrypted Vault
               </span>
+            </div>
+
+            <div className="mb-3">
+              <BackButton onBack={() => onNavigate('home')} label="Home" />
             </div>
 
             {/* Title with gold gradient + shimmer */}

@@ -22,6 +22,7 @@ import {
   Building2,
   Rocket,
 } from 'lucide-react';
+import BackButton from '@/smuggler/components/BackButton';
 
 export interface PricingViewProps {
   onNavigate: (view: 'home' | 'tools' | 'library' | 'studio') => void;
@@ -728,6 +729,10 @@ export function PricingView({ onNavigate, onOpenAuth }: PricingViewProps) {
             <ShieldCheck size={11} />
             Pricing Dossier
           </span>
+
+          <div className="mb-4">
+            <BackButton onBack={() => onNavigate('home')} label="Home" />
+          </div>
 
           <div className="smuggler-hero-title-wrap">
             <h1
