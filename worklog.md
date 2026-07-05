@@ -1293,3 +1293,90 @@ Stage Summary:
 - Library is now the central creator hub (workspace + vault + stats + tools + calendar + activity)
 - Login redirects to Library instead of Dashboard
 - Zero regressions, zero errors
+
+---
+
+Task ID: STUDIO
+Agent: full-stack-developer
+Task: Build a fully functional premium Creator Studio page as a single file `src/smuggler/components/StudioView.tsx` — an AI-powered business dashboard for creators using the existing `useStudioStore` Zustand store, the smuggler design system premium classes, framer-motion, and shadcn `Dialog`.
+
+Work Log:
+- Read `useStudioStore.ts` (full store + types + helpers), `globals.css` premium class ranges, `Navbar.tsx` (NavView type), confirmed mascot path `/smuggler/assets/hero-mascot-new.png`, and verified tool IDs in `data/tools.ts` (`hook-generator`, `ai-writer`, `script-writer`, `title-optimizer`, `thumbnail-analyzer`, `repurpose-engine`, `content-calendar`).
+- Reused patterns from `LibraryView.tsx`: `AnimatedCounter` (framer-motion `animate()` + `useInView`), `Toast` stack with unique IDs, custom `SortDropdown`, and `CreateFolderDialog`'s reset-on-open-via-`handleOpenChange` pattern (avoids `react-hooks/set-state-in-effect`).
+- Built all 12 spec sections: Hero (Playfair gold-gradient shimmer title + floating 140px mascot + TimeframeSelector + NotificationBell), 6 AnimatedCounter metric cards (followers/views/engagement derived live from connected accounts; watchtime/revenue/content static), Connected Accounts grid (all 10 platforms from `PLATFORM_META`, connect/disconnect/refresh wired to store actions + toast, health dots, last-sync), Performance Overview (custom SVG line chart with 3 series, area fills, gridlines, animated `strokeDashoffset` draw-in on `useInView`, legend, timeframe-reactive), AI Insights grid (severity-colored borders, Why/How panels, "Try {tool}" `cta-gold` button → `onSelectTool`), Top Performing Content (sortable by views/engagement/date, trend arrows), Today's Plan (toggleable calendar items, done/scheduled/missed states), Demographics (3 charts: 2 horizontal bar charts + 1 SVG donut, all animate on `useInView`, use each demographic item's own color), Goals grid (animated progress bars, delete button, CreateGoalDialog with title/target/unit/8-color picker), Recent Activity (staggered list), Quick Access (6 tool buttons), and floating NotificationBell dropdown with badge count + activity feed.
+- All actions wired to store: `hydrate`, `setTimeframe`, `connectAccount`, `disconnectAccount`, `refreshAccount`, `createGoal`, `deleteGoal`, `toggleCalendarItem`. Tool links call `onSelectTool(toolId)`, "View All Tools" calls `onNavigate('tools')`.
+- Two lint errors fixed during development: (1) `react-hooks/immutability` on donut segment offset accumulation → refactored to pure `reduce` with no outer-variable mutation; (2) `react-hooks/set-state-in-effect` on dialog form reset → moved reset into `handleOpenChange` wrapper.
+- Design system adherence: all colors via `var(--smuggler-*)` (theme-aware), premium card classes (`.smuggler-panel-premium`, `.smuggler-paper-grain`, `.smuggler-hook-card`, `.smuggler-cta-premium/outline/gold`, `.smuggler-hero-title-wrap`, `.smuggler-bg-premium`, `.smuggler-section-heading`, `.smuggler-title-divider`, `.smuggler-glow`, `.smuggler-input-premium`). Framer-motion: `whileInView` reveals, `staggerChildren`, `animate()` counters, `strokeDashoffset` chart draw-ins, `layoutId` pill, mascot floating + orbiting dot, dropdown springs. Mobile-first responsive (metrics 6→3→2, accounts 4→3→2→1, two-column sections stack). Semantic HTML with ARIA labels. Both named + default exports.
+
+Stage Summary:
+- File created: `/home/z/my-project/src/smuggler/components/StudioView.tsx` (~1,900 lines).
+- `bun run lint`: 0 errors, 0 warnings.
+- `npx tsc --noEmit`: 0 errors in `src/` (only pre-existing errors in `examples/` and `skills/`).
+- Dev server: compiles cleanly, no errors.
+- Work record written to `/home/z/my-project/agent-ctx/STUDIO-full-stack-developer.md`.
+- The component is ready to mount — suggested parent wiring documented in the agent-ctx file (add `'studio'` to `NavView`, render in `page.tsx` when `view === 'studio'`, wire the "Studio" nav link).
+
+---
+Task ID: 20 (Creator Studio)
+Agent: main (orchestrator)
+Task: Build Creator Studio — AI-powered command center for creators
+
+## Completed Modifications
+
+### 1. Studio Store (`src/smuggler/store/useStudioStore.ts` — NEW)
+Full Zustand store with localStorage persistence:
+- **Types**: SocialAccount, StudioGoal, StudioActivity, AIInsight, CalendarItem, ContentItem, DemographicData, PlatformId
+- **10 platforms**: YouTube, Instagram, TikTok, Twitter/X, Facebook, LinkedIn, Twitch, Pinterest, Reddit, Discord (with `PLATFORM_META` — name, color, icon)
+- **Seed data**: 4 connected accounts (YouTube 125K, Instagram 89K, TikTok 234K, Twitter 45K), 4 goals, 6 activities, 6 AI insights (with WHY/HOW/tool recommendations), 4 calendar items, 5 top content items, demographics (age, geo, traffic sources)
+- **Account actions**: connectAccount (generates fake data), disconnectAccount, refreshAccount (updates followers/views)
+- **Goal actions**: createGoal, updateGoalProgress, deleteGoal
+- **Calendar**: toggleCalendarItem (done ↔ scheduled)
+- **Timeframe**: 7d / 28d / 90d selector
+- **Helpers**: formatNumber, formatTimeAgo
+
+### 2. StudioView Component (`src/smuggler/components/StudioView.tsx` — NEW, ~1900 lines)
+Built by subagent. Full premium Creator Studio with 12 sections:
+
+1. **Hero Header**: "Creator Studio" (gold gradient + shimmer title), subtitle, 140px floating mascot badge with orbiting dot, timeframe selector (7D/28D/90D), notification bell with dropdown, "Open Tools" CTA
+2. **6 Key Metrics**: Total Followers, Total Views, Engagement Rate, Avg Watch Time, Total Revenue, Content Created — each with `AnimatedCounter` + trend badge + hover lift
+3. **Connected Accounts**: all 10 platforms, connect/disconnect/refresh buttons (functional), health indicators, followers/views/engagement/last sync
+4. **Performance Overview**: custom SVG line chart (3 series: Views/Engagement/Followers), animated stroke draw-in, timeframe-reactive
+5. **AI Creator Coach**: 6 insight cards with severity borders, WHY/HOW sections, "Try {tool}" button → `onSelectTool(toolId)`, expected impact badge
+6. **Top Performing Content**: sortable list (views/engagement/date), platform icons, trend arrows
+7. **Content Calendar**: Today's Plan with toggleable items (done/scheduled/missed states), platform icons
+8. **Demographics**: 3 charts — age groups (horizontal bars), top countries (horizontal bars), traffic sources (SVG donut) — all animate on scroll
+9. **Goals**: animated progress bars, delete buttons, Create Goal dialog (title/target/unit/color picker)
+10. **Recent Activity**: staggered list with platform icons + time ago
+11. **Quick Access**: 6 tool buttons (Hook Generator, AI Writer, Title Optimizer, Thumbnail Analyzer, Repurpose Engine, View All Tools) — all functional
+12. **Notifications**: floating bell with badge count + dropdown showing recent activities
+
+### 3. Routing
+- **Navbar**: Added `'studio'` to NavView union; "Studio" is the first nav link (primary workspace)
+- **page.tsx**: Added `StudioView` import + `view === 'studio'` branch; Footer hidden on studio view
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - Studio title: "Creator Studio" ✓
+  - Connected Accounts ✓
+  - AI Insights: "Insights for You" ✓
+  - Top Performing Content ✓
+  - Today's Plan calendar ✓
+  - Demographics ✓
+  - Goals ✓
+  - Recent Activity ✓
+  - Quick Access ✓
+  - Hook Generator link in AI insights ✓
+  - Followers/Views/Engagement metrics present ✓
+  - No console errors ✓
+
+Stage Summary:
+- Creator Studio fully built with all 12 sections and full functionality
+- All account connections, goals, calendar, AI insights are interactive
+- AI insight tool recommendations link directly to Content Smuggler tools
+- Custom SVG charts (line chart + donut + bar charts) with scroll animations
+- Premium card design throughout (layered shadows, paper texture, hover lift)
+- Theme-aware (light/dark mode via CSS variables)
+- Zero lint/tsc errors, zero runtime errors

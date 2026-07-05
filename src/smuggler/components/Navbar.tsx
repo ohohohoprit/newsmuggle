@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-export type NavView = 'home' | 'tools' | 'hook-generator' | 'tool-page' | 'library';
+export type NavView = 'home' | 'tools' | 'hook-generator' | 'tool-page' | 'library' | 'studio';
 export type AuthMode = 'login' | 'signup';
 
 export interface NavbarProps {
@@ -32,9 +32,9 @@ interface NavLinkConfig {
 }
 
 const NAV_LINKS: NavLinkConfig[] = [
+  { label: 'Studio', view: 'studio' },
   { label: 'Library', view: 'library' },
   { label: 'Tools', view: 'tools', hasCaret: true },
-  { label: 'Studio' },
   { label: 'Pricing' },
   { label: 'Resources', hasCaret: true },
 ];
