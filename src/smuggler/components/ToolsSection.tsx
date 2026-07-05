@@ -360,7 +360,7 @@ export function ToolsSection({
       variants={{
         visible: { transition: { staggerChildren: 0.15 } },
       }}
-      aria-label="Creator dashboard"
+      aria-label="Creator workspace"
     >
       {/* LEFT: Popular Tools */}
       <motion.section

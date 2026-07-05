@@ -38,6 +38,17 @@ import {
   RotateCcw,
   Sparkles,
   Crosshair,
+  Eye,
+  Heart,
+  TrendingUp,
+  Trophy,
+  Crown,
+  Paperclip,
+  ArrowRight,
+  Calendar,
+  Briefcase,
+  PenLine,
+  Zap,
 } from 'lucide-react';
 import {
   useLibraryStore,
@@ -55,7 +66,7 @@ import {
    ============================================================ */
 
 export interface LibraryViewProps {
-  onNavigate: (view: 'home' | 'tools' | 'dashboard') => void;
+  onNavigate: (view: 'home' | 'tools' | 'library') => void;
   onSelectTool: (toolId: string) => void;
 }
 
@@ -2177,6 +2188,319 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
             </motion.div>
           ))}
         </motion.div>
+      </section>
+
+      {/* ====== Creator Hub (migrated from Dashboard) ====== */}
+      <section className="relative z-10 px-4 py-6 sm:px-8 lg:px-16">
+        <div className="mx-auto max-w-[1400px]">
+          {/* Welcome Banner + Plan Widget */}
+          <div className="mb-6 flex flex-col gap-6 lg:flex-row">
+            {/* Welcome Banner */}
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              className="smuggler-panel-premium smuggler-paper-grain relative flex flex-1 flex-col items-start gap-5 rounded-2xl p-6 sm:flex-row sm:items-center sm:p-7"
+            >
+              <div className="relative z-10 flex items-center gap-5">
+                <div
+                  className="relative shrink-0 rounded-lg p-2"
+                  style={{
+                    backgroundColor: 'var(--smuggler-border)',
+                    boxShadow: '2px 4px 10px rgba(0,0,0,0.1)',
+                    transform: 'rotate(-2deg)',
+                  }}
+                >
+                  <img
+                    src="/smuggler/assets/hero-mascot-new.png"
+                    alt="Smuggler Mascot"
+                    className="h-[80px] w-[80px] rounded-lg object-cover"
+                  />
+                  <Paperclip
+                    size={20}
+                    className="absolute -top-2.5 left-2 text-[var(--smuggler-text-muted)]"
+                    style={{ transform: 'rotate(15deg)' }}
+                  />
+                </div>
+                <div>
+                  <h2
+                    className="mb-1.5 font-serif text-[1.5rem] font-bold"
+                    style={{ fontFamily: 'var(--font-heading)', color: 'var(--smuggler-text)' }}
+                  >
+                    Welcome back, Agent.
+                  </h2>
+                  <p className="mb-2.5 text-[0.9rem]" style={{ color: 'var(--smuggler-text-secondary)' }}>
+                    Your vault is fully decrypted and ready for operation.
+                  </p>
+                  <p
+                    className="m-0 text-[0.85rem] italic"
+                    style={{ fontFamily: 'var(--font-heading)', color: 'var(--smuggler-text-muted)' }}
+                  >
+                    &ldquo;Great content isn&rsquo;t created. It&rsquo;s smuggled.&rdquo;
+                  </p>
+                </div>
+              </div>
+              {/* TOP SECRET stamp */}
+              <div
+                className="pointer-events-none absolute bottom-4 right-4 flex flex-col gap-1 opacity-60"
+                style={{ transform: 'rotate(-5deg)' }}
+              >
+                <span
+                  className="smuggler-stamp-rotate rounded border-2 border-[#C43B3B] px-2 py-0.5 text-[0.65rem] font-extrabold tracking-[2px] text-[#C43B3B]"
+                  style={{ fontFamily: '"JetBrains Mono", monospace' }}
+                >
+                  TOP SECRET
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Plan Widget */}
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              className="smuggler-panel-premium relative flex w-full flex-col justify-between rounded-2xl p-6 lg:w-[300px]"
+            >
+              <div className="relative z-10">
+                <div className="mb-4 flex items-center justify-between text-[0.78rem] font-semibold tracking-wide" style={{ color: 'var(--smuggler-text-muted)' }}>
+                  <span>YOUR PLAN</span>
+                  <span
+                    className="flex items-center gap-1 rounded px-2 py-0.5 text-[0.7rem]"
+                    style={{ backgroundColor: 'rgba(192,152,88,0.15)', color: 'var(--smuggler-gold)' }}
+                  >
+                    <Crown size={11} className="fill-current" /> Creator
+                  </span>
+                </div>
+                <div className="mb-2 flex justify-between text-[0.85rem]" style={{ color: 'var(--smuggler-text-secondary)' }}>
+                  <span>Usage this month</span>
+                  <span>{activeItems.length} / 100</span>
+                </div>
+                <div className="mb-2 h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--smuggler-border)' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: `${Math.min(activeItems.length, 100)}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: 'var(--smuggler-accent-green)' }}
+                  />
+                </div>
+                <div className="mb-4 text-[0.72rem]" style={{ color: 'var(--smuggler-text-muted)' }}>
+                  Resets on the 1st of next month
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigate('tools')}
+                className="smuggler-cta-outline w-full justify-center text-[0.82rem]"
+              >
+                <Crown size={13} /> Upgrade Plan
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Creator Stats Row (5 cards with sparklines) */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
+          >
+            {[
+              { icon: Eye, iconBg: 'var(--smuggler-accent-green)', label: 'Views Generated', value: '2.4M', trend: '↑ 32%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-green' },
+              { icon: Heart, iconBg: '#9B3D3D', label: 'Engagement', value: '142K', trend: '↑ 24%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-red' },
+              { icon: TrendingUp, iconBg: 'var(--smuggler-gold)', label: 'Content Created', value: String(activeItems.length), trend: '↑ 18%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-gold' },
+              { icon: Clock, iconBg: '#624B8B', label: 'Time Saved', value: '28.5 hrs', trend: '↑ 30%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-purple' },
+              { icon: Trophy, iconBg: '#C28B5E', label: 'Top Tool', value: 'Hook Gen', trend: '42% usage', trendSub: '', sparkline: 'smuggler-sparkline smuggler-sparkline-bronze' },
+            ].map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={stat.label}
+                  variants={itemVariants}
+                  whileHover={{ y: -3 }}
+                  className="smuggler-panel-premium smuggler-paper-grain relative rounded-xl p-4"
+                >
+                  <div className="relative z-10">
+                    <div
+                      className="mb-3 flex h-9 w-9 items-center justify-center rounded-full text-white"
+                      style={{ backgroundColor: stat.iconBg }}
+                    >
+                      <Icon size={16} className="fill-current" />
+                    </div>
+                    <div className="text-[0.75rem] font-semibold" style={{ color: 'var(--smuggler-text-muted)' }}>{stat.label}</div>
+                    <div className="my-0.5 text-[1.5rem] font-extrabold" style={{ color: 'var(--smuggler-text)' }}>{stat.value}</div>
+                    <div className="text-[0.7rem] font-bold" style={{ color: 'var(--smuggler-accent-green)' }}>
+                      {stat.trend} {stat.trendSub && <span className="font-normal" style={{ color: 'var(--smuggler-text-muted)' }}>{stat.trendSub}</span>}
+                    </div>
+                    <div className={stat.sparkline} />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          {/* 3-column: Popular Tools + Quick Actions + Calendar + Agent Tip */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr_1fr]">
+            {/* Popular Tools Quick Launch */}
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              className="smuggler-panel-premium smuggler-paper-grain relative rounded-2xl p-6"
+            >
+              <div className="relative z-10">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="smuggler-section-heading text-[1.05rem]" style={{ color: 'var(--smuggler-text)' }}>Popular Tools</h3>
+                  <button type="button" onClick={() => onNavigate('tools')} className="text-[0.78rem] font-semibold transition-colors hover:text-[var(--smuggler-gold)]" style={{ color: 'var(--smuggler-text-secondary)' }}>View all →</button>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  {[
+                    { icon: Sparkles, iconBg: 'var(--smuggler-accent-green)', name: 'Hook Generator', desc: 'Scroll-stopping hooks', toolId: 'hook-generator' },
+                    { icon: Trophy, iconBg: 'var(--smuggler-gold)', name: 'Title Optimizer', desc: 'Viral-worthy titles', toolId: 'title-optimizer' },
+                    { icon: PenLine, iconBg: '#3B648C', name: 'Script Writer', desc: 'Engaging video scripts', toolId: 'script-writer' },
+                  ].map((t) => {
+                    const Icon = t.icon;
+                    return (
+                      <div
+                        key={t.toolId}
+                        className="flex items-center gap-3 rounded-lg p-2.5 transition-transform duration-200 hover:-translate-y-0.5"
+                        style={{ backgroundColor: 'var(--smuggler-panel-hover)', border: '1px solid var(--smuggler-border)' }}
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white" style={{ backgroundColor: t.iconBg }}>
+                          <Icon size={15} className="fill-current" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="m-0 mb-0.5 text-[0.88rem]" style={{ color: 'var(--smuggler-text)' }}>{t.name}</h4>
+                          <p className="m-0 text-[0.72rem]" style={{ color: 'var(--smuggler-text-muted)' }}>{t.desc}</p>
+                        </div>
+                        <button type="button" onClick={() => onSelectTool(t.toolId)} className="smuggler-press rounded-md border px-2.5 py-1 text-[0.75rem] font-semibold transition-all" style={{ borderColor: 'var(--smuggler-border)', color: 'var(--smuggler-text-secondary)' }}>
+                          Launch
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {/* Premium CTA */}
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => onNavigate('tools')}
+                    className="relative mt-2 flex items-center justify-between overflow-hidden rounded-xl p-5 text-left"
+                    style={{
+                      background: 'linear-gradient(135deg, #243B22, #1A2818)',
+                      border: '1px solid #4C6B4A',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    <div className="relative z-10">
+                      <h4 className="m-0 mb-1 text-[1rem]" style={{ color: 'var(--smuggler-gold)' }}>Discover Your Next Mission</h4>
+                      <p className="m-0 mb-3 text-[0.75rem]" style={{ color: 'rgba(244,238,223,0.55)' }}>Unlock the complete arsenal.</p>
+                      <span className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[0.78rem] font-bold text-white" style={{ backgroundColor: '#4C6B4A' }}>
+                        Explore All Tools <ArrowRight size={12} />
+                      </span>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Content Calendar */}
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              className="smuggler-panel-premium smuggler-paper-grain relative rounded-2xl p-6"
+            >
+              <div className="relative z-10">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="smuggler-section-heading text-[1.05rem]" style={{ color: 'var(--smuggler-text)' }}>Today's Schedule</h3>
+                  <Calendar size={16} style={{ color: 'var(--smuggler-text-muted)' }} />
+                </div>
+                <div className="mb-3 flex items-center justify-between border-b border-dashed pb-3" style={{ borderColor: 'var(--smuggler-border)' }}>
+                  <span className="text-[0.82rem] font-bold" style={{ color: 'var(--smuggler-text)' }}>
+                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold text-white" style={{ backgroundColor: 'var(--smuggler-accent-green)' }}>3</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { time: '11:00 AM', icon: '▶', bg: '#FF0000', title: 'YouTube Video', tag: 'Scheduled' },
+                    { time: '02:00 PM', icon: '📸', bg: '#E1306C', title: 'Instagram Post', tag: 'Scheduled' },
+                    { time: '07:00 PM', icon: '🐦', bg: '#1DA1F2', title: 'Twitter Thread', tag: 'Draft' },
+                  ].map((c) => (
+                    <div key={c.title} className="flex items-center gap-2.5">
+                      <span className="w-[55px] text-[0.72rem]" style={{ color: 'var(--smuggler-text-muted)' }}>{c.time}</span>
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full text-[0.6rem] text-white" style={{ backgroundColor: c.bg }}>{c.icon}</div>
+                      <span className="flex-1 text-[0.8rem] font-semibold" style={{ color: 'var(--smuggler-text)' }}>{c.title}</span>
+                      <span className="rounded px-1.5 py-0.5 text-[0.6rem]" style={{ border: '1px solid var(--smuggler-border)', color: 'var(--smuggler-text-muted)' }}>{c.tag}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Agent Tip */}
+            <motion.div
+              variants={itemVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              className="relative rounded-2xl p-6"
+              style={{
+                border: '1px dashed var(--smuggler-border)',
+                background: 'linear-gradient(135deg, var(--smuggler-bg-panel), var(--smuggler-border))',
+                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div className="mb-2.5 flex h-7 w-7 items-center justify-center rounded-full text-[0.85rem] font-bold text-white" style={{ backgroundColor: 'var(--smuggler-accent-green)', fontFamily: 'var(--font-heading)' }}>C</div>
+              <h4 className="mb-2 text-[0.95rem] font-bold" style={{ color: 'var(--smuggler-text)' }}>Agent&rsquo;s Tip</h4>
+              <p className="m-0 text-[0.82rem] leading-relaxed" style={{ color: 'var(--smuggler-text-secondary)' }}>
+                Analyze your top performing content regularly and double down on what your audience loves.
+              </p>
+              <Search size={40} className="absolute bottom-3 right-3 opacity-10" style={{ color: 'var(--smuggler-text)', transform: 'rotate(15deg)' }} />
+            </motion.div>
+          </div>
+
+          {/* Bottom Banner */}
+          <motion.div
+            variants={itemVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            className="mt-6 flex flex-col items-center justify-between gap-5 rounded-2xl p-6 md:flex-row"
+            style={{
+              background: 'linear-gradient(135deg, var(--smuggler-bg-panel), var(--smuggler-border))',
+              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.04)',
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative h-[50px] w-[70px] shrink-0">
+                <div className="absolute h-[42px] w-[60px] rounded" style={{ backgroundColor: '#A07A2D', transform: 'rotate(-5deg)', boxShadow: '2px 2px 5px rgba(0,0,0,0.15)', borderRadius: '4px 10px 4px 4px' }} />
+                <div className="absolute flex h-[42px] w-[60px] items-center justify-center rounded" style={{ backgroundColor: '#C09A4D', transform: 'rotate(5deg)', boxShadow: '2px 2px 5px rgba(0,0,0,0.15)', borderRadius: '4px 10px 4px 4px' }}>
+                  <span className="rounded border-2 border-[#C43B3B] px-0.5 text-[0.35rem] font-extrabold tracking-[1px] text-[#C43B3B]" style={{ fontFamily: '"JetBrains Mono", monospace', transform: 'rotate(-10deg)' }}>TOP SECRET</span>
+                </div>
+              </div>
+              <div>
+                <h3 className="mb-0.5 text-[1.05rem] font-bold" style={{ color: 'var(--smuggler-text)' }}>Your content mission is on track!</h3>
+                <p className="m-0 text-[0.82rem]" style={{ color: 'var(--smuggler-text-secondary)' }}>Keep creating, optimizing, and growing. The results will follow.</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <p className="m-0 text-[0.78rem] font-semibold" style={{ color: 'var(--smuggler-text-secondary)' }}>Trusted by 10,000+ Creators</p>
+              <div className="flex">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <img key={i} src={`https://i.pravatar.cc/100?img=${i}`} alt="" className="h-7 w-7 rounded-full border-2 object-cover -ml-2 first:ml-0" style={{ borderColor: 'var(--smuggler-border)' }} />
+                ))}
+                <div className="z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 text-[0.6rem] font-bold text-white -ml-2" style={{ borderColor: 'var(--smuggler-border)', backgroundColor: 'var(--smuggler-text)' }}>+9.5K</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       {/* ====== Search & Filter Toolbar ====== */}

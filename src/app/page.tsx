@@ -6,7 +6,6 @@ import Navbar, { type AuthMode, type NavView } from '@/smuggler/components/Navba
 import Homepage from '@/smuggler/components/Homepage';
 import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
-import DashboardView from '@/smuggler/components/DashboardView';
 import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
 import ToolPageEngine from '@/smuggler/components/ToolPageEngine';
 import LibraryView from '@/smuggler/components/LibraryView';
@@ -77,7 +76,7 @@ export default function Home() {
   const handleAuthSuccess = useCallback(() => {
     setAuthOpen(false);
     setToast('Welcome, Agent. Your mission awaits. 🕵️‍♂️');
-    setView('dashboard');
+    setView('library');
   }, []);
 
   const handleSelectTool = useCallback((toolId: string) => {
@@ -155,21 +154,6 @@ export default function Home() {
                 onExploreTools={handleExploreTools}
                 onSelectTool={handleSelectTool}
                 onOpenAuth={handleOpenAuth}
-              />
-            </motion.div>
-          )}
-
-          {view === 'dashboard' && (
-            <motion.div
-              key="dashboard-view"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: 'easeInOut' }}
-            >
-              <DashboardView
-                onSelectTool={handleSelectTool}
-                onExploreTools={handleExploreTools}
               />
             </motion.div>
           )}

@@ -36,14 +36,14 @@ const VIEW_ITEMS: PaletteItem[] = [
     label: 'Go to Home',
     sublabel: 'Landing page',
     view: 'home',
-    keywords: 'home landing hero dashboard',
+    keywords: 'home landing hero',
   },
   {
     type: 'view',
-    label: 'Go to Dashboard',
-    sublabel: 'Agent command center',
-    view: 'dashboard',
-    keywords: 'dashboard agent mission stats',
+    label: 'Go to Library',
+    sublabel: 'Your creator workspace & vault',
+    view: 'library',
+    keywords: 'library vault workspace dashboard agent mission stats content saved',
   },
   {
     type: 'view',
@@ -225,7 +225,7 @@ export function CommandPalette({
                       }`}
                     >
                       {item.view === 'home' && <Home size={16} />}
-                      {item.view === 'dashboard' && <LayoutDashboard size={16} />}
+                      {item.view === 'library' && <LayoutDashboard size={16} />}
                       {item.view === 'tools' && <Wand2 size={16} />}
                     </div>
                     <div className="flex-1 min-w-0">
