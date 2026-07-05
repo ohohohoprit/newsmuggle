@@ -113,10 +113,9 @@ export default function Footer({ onNavigate, onOpenAuth }: FooterProps) {
                 aria-hidden="true"
               >
                 <img
-                  src="/smuggler/assets/logo-new.png"
+                  src="/smuggler/assets/logo-hq.png"
                   alt=""
-                  className="h-full w-full object-cover"
-                  style={{ mixBlendMode: 'multiply' }}
+                  className="h-full w-full scale-110 object-contain p-0.5"
                 />
               </div>
               <div className="flex flex-col leading-[1.1]">

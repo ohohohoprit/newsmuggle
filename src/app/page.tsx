@@ -9,6 +9,7 @@ import AllToolsSection from '@/smuggler/components/AllToolsSection';
 import DashboardView from '@/smuggler/components/DashboardView';
 import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
 import ToolPageEngine from '@/smuggler/components/ToolPageEngine';
+import LibraryView from '@/smuggler/components/LibraryView';
 import CommandPalette from '@/smuggler/components/CommandPalette';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
@@ -208,10 +209,22 @@ export default function Home() {
               <ToolPageEngine toolId={activeToolId} onBack={() => setView('tools')} />
             </motion.div>
           )}
+
+          {view === 'library' && (
+            <motion.div
+              key="library-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <LibraryView onNavigate={handleNavigate} onSelectTool={handleSelectTool} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
-      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && (
+      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && view !== 'library' && (
         <div className="mt-auto">
           <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
         </div>

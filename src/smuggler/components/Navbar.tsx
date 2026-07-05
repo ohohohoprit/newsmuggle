@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-export type NavView = 'home' | 'tools' | 'dashboard' | 'hook-generator' | 'tool-page';
+export type NavView = 'home' | 'tools' | 'dashboard' | 'hook-generator' | 'tool-page' | 'library';
 export type AuthMode = 'login' | 'signup';
 
 export interface NavbarProps {
@@ -35,7 +35,7 @@ const NAV_LINKS: NavLinkConfig[] = [
   { label: 'Dashboard', view: 'dashboard' },
   { label: 'Tools', view: 'tools', hasCaret: true },
   { label: 'Studio' },
-  { label: 'Library' },
+  { label: 'Library', view: 'library' },
   { label: 'Pricing' },
   { label: 'Resources', hasCaret: true },
 ];
@@ -88,10 +88,9 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
               }}
             >
               <img
-                src="/smuggler/assets/logo-new.png"
+                src="/smuggler/assets/logo-hq.png"
                 alt="Content Smuggler logo"
-                className="h-full w-full object-cover"
-                style={{ mixBlendMode: 'multiply' }}
+                className="h-full w-full scale-110 object-contain p-0.5"
               />
             </div>
 
