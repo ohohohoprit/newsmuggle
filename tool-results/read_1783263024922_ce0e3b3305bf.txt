@@ -1,0 +1,1262 @@
+     1→@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+     2→@import "tailwindcss";
+     3→@import "tw-animate-css";
+     4→
+     5→@custom-variant dark (&:is(.dark *));
+     6→
+     7→@theme inline {
+     8→  --color-background: var(--background);
+     9→  --color-foreground: var(--foreground);
+    10→  --font-sans: var(--font-geist-sans);
+    11→  --font-mono: var(--font-geist-mono);
+    12→  --color-sidebar-ring: var(--sidebar-ring);
+    13→  --color-sidebar-border: var(--sidebar-border);
+    14→  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    15→  --color-sidebar-accent: var(--sidebar-accent);
+    16→  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    17→  --color-sidebar-primary: var(--sidebar-primary);
+    18→  --color-sidebar-foreground: var(--sidebar-foreground);
+    19→  --color-sidebar: var(--sidebar);
+    20→  --color-chart-5: var(--chart-5);
+    21→  --color-chart-4: var(--chart-4);
+    22→  --color-chart-3: var(--chart-3);
+    23→  --color-chart-2: var(--chart-2);
+    24→  --color-chart-1: var(--chart-1);
+    25→  --color-ring: var(--ring);
+    26→  --color-input: var(--input);
+    27→  --color-border: var(--border);
+    28→  --color-destructive: var(--destructive);
+    29→  --color-accent-foreground: var(--accent-foreground);
+    30→  --color-accent: var(--accent);
+    31→  --color-muted-foreground: var(--muted-foreground);
+    32→  --color-muted: var(--muted);
+    33→  --color-secondary-foreground: var(--secondary-foreground);
+    34→  --color-secondary: var(--secondary);
+    35→  --color-primary-foreground: var(--primary-foreground);
+    36→  --color-primary: var(--primary);
+    37→  --color-popover-foreground: var(--popover-foreground);
+    38→  --color-popover: var(--popover);
+    39→  --color-card-foreground: var(--card-foreground);
+    40→  --color-card: var(--card);
+    41→  --radius-sm: calc(var(--radius) - 4px);
+    42→  --radius-md: calc(var(--radius) - 2px);
+    43→  --radius-lg: var(--radius);
+    44→  --radius-xl: calc(var(--radius) + 4px);
+    45→
+    46→  /* Smuggler brand colors */
+    47→  --color-smuggler-bg: var(--smuggler-bg);
+    48→  --color-smuggler-bg-panel: var(--smuggler-bg-panel);
+    49→  --color-smuggler-border: var(--smuggler-border);
+    50→  --color-smuggler-text: var(--smuggler-text);
+    51→  --color-smuggler-text-secondary: var(--smuggler-text-secondary);
+    52→  --color-smuggler-text-muted: var(--smuggler-text-muted);
+    53→  --color-smuggler-green: var(--smuggler-green);
+    54→  --color-smuggler-gold: var(--smuggler-gold);
+    55→  --color-smuggler-red: var(--smuggler-red);
+    56→  --color-smuggler-blue: var(--smuggler-blue);
+    57→  --color-smuggler-purple: var(--smuggler-purple);
+    58→  --color-smuggler-orange: var(--smuggler-orange);
+    59→  --color-smuggler-yellow: var(--smuggler-yellow);
+    60→  --color-smuggler-cream: var(--smuggler-cream);
+    61→  --color-smuggler-forest: var(--smuggler-forest);
+    62→
+    63→  --font-heading: 'Playfair Display', serif;
+    64→  --font-body: 'Inter', sans-serif;
+    65→  --font-serif: 'Lora', serif;
+    66→  --font-mono-brand: 'JetBrains Mono', monospace;
+    67→}
+    68→
+    69→:root {
+    70→  --radius: 0.625rem;
+    71→
+    72→  /* shadcn vars — LIGHT THEME (default) */
+    73→  --background: #F8F5E6;
+    74→  --foreground: #1A1A1A;
+    75→  --card: #FFFDF5;
+    76→  --card-foreground: #1A1A1A;
+    77→  --popover: #FFFDF5;
+    78→  --popover-foreground: #1A1A1A;
+    79→  --primary: #1E5E3E;
+    80→  --primary-foreground: #ffffff;
+    81→  --secondary: #F0E8D5;
+    82→  --secondary-foreground: #1A1A1A;
+    83→  --muted: #F0E8D5;
+    84→  --muted-foreground: #6b6354;
+    85→  --accent: #F0E8D5;
+    86→  --accent-foreground: #1A1A1A;
+    87→  --destructive: #C0392B;
+    88→  --border: #E5DDC8;
+    89→  --input: #E5DDC8;
+    90→  --ring: #C09858;
+    91→  --chart-1: #4C6B4A;
+    92→  --chart-2: #C09A4D;
+    93→  --chart-3: #4A7A8C;
+    94→  --chart-4: #755B8F;
+    95→  --chart-5: #C28B5E;
+    96→  --sidebar: #FFFDF5;
+    97→  --sidebar-foreground: #1A1A1A;
+    98→  --sidebar-primary: #1E5E3E;
+    99→  --sidebar-primary-foreground: #ffffff;
+   100→  --sidebar-accent: #F0E8D5;
+   101→  --sidebar-accent-foreground: #1A1A1A;
+   102→  --sidebar-border: #E5DDC8;
+   103→  --sidebar-ring: #C09858;
+   104→
+   105→  /* Content Smuggler brand palette — LIGHT MODE (warm cream/paper) */
+   106→  --smuggler-bg: #F8F5E6;
+   107→  --smuggler-bg-panel: #FFFDF5;
+   108→  --smuggler-border: #E5DDC8;
+   109→  --smuggler-text: #1A1A1A;
+   110→  --smuggler-text-secondary: #5a5448;
+   111→  --smuggler-text-muted: #8a8170;
+   112→  --smuggler-green: #2D5A3D;
+   113→  --smuggler-gold: #C09858;
+   114→  --smuggler-red: #C0392B;
+   115→  --smuggler-blue: #3B648C;
+   116→  --smuggler-purple: #624B8B;
+   117→  --smuggler-orange: #B87B3E;
+   118→  --smuggler-yellow: #B8A03E;
+   119→  --smuggler-cream: #E6D5B8;
+   120→  --smuggler-forest: #1E5E3E;
+   121→  --smuggler-accent-green: #1E5E3E;
+   122→  --smuggler-navbar-bg: rgba(248, 245, 230, 0.8);
+   123→  --smuggler-hero-bg: #F8F5E6;
+   124→  --smuggler-panel-hover: rgba(192, 152, 88, 0.06);
+   125→}
+   126→
+   127→.dark {
+   128→  --background: #0B0A08;
+   129→  --foreground: #F4EEDF;
+   130→  --card: #13110E;
+   131→  --card-foreground: #F4EEDF;
+   132→  --popover: #13110E;
+   133→  --popover-foreground: #F4EEDF;
+   134→  --primary: #C09858;
+   135→  --primary-foreground: #0B0A08;
+   136→  --secondary: #1A1815;
+   137→  --secondary-foreground: #F4EEDF;
+   138→  --muted: #1A1815;
+   139→  --muted-foreground: #9A9386;
+   140→  --accent: #1A1815;
+   141→  --accent-foreground: #F4EEDF;
+   142→  --destructive: #A84841;
+   143→  --border: #24211D;
+   144→  --input: #24211D;
+   145→  --ring: #C09858;
+   146→  --chart-1: #597F56;
+   147→  --chart-2: #C09858;
+   148→  --chart-3: #4A7A8C;
+   149→  --chart-4: #755B8F;
+   150→  --chart-5: #B87B3E;
+   151→  --sidebar: #13110E;
+   152→  --sidebar-foreground: #F4EEDF;
+   153→  --sidebar-primary: #C09858;
+   154→  --sidebar-primary-foreground: #0B0A08;
+   155→  --sidebar-accent: #1A1815;
+   156→  --sidebar-accent-foreground: #F4EEDF;
+   157→  --sidebar-border: #24211D;
+   158→  --sidebar-ring: #C09858;
+   159→
+   160→  /* Content Smuggler brand palette — DARK MODE */
+   161→  --smuggler-bg: #0B0A08;
+   162→  --smuggler-bg-panel: #13110E;
+   163→  --smuggler-border: #24211D;
+   164→  --smuggler-text: #F4EEDF;
+   165→  --smuggler-text-secondary: #9A9386;
+   166→  --smuggler-text-muted: #6B655E;
+   167→  --smuggler-green: #597F56;
+   168→  --smuggler-gold: #C09858;
+   169→  --smuggler-red: #A84841;
+   170→  --smuggler-blue: #4A7A8C;
+   171→  --smuggler-purple: #755B8F;
+   172→  --smuggler-orange: #B87B3E;
+   173→  --smuggler-yellow: #B8A03E;
+   174→  --smuggler-cream: #E6D5B8;
+   175→  --smuggler-forest: #213A28;
+   176→  --smuggler-accent-green: #4C6B4A;
+   177→  --smuggler-navbar-bg: rgba(11, 10, 8, 0.72);
+   178→  --smuggler-hero-bg: #0B0A08;
+   179→  --smuggler-panel-hover: rgba(255, 255, 255, 0.03);
+   180→}
+   181→
+   182→@layer base {
+   183→  * {
+   184→    @apply border-border outline-ring/50;
+   185→  }
+   186→  body {
+   187→    @apply bg-background text-foreground;
+   188→  }
+   189→}
+   190→
+   191→/* ===========================
+   192→   Content Smuggler Design System
+   193→   ===========================
+   194→*/
+   195→
+   196→.smuggler-app {
+   197→  background-color: var(--smuggler-bg);
+   198→  color: var(--smuggler-text);
+   199→  font-family: var(--font-body);
+   200→  -webkit-font-smoothing: antialiased;
+   201→  -moz-osx-font-smoothing: grayscale;
+   202→  line-height: 1.5;
+   203→  background-image:
+   204→    radial-gradient(circle at 20% 10%, rgba(192, 152, 88, 0.04), transparent 35%),
+   205→    radial-gradient(circle at 80% 90%, rgba(89, 127, 86, 0.04), transparent 35%),
+   206→    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+   207→  background-blend-mode: overlay;
+   208→}
+   209→
+   210→.smuggler-text-green { color: var(--smuggler-green) !important; }
+   211→.smuggler-text-gold { color: var(--smuggler-gold) !important; }
+   212→.smuggler-text-red { color: var(--smuggler-red) !important; }
+   213→.smuggler-text-orange { color: var(--smuggler-orange) !important; }
+   214→.smuggler-text-blue { color: var(--smuggler-blue) !important; }
+   215→.smuggler-text-purple { color: var(--smuggler-purple) !important; }
+   216→.smuggler-text-yellow { color: var(--smuggler-yellow) !important; }
+   217→.smuggler-text-muted { color: var(--smuggler-text-muted) !important; }
+   218→
+   219→.smuggler-bg-green { background-color: rgba(89, 127, 86, 0.15); color: var(--smuggler-green); }
+   220→.smuggler-bg-orange { background-color: rgba(184, 123, 62, 0.15); color: var(--smuggler-orange); }
+   221→.smuggler-bg-blue { background-color: rgba(74, 122, 140, 0.15); color: var(--smuggler-blue); }
+   222→.smuggler-bg-purple { background-color: rgba(117, 91, 143, 0.15); color: var(--smuggler-purple); }
+   223→.smuggler-bg-yellow { background-color: rgba(184, 160, 62, 0.15); color: var(--smuggler-yellow); }
+   224→.smuggler-bg-red { background-color: rgba(168, 72, 65, 0.15); color: var(--smuggler-red); }
+   225→
+   226→/* Buttons */
+   227→.smuggler-btn {
+   228→  font-family: var(--font-body);
+   229→  font-weight: 600;
+   230→  font-size: 14px;
+   231→  padding: 0.75rem 1.25rem;
+   232→  border-radius: 6px;
+   233→  cursor: pointer;
+   234→  display: inline-flex;
+   235→  align-items: center;
+   236→  gap: 0.5rem;
+   237→  transition: all 0.2s ease;
+   238→  border: none;
+   239→  letter-spacing: 0.5px;
+   240→  text-decoration: none;
+   241→}
+   242→.smuggler-btn-primary {
+   243→  background-color: #213A28;
+   244→  color: #F4EEDF;
+   245→  border: 1px solid #33543D;
+   246→  box-shadow: 0 2px 8px rgba(33, 58, 40, 0.4);
+   247→}
+   248→.smuggler-btn-primary:hover {
+   249→  background-color: #2A4833;
+   250→  transform: translateY(-1px);
+   251→  box-shadow: 0 4px 12px rgba(33, 58, 40, 0.55);
+   252→}
+   253→.smuggler-btn-secondary {
+   254→  background-color: transparent;
+   255→  color: var(--smuggler-text);
+   256→  border: 1px solid var(--smuggler-border);
+   257→}
+   258→.smuggler-btn-secondary:hover {
+   259→  background-color: rgba(255,255,255,0.05);
+   260→  border-color: rgba(192, 152, 88, 0.3);
+   261→}
+   262→.smuggler-btn-gold {
+   263→  background-color: rgba(192, 152, 88, 0.1);
+   264→  color: var(--smuggler-gold);
+   265→  border: 1px solid rgba(192, 152, 88, 0.35);
+   266→}
+   267→.smuggler-btn-gold:hover {
+   268→  background-color: rgba(192, 152, 88, 0.18);
+   269→  border-color: rgba(192, 152, 88, 0.6);
+   270→}
+   271→
+   272→/* Paper / Document Effects */
+   273→.smuggler-paper {
+   274→  background-color: #E6D5B8;
+   275→  background-image:
+   276→    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+   277→  color: #1A120D;
+   278→  border-radius: 2px;
+   279→  box-shadow: 2px 4px 12px rgba(0,0,0,0.4);
+   280→  border: 1px solid rgba(0,0,0,0.1);
+   281→}
+   282→
+   283→/* Wax Seal */
+   284→.smuggler-wax-seal {
+   285→  background-color: #213A28;
+   286→  border-radius: 50%;
+   287→  color: #4C6B4A;
+   288→  display: flex;
+   289→  align-items: center;
+   290→  justify-content: center;
+   291→  font-family: var(--font-heading);
+   292→  font-weight: bold;
+   293→  box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 2px 4px 6px rgba(0,0,0,0.5);
+   294→  border: 2px solid #16261A;
+   295→}
+   296→
+   297→/* Stamps */
+   298→.smuggler-stamp-secret {
+   299→  border: 2px solid #8B2C24;
+   300→  color: #8B2C24;
+   301→  font-family: var(--font-body);
+   302→  font-weight: 800;
+   303→  font-size: 14px;
+   304→  padding: 4px 8px;
+   305→  transform: rotate(-15deg);
+   306→  opacity: 0.85;
+   307→}
+   308→.smuggler-stamp-classified {
+   309→  border: 3px solid #8B2C24;
+   310→  color: #8B2C24;
+   311→  font-family: var(--font-body);
+   312→  font-weight: 800;
+   313→  font-size: 16px;
+   314→  padding: 4px 12px;
+   315→  transform: rotate(-10deg);
+   316→  text-align: center;
+   317→  line-height: 1.2;
+   318→}
+   319→
+   320→/* Panels */
+   321→.smuggler-panel {
+   322→  background-color: var(--smuggler-bg-panel);
+   323→  border: 1px solid var(--smuggler-border);
+   324→  border-radius: 12px;
+   325→  padding: 1.5rem;
+   326→  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+   327→}
+   328→
+   329→/* Custom scrollbar */
+   330→.smuggler-scroll::-webkit-scrollbar {
+   331→  width: 6px;
+   332→  height: 6px;
+   333→}
+   334→.smuggler-scroll::-webkit-scrollbar-track {
+   335→  background: transparent;
+   336→}
+   337→.smuggler-scroll::-webkit-scrollbar-thumb {
+   338→  background: rgba(192, 152, 88, 0.3);
+   339→  border-radius: 3px;
+   340→}
+   341→.smuggler-scroll::-webkit-scrollbar-thumb:hover {
+   342→  background: rgba(192, 152, 88, 0.5);
+   343→}
+   344→
+   345→/* Light scrollbar (for paper sections) */
+   346→.smuggler-scroll-light::-webkit-scrollbar {
+   347→  width: 8px;
+   348→  height: 8px;
+   349→}
+   350→.smuggler-scroll-light::-webkit-scrollbar-track {
+   351→  background: rgba(0, 0, 0, 0.03);
+   352→  border-radius: 4px;
+   353→}
+   354→.smuggler-scroll-light::-webkit-scrollbar-thumb {
+   355→  background: rgba(192, 152, 88, 0.5);
+   356→  border-radius: 4px;
+   357→}
+   358→.smuggler-scroll-light::-webkit-scrollbar-thumb:hover {
+   359→  background: rgba(192, 152, 88, 0.7);
+   360→}
+   361→
+   362→/* Typewriter caret blink */
+   363→@keyframes smuggler-caret {
+   364→  0%, 50% { opacity: 1; }
+   365→  51%, 100% { opacity: 0; }
+   366→}
+   367→.smuggler-caret {
+   368→  display: inline-block;
+   369→  width: 2px;
+   370→  background: var(--smuggler-gold);
+   371→  animation: smuggler-caret 1s steps(2) infinite;
+   372→  margin-left: 2px;
+   373→}
+   374→
+   375→/* Radar scan animation */
+   376→@keyframes smuggler-radar {
+   377→  0% { transform: rotate(0deg); }
+   378→  100% { transform: rotate(360deg); }
+   379→}
+   380→.smuggler-radar {
+   381→  animation: smuggler-radar 3s linear infinite;
+   382→}
+   383→
+   384→/* Subtle floating animation */
+   385→@keyframes smuggler-float {
+   386→  0%, 100% { transform: translateY(0); }
+   387→  50% { transform: translateY(-6px); }
+   388→}
+   389→.smuggler-float {
+   390→  animation: smuggler-float 4s ease-in-out infinite;
+   391→}
+   392→
+   393→/* Text shadow for hero title */
+   394→.smuggler-hero-title-shadow {
+   395→  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04);
+   396→}
+   397→
+   398→/* Pulse glow for badges */
+   399→@keyframes smuggler-glow-pulse {
+   400→  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 152, 88, 0.4); }
+   401→  50% { box-shadow: 0 0 0 8px rgba(192, 152, 88, 0); }
+   402→}
+   403→.smuggler-glow {
+   404→  animation: smuggler-glow-pulse 2.5s ease-in-out infinite;
+   405→}
+   406→
+   407→/* Hide scrollbar but allow scroll */
+   408→.smuggler-scroll-hide {
+   409→  -ms-overflow-style: none;
+   410→  scrollbar-width: none;
+   411→}
+   412→.smuggler-scroll-hide::-webkit-scrollbar {
+   413→  display: none;
+   414→}
+   415→
+   416→/* Texture overlay utility */
+   417→.smuggler-texture-overlay {
+   418→  background-image: url('/smuggler/assets/paper-grain-noise.jpg');
+   419→  background-blend-mode: multiply;
+   420→  background-size: cover;
+   421→}
+   422→
+   423→/* ===========================
+   424→   Dashboard (restored from original DashboardPage)
+   425→   ===========================
+   426→*/
+   427→
+   428→/* Rotating TOP SECRET stamp on welcome banner */
+   429→@keyframes smuggler-rotate-stamp {
+   430→  0%, 100% { transform: rotate(-12deg); }
+   431→  50% { transform: rotate(0deg); }
+   432→}
+   433→.smuggler-stamp-rotate {
+   434→  animation: smuggler-rotate-stamp 10s ease-in-out infinite;
+   435→}
+   436→
+   437→/* Card shine sweep (premium hover sheen) */
+   438→@keyframes smuggler-card-shine {
+   439→  0% { transform: translateX(-120%) skewX(-20deg); }
+   440→  100% { transform: translateX(220%) skewX(-20deg); }
+   441→}
+   442→.smuggler-card-shine {
+   443→  position: absolute;
+   444→  top: 0;
+   445→  left: 0;
+   446→  width: 40%;
+   447→  height: 100%;
+   448→  background: linear-gradient(
+   449→    90deg,
+   450→    transparent,
+   451→    rgba(255, 255, 255, 0.35),
+   452→    transparent
+   453→  );
+   454→  pointer-events: none;
+   455→  transform: translateX(-120%) skewX(-20deg);
+   456→  opacity: 0;
+   457→  transition: opacity 0.3s;
+   458→}
+   459→.smuggler-card-shine-host:hover .smuggler-card-shine {
+   460→  opacity: 1;
+   461→  animation: smuggler-card-shine 1.1s ease-out;
+   462→}
+   463→
+   464→/* Sparkline backgrounds (inline SVG, from original dashboard.css) */
+   465→.smuggler-sparkline {
+   466→  height: 40px;
+   467→  margin-top: 15px;
+   468→  opacity: 0.5;
+   469→  background-size: 100% 100%;
+   470→  background-repeat: no-repeat;
+   471→}
+   472→.smuggler-sparkline-green { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,30 L10,20 L30,25 L50,5 L70,15 L90,0 L100,10' fill='none' stroke='%234C6B4A' stroke-width='2'/%3E%3C/svg%3E"); }
+   473→.smuggler-sparkline-red { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,30 L15,10 L35,25 L50,15 L70,25 L85,5 L100,15' fill='none' stroke='%239B3D3D' stroke-width='2'/%3E%3C/svg%3E"); }
+   474→.smuggler-sparkline-gold { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,30 L20,15 L40,5 L60,20 L80,10 L100,5' fill='none' stroke='%23C09A4D' stroke-width='2'/%3E%3C/svg%3E"); }
+   475→.smuggler-sparkline-purple { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,30 L10,25 L30,5 L50,15 L70,0 L90,15 L100,5' fill='none' stroke='%23624B8B' stroke-width='2'/%3E%3C/svg%3E"); }
+   476→.smuggler-sparkline-bronze { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,30 L20,10 L40,25 L60,5 L80,20 L100,10' fill='none' stroke='%23C28B5E' stroke-width='2'/%3E%3C/svg%3E"); }
+   477→
+   478→/* Ambient glow for dashboard main */
+   479→.smuggler-ambient-glow {
+   480→  position: absolute;
+   481→  top: -10%;
+   482→  left: 50%;
+   483→  transform: translateX(-50%);
+   484→  width: 600px;
+   485→  height: 400px;
+   486→  background: radial-gradient(
+   487→    ellipse at center,
+   488→    rgba(192, 152, 88, 0.08),
+   489→    transparent 70%
+   490→  );
+   491→  pointer-events: none;
+   492→  z-index: 0;
+   493→}
+   494→
+   495→/* Gentle parallax drift for All Tools header visuals */
+   496→@keyframes smuggler-drift-1 {
+   497→  0%, 100% { transform: rotate(-5deg) translateY(0) translateX(0); }
+   498→  50% { transform: rotate(-3deg) translateY(-8px) translateX(4px); }
+   499→}
+   500→@keyframes smuggler-drift-2 {
+   501→  0%, 100% { transform: rotate(3deg) translateY(0) translateX(0); }
+   502→  50% { transform: rotate(5deg) translateY(-5px) translateX(-3px); }
+   503→}
+   504→@keyframes smuggler-stamp-wobble {
+   505→  0%, 100% { transform: rotate(-20deg) scale(1.1); }
+   506→  50% { transform: rotate(-15deg) scale(1.12); }
+   507→}
+   508→.smuggler-drift-1 { animation: smuggler-drift-1 7s ease-in-out infinite; }
+   509→.smuggler-drift-2 { animation: smuggler-drift-2 8s ease-in-out infinite; }
+   510→.smuggler-stamp-wobble { animation: smuggler-stamp-wobble 6s ease-in-out infinite; }
+   511→
+   512→/* ===========================
+   513→   Hook Generator page animations
+   514→   ===========================
+   515→*/
+   516→
+   517→/* Mascot gentle float (top-right header) */
+   518→@keyframes smuggler-mascot-float {
+   519→  0%, 100% { transform: translateY(0) rotate(0deg); }
+   520→  50% { transform: translateY(-10px) rotate(-1deg); }
+   521→}
+   522→.smuggler-mascot-float {
+   523→  animation: smuggler-mascot-float 5s ease-in-out infinite;
+   524→}
+   525→
+   526→/* TOP SECRET stamp settle swing (entrance then gentle perpetual swing) */
+   527→@keyframes smuggler-stamp-settle {
+   528→  0% { transform: rotate(-60deg) scale(2.5); opacity: 0; }
+   529→  60% { transform: rotate(-5deg) scale(1.15); opacity: 0.95; }
+   530→  80% { transform: rotate(-18deg) scale(1.05); opacity: 0.9; }
+   531→  100% { transform: rotate(-12deg) scale(1.1); opacity: 0.88; }
+   532→}
+   533→@keyframes smuggler-stamp-swing {
+   534→  0%, 100% { transform: rotate(-12deg) scale(1.1); }
+   535→  50% { transform: rotate(-8deg) scale(1.12); }
+   536→}
+   537→.smuggler-stamp-entrance {
+   538→  animation: smuggler-stamp-settle 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+   539→}
+   540→.smuggler-stamp-entrance.smuggler-stamp-swing-loop {
+   541→  animation: smuggler-stamp-settle 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+   542→             smuggler-stamp-swing 4s ease-in-out infinite 1.3s;
+   543→}
+   544→
+   545→/* Radar sweep for empty state */
+   546→@keyframes smuggler-radar-sweep {
+   547→  0% { transform: rotate(0deg); }
+   548→  100% { transform: rotate(360deg); }
+   549→}
+   550→.smuggler-radar-sweep {
+   551→  animation: smuggler-radar-sweep 4s linear infinite;
+   552→}
+   553→
+   554→/* Pulsing classified dot */
+   555→@keyframes smuggler-pulse-dot {
+   556→  0%, 100% { opacity: 0.4; transform: scale(1); }
+   557→  50% { opacity: 1; transform: scale(1.3); }
+   558→}
+   559→.smuggler-pulse-dot {
+   560→  animation: smuggler-pulse-dot 2s ease-in-out infinite;
+   561→}
+   562→
+   563→/* Score bar fill (width set inline via style) */
+   564→@keyframes smuggler-score-fill {
+   565→  from { width: 0; }
+   566→}
+   567→.smuggler-score-bar-fill {
+   568→  animation: smuggler-score-fill 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+   569→}
+   570→
+   571→/* Circular score ring draw */
+   572→@keyframes smuggler-ring-draw {
+   573→  from { stroke-dashoffset: var(--ring-circumference); }
+   574→  to { stroke-dashoffset: var(--ring-offset); }
+   575→}
+   576→
+   577→/* Shimmer for "Awaiting Mission Brief" text */
+   578→@keyframes smuggler-shimmer {
+   579→  0% { background-position: -200% center; }
+   580→  100% { background-position: 200% center; }
+   581→}
+   582→.smuggler-shimmer-text {
+   583→  background: linear-gradient(
+   584→    90deg,
+   585→    rgba(140, 106, 59, 0.4) 0%,
+   586→    rgba(140, 106, 59, 1) 50%,
+   587→    rgba(140, 106, 59, 0.4) 100%
+   588→  );
+   589→  background-size: 200% auto;
+   590→  background-clip: text;
+   591→  -webkit-background-clip: text;
+   592→  -webkit-text-fill-color: transparent;
+   593→  animation: smuggler-shimmer 3s linear infinite;
+   594→}
+   595→
+   596→/* Button soft press */
+   597→.smuggler-press {
+   598→  transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+   599→}
+   600→.smuggler-press:active {
+   601→  transform: scale(0.97);
+   602→}
+   603→
+   604→/* Input focus glow */
+   605→.smuggler-input-glow {
+   606→  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+   607→}
+   608→.smuggler-input-glow:focus,
+   609→.smuggler-input-glow:focus-within {
+   610→  border-color: rgba(192, 152, 88, 0.6) !important;
+   611→  box-shadow: 0 0 0 4px rgba(192, 152, 88, 0.12), 0 2px 8px rgba(192, 152, 88, 0.15) !important;
+   612→  background-color: #fffef9 !important;
+   613→}
+   614→
+   615→/* ===========================
+   616→   Hook Generator premium enhancements
+   617→   ===========================
+   618→*/
+   619→
+   620→/* 3D press button (Generate) */
+   621→.smuggler-press-3d {
+   622→  position: relative;
+   623→  transform: translateY(0);
+   624→  transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+   625→  box-shadow:
+   626→    0 4px 0 0 #14542f,
+   627→    0 6px 14px rgba(30, 94, 62, 0.35);
+   628→}
+   629→.smuggler-press-3d:hover {
+   630→  filter: brightness(1.06);
+   631→  box-shadow:
+   632→    0 5px 0 0 #14552f,
+   633→    0 9px 18px rgba(30, 94, 62, 0.45);
+   634→}
+   635→.smuggler-press-3d:active {
+   636→  transform: translateY(3px);
+   637→  box-shadow:
+   638→    0 1px 0 0 #14552f,
+   639→    0 2px 6px rgba(30, 94, 62, 0.3);
+   640→}
+   641→.smuggler-press-3d:disabled {
+   642→  transform: translateY(0);
+   643→  filter: grayscale(0.3) brightness(0.9);
+   644→  box-shadow: 0 2px 0 0 #14552f;
+   645→}
+   646→
+   647→/* Ripple effect on click */
+   648→@keyframes smuggler-ripple {
+   649→  0% { transform: scale(0); opacity: 0.5; }
+   650→  100% { transform: scale(4); opacity: 0; }
+   651→}
+   652→.smuggler-ripple-span {
+   653→  position: absolute;
+   654→  border-radius: 9999px;
+   655→  background: rgba(255, 255, 255, 0.55);
+   656→  pointer-events: none;
+   657→  transform: scale(0);
+   658→  animation: smuggler-ripple 0.6s ease-out forwards;
+   659→}
+   660→
+   661→/* Blinking typewriter caret (reusable, stronger blink) */
+   662→@keyframes smuggler-caret-blink {
+   663→  0%, 49% { opacity: 1; }
+   664→  50%, 100% { opacity: 0; }
+   665→}
+   666→.smuggler-caret-blink {
+   667→  display: inline-block;
+   668→  width: 2px;
+   669→  height: 1em;
+   670→  margin-left: 1px;
+   671→  background: currentColor;
+   672→  vertical-align: text-bottom;
+   673→  animation: smuggler-caret-blink 1s steps(1) infinite;
+   674→}
+   675→
+   676→/* Loading line fade-in (for cycling typewriter loading lines) */
+   677→@keyframes smuggler-line-fade {
+   678→  from { opacity: 0; transform: translateY(4px); }
+   679→  to { opacity: 1; transform: translateY(0); }
+   680→}
+   681→.smuggler-line-fade {
+   682→  animation: smuggler-line-fade 0.35s ease-out forwards;
+   683→}
+   684→
+   685→/* Scanning dossier bar (empty state / loading accent) */
+   686→@keyframes smuggler-scan-bar {
+   687→  0% { transform: translateX(-100%); }
+   688→  100% { transform: translateX(100%); }
+   689→}
+   690→.smuggler-scan-bar {
+   691→  animation: smuggler-scan-bar 2.2s ease-in-out infinite;
+   692→}
+   693→
+   694→/* =====================================================================
+   695→   HOOK GENERATOR — FINAL VISUAL POLISH LAYER
+   696→   (typography, textures, shadows, borders, micro-interactions only)
+   697→   =====================================================================
+   698→*/
+   699→
+   700→/* --- Premium paper texture (faint grain overlay for panels) --- */
+   701→.smuggler-paper-grain {
+   702→  position: relative;
+   703→}
+   704→.smuggler-paper-grain::before {
+   705→  content: '';
+   706→  position: absolute;
+   707→  inset: 0;
+   708→  border-radius: inherit;
+   709→  background-image: url('/smuggler/assets/paper-grain-noise.jpg');
+   710→  background-size: 220px 220px;
+   711→  mix-blend-mode: multiply;
+   712→  opacity: 0.045;
+   713→  pointer-events: none;
+   714→  z-index: 0;
+   715→}
+   716→.smuggler-paper-grain > * {
+   717→  position: relative;
+   718→  z-index: 1;
+   719→}
+   720→
+   721→/* --- Premium panel (layered shadow + soft gold border + inner highlight) --- */
+   722→.smuggler-panel-premium {
+   723→  position: relative;
+   724→  border: 1px solid rgba(192, 152, 88, 0.22);
+   725→  background-color: var(--smuggler-bg-panel);
+   726→  background-image:
+   727→    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 18%),
+   728→    radial-gradient(circle at 0% 0%, rgba(192, 152, 88, 0.04), transparent 40%);
+   729→  box-shadow:
+   730→    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+   731→    0 1px 2px rgba(60, 40, 10, 0.04),
+   732→    0 6px 16px -4px rgba(140, 106, 59, 0.10),
+   733→    0 12px 28px -8px rgba(140, 106, 59, 0.06);
+   734→  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+   735→}
+   736→.smuggler-panel-premium:hover {
+   737→  border-color: rgba(192, 152, 88, 0.4);
+   738→  box-shadow:
+   739→    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+   740→    0 2px 4px rgba(60, 40, 10, 0.06),
+   741→    0 10px 24px -4px rgba(140, 106, 59, 0.14),
+   742→    0 18px 40px -10px rgba(140, 106, 59, 0.08);
+   743→  transform: translateY(-2px);
+   744→}
+   745→
+   746→/* --- Premium analysis panel (analysis cards) --- */
+   747→.smuggler-panel-analysis {
+   748→  position: relative;
+   749→  border: 1px solid rgba(192, 152, 88, 0.2);
+   750→  background-color: var(--smuggler-bg-panel);
+   751→  background-image:
+   752→    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 16%);
+   753→  box-shadow:
+   754→    0 1px 0 0 rgba(255, 255, 255, 0.55) inset,
+   755→    0 1px 2px rgba(60, 40, 10, 0.03),
+   756→    0 4px 12px -3px rgba(140, 106, 59, 0.08);
+   757→  transition: box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
+   758→}
+   759→.smuggler-panel-analysis:hover {
+   760→  border-color: rgba(192, 152, 88, 0.38);
+   761→  transform: translateY(-3px);
+   762→  box-shadow:
+   763→    0 1px 0 0 rgba(255, 255, 255, 0.65) inset,
+   764→    0 2px 4px rgba(60, 40, 10, 0.05),
+   765→    0 10px 24px -4px rgba(140, 106, 59, 0.14);
+   766→}
+   767→
+   768→/* --- Hook card premium --- */
+   769→.smuggler-hook-card {
+   770→  position: relative;
+   771→  border: 1px solid rgba(192, 152, 88, 0.22);
+   772→  background-color: var(--smuggler-bg-panel);
+   773→  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 14%);
+   774→  box-shadow:
+   775→    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+   776→    0 1px 2px rgba(60, 40, 10, 0.03),
+   777→    0 3px 8px -2px rgba(140, 106, 59, 0.07);
+   778→  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+   779→}
+   780→.smuggler-hook-card:hover {
+   781→  border-color: rgba(192, 152, 88, 0.38);
+   782→  box-shadow:
+   783→    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+   784→    0 2px 5px rgba(60, 40, 10, 0.05),
+   785→    0 10px 24px -4px rgba(140, 106, 59, 0.14);
+   786→}
+   787→
+   788→/* --- Hero title (serif + gold gradient + shimmer) --- */
+   789→.smuggler-hero-title {
+   790→  font-family: 'Playfair Display', serif;
+   791→  font-weight: 800;
+   792→  letter-spacing: -0.015em;
+   793→  background: linear-gradient(180deg, #1a1a1a 0%, #3a3328 60%, #5a4a2a 100%);
+   794→  -webkit-background-clip: text;
+   795→  background-clip: text;
+   796→  -webkit-text-fill-color: transparent;
+   797→  position: relative;
+   798→  display: inline-block;
+   799→}
+   800→@keyframes smuggler-title-shimmer {
+   801→  0%, 92%, 100% { transform: translateX(-130%); }
+   802→  45% { transform: translateX(130%); }
+   803→}
+   804→.smuggler-hero-title-wrap {
+   805→  position: relative;
+   806→  display: inline-block;
+   807→}
+   808→.smuggler-hero-title-wrap::after {
+   809→  content: '';
+   810→  position: absolute;
+   811→  top: 0;
+   812→  left: 0;
+   813→  width: 40%;
+   814→  height: 100%;
+   815→  background: linear-gradient(
+   816→    105deg,
+   817→    transparent 30%,
+   818→    rgba(192, 152, 88, 0.28) 50%,
+   819→    transparent 70%
+   820→  );
+   821→  transform: translateX(-130%);
+   822→  pointer-events: none;
+   823→  animation: smuggler-title-shimmer 7s ease-in-out infinite;
+   824→}
+   825→
+   826→/* --- Decorative underline divider (gold) --- */
+   827→.smuggler-title-divider {
+   828→  display: block;
+   829→  height: 2px;
+   830→  width: 64px;
+   831→  background: linear-gradient(90deg, #C09858 0%, rgba(192, 152, 88, 0.3) 60%, transparent 100%);
+   832→  border-radius: 2px;
+   833→  margin-top: 10px;
+   834→}
+   835→
+   836→/* --- Section heading premium (small icon + divider) --- */
+   837→.smuggler-section-heading {
+   838→  font-family: 'Playfair Display', serif;
+   839→  font-weight: 700;
+   840→  letter-spacing: -0.01em;
+   841→  position: relative;
+   842→}
+   843→
+   844→/* --- Pro Tip card premium --- */
+   845→.smuggler-protip-card {
+   846→  position: relative;
+   847→  border: 1px solid rgba(192, 152, 88, 0.3);
+   848→  background-color: var(--smuggler-bg-panel);
+   849→  background-image:
+   850→    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 20%),
+   851→    radial-gradient(circle at 100% 0%, rgba(192, 152, 88, 0.06), transparent 50%);
+   852→  box-shadow:
+   853→    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+   854→    0 1px 2px rgba(60, 40, 10, 0.04),
+   855→    0 6px 16px -4px rgba(140, 106, 59, 0.1),
+   856→    0 10px 24px -6px rgba(140, 106, 59, 0.06);
+   857→  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+   858→}
+   859→.smuggler-protip-card::before {
+   860→  content: '';
+   861→  position: absolute;
+   862→  inset: 0;
+   863→  border-radius: inherit;
+   864→  background-image: url('/smuggler/assets/paper-grain-noise.jpg');
+   865→  background-size: 200px 200px;
+   866→  mix-blend-mode: multiply;
+   867→  opacity: 0.05;
+   868→  pointer-events: none;
+   869→  z-index: 0;
+   870→}
+   871→.smuggler-protip-card > * {
+   872→  position: relative;
+   873→  z-index: 1;
+   874→}
+   875→
+   876→/* --- Premium input field --- */
+   877→.smuggler-input-premium {
+   878→  border: 1px solid #E5DDC8;
+   879→  background-color: var(--smuggler-bg-panel);
+   880→  background-image: linear-gradient(180deg, rgba(245, 235, 210, 0.18) 0%, transparent 30%);
+   881→  box-shadow:
+   882→    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+   883→    0 1px 2px rgba(60, 40, 10, 0.03) inset;
+   884→  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+   885→}
+   886→.smuggler-input-premium:hover {
+   887→  border-color: rgba(192, 152, 88, 0.45);
+   888→}
+   889→.smuggler-input-premium:focus-within,
+   890→.smuggler-input-premium:focus {
+   891→  border-color: rgba(192, 152, 88, 0.65) !important;
+   892→  background-color: #FFFDF7;
+   893→  box-shadow:
+   894→    0 0 0 3px rgba(192, 152, 88, 0.14),
+   895→    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+   896→    0 2px 8px rgba(192, 152, 88, 0.12) !important;
+   897→}
+   898→
+   899→/* --- Premium platform button --- */
+   900→.smuggler-platform-btn {
+   901→  position: relative;
+   902→  border: 2px solid #E5DDC8;
+   903→  background-color: #ffffff;
+   904→  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 40%);
+   905→  box-shadow:
+   906→    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+   907→    0 1px 2px rgba(60, 40, 10, 0.04);
+   908→  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+   909→}
+   910→.smuggler-platform-btn:hover {
+   911→  transform: translateY(-2px);
+   912→  box-shadow:
+   913→    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+   914→    0 6px 14px -2px rgba(60, 40, 10, 0.12);
+   915→}
+   916→.smuggler-platform-btn:active {
+   917→  transform: translateY(0) scale(0.97);
+   918→}
+   919→
+   920→/* --- Premium number selector button --- */
+   921→.smuggler-count-btn {
+   922→  position: relative;
+   923→  border: 2px solid #E5DDC8;
+   924→  background-color: #ffffff;
+   925→  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 40%);
+   926→  box-shadow:
+   927→    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+   928→    0 1px 2px rgba(60, 40, 10, 0.04);
+   929→  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+   930→}
+   931→.smuggler-count-btn:hover {
+   932→  transform: translateY(-2px);
+   933→  border-color: rgba(192, 152, 88, 0.5);
+   934→  box-shadow:
+   935→    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+   936→    0 5px 12px -2px rgba(60, 40, 10, 0.1);
+   937→}
+   938→.smuggler-count-btn:active {
+   939→  transform: translateY(1px) scale(0.98);
+   940→  box-shadow: 0 1px 2px rgba(60, 40, 10, 0.06) inset;
+   941→}
+   942→.smuggler-count-btn-active {
+   943→  border-color: #1E5E3E !important;
+   944→  background-color: #1E5E3E !important;
+   945→  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 40%) !important;
+   946→  color: #fff !important;
+   947→  box-shadow:
+   948→    0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
+   949→    0 2px 6px rgba(30, 94, 62, 0.3),
+   950→    0 4px 12px rgba(30, 94, 62, 0.18) !important;
+   951→}
+   952→
+   953→/* --- Generate button shine sweep --- */
+   954→.smuggler-generate-shine {
+   955→  position: relative;
+   956→  overflow: hidden;
+   957→}
+   958→.smuggler-generate-shine::after {
+   959→  content: '';
+   960→  position: absolute;
+   961→  top: 0;
+   962→  left: 0;
+   963→  width: 35%;
+   964→  height: 100%;
+   965→  background: linear-gradient(
+   966→    105deg,
+   967→    transparent 30%,
+   968→    rgba(255, 255, 255, 0.28) 50%,
+   969→    transparent 70%
+   970→  );
+   971→  transform: translateX(-150%);
+   972→  pointer-events: none;
+   973→  z-index: 2;
+   974→}
+   975→@keyframes smuggler-generate-sweep {
+   976→  0% { transform: translateX(-150%); }
+   977→  60%, 100% { transform: translateX(320%); }
+   978→}
+   979→.smuggler-generate-shine:hover::after {
+   980→  animation: smuggler-generate-sweep 0.9s ease-out;
+   981→}
+   982→
+   983→/* --- Footer premium separator + link hover --- */
+   984→.smuggler-footer-link {
+   985→  position: relative;
+   986→  transition: color 0.25s ease, transform 0.25s ease;
+   987→}
+   988→.smuggler-footer-link:hover {
+   989→  transform: translateY(-1px);
+   990→}
+   991→.smuggler-share-btn {
+   992→  position: relative;
+   993→  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+   994→}
+   995→.smuggler-share-btn:hover {
+   996→  transform: translateY(-2px) scale(1.08);
+   997→  box-shadow: 0 4px 10px rgba(60, 40, 10, 0.1);
+   998→}
+   999→
+  1000→/* --- Empty state: extra glow + particles --- */
+  1001→.smuggler-empty-glow {
+  1002→  position: absolute;
+  1003→  inset: -20px;
+  1004→  background: radial-gradient(circle at center, rgba(192, 152, 88, 0.08), transparent 70%);
+  1005→  pointer-events: none;
+  1006→  border-radius: 50%;
+  1007→  z-index: 0;
+  1008→}
+  1009→@keyframes smuggler-particle-float {
+  1010→  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+  1011→  50% { transform: translateY(-12px) scale(1.2); opacity: 0.7; }
+  1012→}
+  1013→.smuggler-particle {
+  1014→  position: absolute;
+  1015→  border-radius: 50%;
+  1016→  background: rgba(192, 152, 88, 0.4);
+  1017→  pointer-events: none;
+  1018→  animation: smuggler-particle-float 4s ease-in-out infinite;
+  1019→}
+  1020→
+  1021→/* --- Background: faint radial lighting + vignette --- */
+  1022→.smuggler-bg-premium {
+  1023→  position: relative;
+  1024→}
+  1025→.smuggler-bg-premium::before {
+  1026→  content: '';
+  1027→  position: absolute;
+  1028→  inset: 0;
+  1029→  background:
+  1030→    radial-gradient(ellipse at 20% 0%, rgba(192, 152, 88, 0.06), transparent 50%),
+  1031→    radial-gradient(ellipse at 80% 100%, rgba(76, 107, 74, 0.04), transparent 50%);
+  1032→  pointer-events: none;
+  1033→  z-index: 0;
+  1034→}
+  1035→.smuggler-bg-premium::after {
+  1036→  content: '';
+  1037→  position: absolute;
+  1038→  inset: 0;
+  1039→  background: radial-gradient(ellipse at center, transparent 50%, rgba(40, 28, 8, 0.06) 100%);
+  1040→  pointer-events: none;
+  1041→  z-index: 0;
+  1042→}
+  1043→.smuggler-bg-premium > * {
+  1044→  position: relative;
+  1045→  z-index: 1;
+  1046→}
+  1047→
+  1048→/* =====================================================================
+  1049→   HOOK GENERATOR — FIXED-HEIGHT DASHBOARD + WARM NEUTRAL CARDS
+  1050→   =====================================================================
+  1051→*/
+  1052→
+  1053→/* --- Warm neutral card surfaces (replace pure white) ---
+  1054→ * Soft ivory/linen/parchment — bright but warm, never yellow/dirty.
+  1055→ */
+  1056→.smuggler-surface-warm {
+  1057→  background-color: var(--smuggler-bg-panel) !important;
+  1058→  background-image:
+  1059→    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 16%) !important;
+  1060→}
+  1061→.smuggler-surface-warm-deep {
+  1062→  background-color: var(--smuggler-bg-panel) !important;
+  1063→  background-image:
+  1064→    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 14%) !important;
+  1065→}
+  1066→
+  1067→/* --- Fixed-height right panel (Generated Hooks) --- */
+  1068→.smuggler-hooks-panel {
+  1069→  display: flex;
+  1070→  flex-direction: column;
+  1071→  height: 720px;
+  1072→  max-height: 720px;
+  1073→  min-height: 560px;
+  1074→  overflow: hidden;
+  1075→}
+  1076→.smuggler-hooks-header {
+  1077→  flex-shrink: 0;
+  1078→}
+  1079→.smuggler-hooks-scroll {
+  1080→  flex: 1 1 0;
+  1081→  min-height: 0;
+  1082→  overflow-y: auto;
+  1083→  overflow-x: hidden;
+  1084→  scroll-behavior: smooth;
+  1085→  padding-right: 4px;
+  1086→  margin-right: -4px;
+  1087→}
+  1088→.smuggler-hooks-footer {
+  1089→  flex-shrink: 0;
+  1090→}
+  1091→
+  1092→/* --- Premium thin scrollbar (green/gold neutral palette, hidden until hover) --- */
+  1093→.smuggler-hooks-scroll {
+  1094→  scrollbar-width: thin;
+  1095→  scrollbar-color: rgba(192, 152, 88, 0.4) transparent;
+  1096→  transition: scrollbar-color 0.25s ease;
+  1097→}
+  1098→.smuggler-hooks-scroll:hover {
+  1099→  scrollbar-color: rgba(192, 152, 88, 0.55) transparent;
+  1100→}
+  1101→.smuggler-hooks-scroll::-webkit-scrollbar {
+  1102→  width: 6px;
+  1103→}
+  1104→.smuggler-hooks-scroll::-webkit-scrollbar-track {
+  1105→  background: transparent;
+  1106→  border-radius: 9999px;
+  1107→}
+  1108→/* Hidden by default, appears on hover */
+  1109→.smuggler-hooks-scroll::-webkit-scrollbar-thumb {
+  1110→  background: transparent;
+  1111→  border-radius: 9999px;
+  1112→  transition: background 0.25s ease;
+  1113→}
+  1114→.smuggler-hooks-scroll:hover::-webkit-scrollbar-thumb {
+  1115→  background: rgba(192, 152, 88, 0.45);
+  1116→}
+  1117→.smuggler-hooks-scroll::-webkit-scrollbar-thumb:hover {
+  1118→  background: rgba(76, 107, 74, 0.6);
+  1119→}
+  1120→
+  1121→/* =====================================================================
+  1122→   HOMEPAGE PREMIUM BUTTONS + MOTIONS
+  1123→   =====================================================================
+  1124→*/
+  1125→
+  1126→/* Premium CTA button with shine sweep + 3D press */
+  1127→.smuggler-cta-premium {
+  1128→  position: relative;
+  1129→  overflow: hidden;
+  1130→  display: inline-flex;
+  1131→  align-items: center;
+  1132→  gap: 0.5rem;
+  1133→  padding: 0.85rem 1.6rem;
+  1134→  border-radius: 0.75rem;
+  1135→  font-weight: 700;
+  1136→  font-size: 0.95rem;
+  1137→  letter-spacing: 0.3px;
+  1138→  cursor: pointer;
+  1139→  transition: transform 0.15s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  1140→  background-color: var(--smuggler-accent-green);
+  1141→  color: #fff;
+  1142→  border: 1px solid rgba(255, 255, 255, 0.12);
+  1143→  box-shadow:
+  1144→    0 4px 0 0 #14542f,
+  1145→    0 6px 18px rgba(30, 94, 62, 0.3),
+  1146→    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  1147→}
+  1148→.smuggler-cta-premium:hover {
+  1149→  filter: brightness(1.08);
+  1150→  transform: translateY(-2px);
+  1151→  box-shadow:
+  1152→    0 6px 0 0 #14552f,
+  1153→    0 10px 24px rgba(30, 94, 62, 0.4),
+  1154→    0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  1155→}
+  1156→.smuggler-cta-premium:active {
+  1157→  transform: translateY(3px);
+  1158→  box-shadow:
+  1159→    0 1px 0 0 #14552f,
+  1160→    0 2px 6px rgba(30, 94, 62, 0.3);
+  1161→}
+  1162→.smuggler-cta-premium::after {
+  1163→  content: '';
+  1164→  position: absolute;
+  1165→  top: 0;
+  1166→  left: 0;
+  1167→  width: 40%;
+  1168→  height: 100%;
+  1169→  background: linear-gradient(
+  1170→    105deg,
+  1171→    transparent 30%,
+  1172→    rgba(255, 255, 255, 0.35) 50%,
+  1173→    transparent 70%
+  1174→  );
+  1175→  transform: translateX(-150%);
+  1176→  pointer-events: none;
+  1177→  z-index: 2;
+  1178→}
+  1179→.smuggler-cta-premium:hover::after {
+  1180→  animation: smuggler-cta-sweep 0.9s ease-out;
+  1181→}
+  1182→@keyframes smuggler-cta-sweep {
+  1183→  0% { transform: translateX(-150%); }
+  1184→  60%, 100% { transform: translateX(320%); }
+  1185→}
+  1186→
+  1187→/* Outline CTA with gold hover glow */
+  1188→.smuggler-cta-outline {
+  1189→  position: relative;
+  1190→  overflow: hidden;
+  1191→  display: inline-flex;
+  1192→  align-items: center;
+  1193→  gap: 0.5rem;
+  1194→  padding: 0.85rem 1.6rem;
+  1195→  border-radius: 0.75rem;
+  1196→  font-weight: 700;
+  1197→  font-size: 0.95rem;
+  1198→  letter-spacing: 0.3px;
+  1199→  cursor: pointer;
+  1200→  transition: all 0.25s ease;
+  1201→  background-color: transparent;
+  1202→  color: var(--smuggler-text);
+  1203→  border: 1.5px solid var(--smuggler-border);
+  1204→}
+  1205→.smuggler-cta-outline:hover {
+  1206→  border-color: var(--smuggler-gold);
+  1207→  color: var(--smuggler-gold);
+  1208→  background-color: var(--smuggler-panel-hover);
+  1209→  transform: translateY(-2px);
+  1210→  box-shadow: 0 6px 18px rgba(192, 152, 88, 0.15);
+  1211→}
+  1212→.smuggler-cta-outline:active {
+  1213→  transform: translateY(0);
+  1214→}
+  1215→
+  1216→/* Gold CTA with glow */
+  1217→.smuggler-cta-gold {
+  1218→  position: relative;
+  1219→  overflow: hidden;
+  1220→  display: inline-flex;
+  1221→  align-items: center;
+  1222→  gap: 0.5rem;
+  1223→  padding: 0.85rem 1.6rem;
+  1224→  border-radius: 0.75rem;
+  1225→  font-weight: 700;
+  1226→  font-size: 0.95rem;
+  1227→  letter-spacing: 0.3px;
+  1228→  cursor: pointer;
+  1229→  transition: all 0.25s ease;
+  1230→  background-color: var(--smuggler-gold);
+  1231→  color: #fff;
+  1232→  border: none;
+  1233→  box-shadow: 0 4px 14px rgba(192, 152, 88, 0.35);
+  1234→}
+  1235→.smuggler-cta-gold:hover {
+  1236→  filter: brightness(1.1);
+  1237→  transform: translateY(-2px);
+  1238→  box-shadow: 0 8px 22px rgba(192, 152, 88, 0.45);
+  1239→}
+  1240→.smuggler-cta-gold:active {
+  1241→  transform: translateY(1px);
+  1242→}
+  1243→.smuggler-cta-gold::after {
+  1244→  content: '';
+  1245→  position: absolute;
+  1246→  top: 0;
+  1247→  left: 0;
+  1248→  width: 40%;
+  1249→  height: 100%;
+  1250→  background: linear-gradient(
+  1251→    105deg,
+  1252→    transparent 30%,
+  1253→    rgba(255, 255, 255, 0.4) 50%,
+  1254→    transparent 70%
+  1255→  );
+  1256→  transform: translateX(-150%);
+  1257→  pointer-events: none;
+  1258→}
+  1259→.smuggler-cta-gold:hover::after {
+  1260→  animation: smuggler-cta-sweep 0.9s ease-out;
+  1261→}
+  1262→

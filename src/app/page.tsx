@@ -10,6 +10,8 @@ import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
 import ToolPageEngine from '@/smuggler/components/ToolPageEngine';
 import LibraryView from '@/smuggler/components/LibraryView';
 import StudioView from '@/smuggler/components/StudioView';
+import PricingView from '@/smuggler/components/PricingView';
+import AuthPages from '@/smuggler/components/AuthPages';
 import CommandPalette from '@/smuggler/components/CommandPalette';
 import Footer from '@/smuggler/components/Footer';
 import AuthModal from '@/smuggler/components/AuthModal';
@@ -63,7 +65,7 @@ export default function Home() {
 
   const handleOpenAuth = useCallback((mode: AuthMode) => {
     setAuthMode(mode);
-    setAuthOpen(true);
+    setView('auth');
   }, []);
 
   const handleSwitchAuthMode = useCallback((mode: AuthMode) => {
@@ -133,13 +135,15 @@ export default function Home() {
 
   return (
     <div className="smuggler-app flex min-h-screen flex-col">
-      <Navbar
-        onOpenAuth={handleOpenAuth}
-        onNavigate={handleNavigate}
-        onOpenPalette={() => setPaletteOpen(true)}
-        currentView={view}
-        hidden={navbarHidden}
-      />
+      {view !== 'auth' && (
+        <Navbar
+          onOpenAuth={handleOpenAuth}
+          onNavigate={handleNavigate}
+          onOpenPalette={() => setPaletteOpen(true)}
+          currentView={view}
+          hidden={navbarHidden}
+        />
+      )}
 
       <main className="flex-1 pt-6">
         <AnimatePresence mode="wait">
@@ -218,10 +222,39 @@ export default function Home() {
               <StudioView onNavigate={handleNavigate} onSelectTool={handleSelectTool} />
             </motion.div>
           )}
+
+          {view === 'pricing' && (
+            <motion.div
+              key="pricing-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            >
+              <PricingView onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
+            </motion.div>
+          )}
+
+          {view === 'auth' && (
+            <motion.div
+              key="auth-view"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AuthPages
+                initialMode={authMode}
+                onClose={() => setView('home')}
+                onSuccess={handleAuthSuccess}
+                onSwitchMode={handleSwitchAuthMode}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
-      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && view !== 'library' && view !== 'studio' && (
+      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && view !== 'library' && view !== 'studio' && view !== 'pricing' && view !== 'auth' && (
         <div className="mt-auto">
           <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
         </div>

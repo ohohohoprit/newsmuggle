@@ -1380,3 +1380,121 @@ Stage Summary:
 - Premium card design throughout (layered shadows, paper texture, hover lift)
 - Theme-aware (light/dark mode via CSS variables)
 - Zero lint/tsc errors, zero runtime errors
+
+---
+
+Task ID: AUTH-PRICING
+Agent: full-stack-developer
+Task: Build AuthPages.tsx (full-screen split-screen login/signup/forgot-password) and PricingView.tsx (premium pricing page with 3 plans, comparison table, FAQ, CTA)
+
+Work Log:
+- Read required context: `src/app/globals.css` (CSS vars `--smuggler-*`, premium classes `.smuggler-panel-premium`, `.smuggler-paper-grain`, `.smuggler-cta-premium/outline/gold`, `.smuggler-input-premium`, `.smuggler-hero-title-wrap`, `.smuggler-bg-premium`, `.smuggler-stamp-secret`, `.smuggler-hook-card`, `.smuggler-section-heading`, `.smuggler-glow`, `.smuggler-paper`, `.smuggler-wax-seal`), `Navbar.tsx` (NavView type), confirmed assets `mascot-auth.png` (1536x1024 RGBA transparent detective), `logo-hq.png` exist in `/public/smuggler/assets/`.
+- Verified light & dark `--smuggler-*` palettes (light: warm cream `#F8F5E6` bg, `#FFFDF5` panel; dark: `#0B0A08` bg, `#13110E` panel). All colors use CSS vars so theme switching works automatically.
+- Created `/home/z/my-project/src/smuggler/components/AuthPages.tsx` (≈1010 lines):
+  - Split-screen layout: left 45% promotional panel (hidden below `lg`), right 55% form panel.
+  - **LeftPanel**: paper texture + radial gold/forest gradients + 135° classified diagonal-line pattern overlay; logo (logo-hq.png) + "CONTENT SMUGGLER / CREATOR TOOLKIT" wordmark with gold stars; green "TOP SECRET TOOLS. SERIOUS RESULTS." badge with ShieldCheck; Playfair headline "Unlock your creator superpowers." (green accent on "creator superpowers"); subhead about joining thousands of creators; floating mascot-auth.png (`animate={{ y: [0,-12,0] }}`, 5s loop, `mixBlendMode: multiply` in light mode / `normal` in dark via `useTheme().resolvedTheme`, drop-shadow); 3 feature bullets (95+ AI Tools / 10K+ Creators / 100% Secure); animated `.smuggler-stamp-secret` "TOP SECRET" stamp (spring-rotated -25°→-15°).
+  - **Right panel**: `var(--smuggler-bg-panel)` bg with subtle radial gradient; back-to-home link + X close (both call `onClose`); form card uses `.smuggler-panel-premium .smuggler-paper-grain`.
+  - **LoginForm**: tab selector (Email | Mobile OTP) with `layoutId="auth-tab-pill"` animated pill. Email tab: email input (icon, validation), password (show/hide Eye/EyeOff, min 8 chars), remember-me custom checkbox, forgot-password link (switches to forgot subview), `.smuggler-cta-premium` submit with spinner. Mobile OTP tab: country-code `<select>` (10 codes) + mobile input, Send OTP button → 6-digit `OtpInput` (auto-advance, backspace, paste, arrow keys), 60s countdown timer via `setInterval` (cleanup on unmount), resend cooldown, verify button with success state. Social: Google (white bg, inline multi-color SVG G logo) + Facebook (#1877F2 bg, inline SVG f) buttons with loading spinners. OR divider. Switch link to signup.
+  - **SignupForm**: same tab selector. Email tab: full name, email, password with live `PasswordStrengthBar` (score 0-100 based on length ≥8/≥12, lower, upper, digit, special; colored bar red/yellow/green + label Weak/Medium/Strong/Very Strong), confirm password with match check + green Check icon on match, user-type dropdown (Creator/Marketer/Entrepreneur/Educator/Other with matching lucide icons), terms checkbox (required), `.smuggler-cta-premium` submit. Mobile OTP tab: same as login but with Name field (`requireName` prop). Social + switch link to login.
+  - **ForgotPasswordFlow**: 3-step with animated stepper (1→2→3, green fill + Check on completion). Step 1: email + Send Reset Link. Step 2: 6-digit OTP input + Verify. Step 3: new password (with strength bar) + confirm + Reset Password → success screen "Password reset successfully" → back to login. Back-to-login link on all steps. Each step has validation, loading spinners, inline errors.
+  - All form state uses render-time "adjust state during render" pattern for `initialMode` prop sync (tracks `prevInitial`). OTP countdown uses legitimate `useEffect` + `setInterval` (side effect, not prop-reset).
+  - ALL colors via `var(--smuggler-*)`. ALL premium classes used. Framer-motion: entrance, tab transitions (AnimatePresence mode="wait"), button hover/tap, mascot float, stamp spring-settle, password strength bar width animation, success checkmark pop.
+  - Fully responsive: stacks to single column on mobile (left panel hidden, form full-width), form card `max-w-md` centered.
+  - Auth methods limited to exactly 4: Google, Facebook, Email+Password, Mobile+OTP. No Apple/GitHub/Twitter.
+- Created `/home/z/my-project/src/smuggler/components/PricingView.tsx` (≈560 lines):
+  - **Hero header**: `.smuggler-bg-premium` + paper texture overlay + radial gradients. Eyebrow "Pricing Dossier" badge. `.smuggler-hero-title-wrap` + `.smuggler-hero-title` with gold gradient (`#C09858 → #E6C078 → #C09858`) + 7s shimmer. "Simple Pricing. Unlimited Potential." Subtitle. Billing toggle (Monthly/Yearly) with `layoutId="billing-pill"` animated pill + "Save 20%" badge on yearly.
+  - **3 pricing cards**: Starter ($0, `.smuggler-cta-outline`), Creator ($19/$15, "MOST POPULAR" gold badge, `lg:scale-[1.05]`, gold border + glow, `.smuggler-cta-premium`, 7-day money-back guarantee), Agency ($49/$39, `.smuggler-cta-gold`). Each card: `.smuggler-panel-premium .smuggler-paper-grain`, icon, name, tagline, animated price (AnimatePresence popLayout on billing switch), yearly shows struck-through original + "Save 20%" badge, feature list with green Check icons, CTA button. Hover lift + scale.
+  - **Comparison table**: `.smuggler-panel-premium` wrapper, sticky thead, 10 rows (Tool Usage, Premium Tools, AI Generations, Storage, Export, Support, Team Seats, API Access, White-label, Custom Branding) × 3 plan columns (Creator column highlighted with gold tint + gold bottom border). Boolean cells → green Check / muted X; string cells → text. Row scroll-into-view fade-in, row hover highlight, column hover tint.
+  - **All Plans Include**: 8-item grid (256-bit encryption, Cloud sync, Mobile access, Regular updates, 95+ tools, AI-powered, Community access, No setup fees) using `.smuggler-hook-card` cards with gold icon tiles, hover lift.
+  - **FAQ**: 6 accordion items (`.smuggler-panel-premium`), AnimatePresence height animation, rotating ChevronDown, one-open-at-a-time. Questions: cancel anytime, free trial, payment methods, upgrade later, refunds, data secure.
+  - **Final CTA**: `.smuggler-panel-premium` panel with radial gold/forest gradient bg, "Begin Your Mission" badge, "Ready to smuggle your content to success?" headline (green accent on "success"), subhead, `.smuggler-cta-gold` "Get Started Free" + `.smuggler-cta-outline` "Explore Tools", floating mascot-auth.png bottom-right (hidden on mobile, `lg:block`, mixBlendMode multiply in light).
+  - **Payment icons**: Visa (#1A1F71), Mastercard (#EB001B), Amex (#006FCF), PayPal (#003087), UPI (#09B5BD) badges + "256-bit SSL encrypted · PCI DSS compliant" line.
+  - Section headings use `.smuggler-section-heading`. Animate-on-scroll via `whileInView` with `viewport={{ once: true }}`. Staggered children via shared `SECTION_VARIANTS`/`CHILD_VARIANTS`.
+- Ran `bun run lint` — passed clean (0 errors, 0 warnings).
+- Ran `bunx tsc --noEmit` — both new files have ZERO type errors. (Only pre-existing errors in `examples/` and `skills/` folders, out of scope.)
+- Dev server confirmed running on port 3000 with 200 responses.
+
+Stage Summary:
+- Files created:
+  - `/home/z/my-project/src/smuggler/components/AuthPages.tsx` (~1010 lines) — full-screen split-screen auth with login (email + mobile OTP tabs), signup (email with password strength + mobile OTP tabs), and 3-step forgot-password flow. Mascot-auth.png floating in left promo panel. All 4 required auth methods (Google, Facebook, Email+Password, Mobile+OTP).
+  - `/home/z/my-project/src/smuggler/components/PricingView.tsx` (~560 lines) — premium pricing page with animated billing toggle, 3 plans (Creator highlighted), 10-row comparison table, 8 universal features, 6-item FAQ accordion, final CTA with mascot, payment icons.
+- Key decisions:
+  - Used `useTheme().resolvedTheme` to conditionally apply `mixBlendMode: multiply` (light) vs `normal` (dark) on the mascot — multiply on a dark bg would hide the image.
+  - OTP input built as custom 6-box component with auto-advance, backspace navigation, arrow-key nav, and paste support (uses `useRef` array of inputs) rather than the `input-otp` library for full control over styling with `.smuggler-input-premium`.
+  - Billing toggle & auth tab selector both use framer-motion `layoutId` for smooth pill slide between options.
+  - Password strength: 0-100 score (length ≥8: +25, ≥12: +10, lower +15, upper +20, digit +15, special +15, capped at 100), mapped to Weak/Medium/Strong/Very Strong with red/yellow/green/green colors.
+  - Render-time state adjustment pattern (`prevInitial` tracking) for `initialMode` prop sync, avoiding `react-hooks/set-state-in-effect` concerns. OTP countdown uses legitimate `useEffect`+`setInterval` (genuine side-effect timer, not prop-reset).
+  - Both files export named + default exports as required.
+- Issues: None. Both files lint-clean and tsc-clean. Ready for wiring into `src/app/page.tsx` by a future task (AuthPages as a view triggered by `onOpenAuth`, PricingView as a 'pricing' view triggered by the Navbar "Pricing" link).
+
+---
+Task ID: 21 (Authentication + Pricing pages)
+Agent: main (orchestrator)
+Task: Build Login, Sign Up, Forgot Password, and Pricing pages with 4 auth methods
+
+## Completed Modifications
+
+### 1. New auth mascot
+- Copied `upload/mascot 2.png` → `public/smuggler/assets/mascot-auth.png` (RGBA transparent, detective with magnifying glass + classified documents)
+- Used in AuthPages left panel with floating animation + `mixBlendMode: multiply` for light mode
+
+### 2. AuthPages Component (`src/smuggler/components/AuthPages.tsx` — NEW, ~1010 lines)
+Built by subagent. Full split-screen auth experience:
+
+- **Left panel** (45%, hidden on mobile): Logo + brand, "TOP SECRET TOOLS. SERIOUS RESULTS." badge, "Unlock your creator superpowers." headline, floating mascot, feature bullets, TOP SECRET stamp
+- **Right panel** (55%): Form area with premium card
+
+**Login form**:
+- Tab selector: Email | Mobile OTP
+- Email tab: Email + Password (show/hide), Remember me, Forgot password link, Login button
+- Mobile OTP tab: Country code + mobile number, Send OTP, 6-digit OTP input (auto-advance), 60s countdown, Resend, Verify
+- Social: Continue with Google + Continue with Facebook
+- Switch to signup link
+- ALL functional: validation, loading states, error messages, OTP countdown
+
+**Sign Up form**:
+- Same tabs + Name field
+- Email tab: Name, Email, Password (with live strength indicator: Weak/Medium/Strong/Very Strong), Confirm Password (match validation), User Type dropdown, Terms checkbox, Create Account button
+- Mobile OTP tab: Name + mobile + OTP flow
+- Social: Google + Facebook
+- Switch to login link
+
+**Forgot Password flow**: 3-step animated stepper (email → OTP → new password → success)
+
+**4 auth methods ONLY**: Google, Facebook, Email+Password, Mobile+OTP (no Apple, GitHub, or others)
+
+### 3. PricingView Component (`src/smuggler/components/PricingView.tsx` — NEW, ~560 lines)
+- **Hero**: "Simple Pricing. Unlimited Potential." (gold shimmer title), billing toggle (Monthly/Yearly with "Save 20%")
+- **3 Pricing Cards**: Starter ($0), Creator ($19/$15, MOST POPULAR badge, scale 1.05, gold glow), Agency ($49/$39)
+- **Comparison Table**: 10 rows × 3 columns, sticky header, hover highlights, Check/X icons
+- **All Plans Include**: 8 universal features grid
+- **FAQ**: 6-item accordion with AnimatePresence
+- **Final CTA**: Mascot + "Get Started Free" + "Explore Tools"
+- **Payment icons**: Visa, Mastercard, Amex, PayPal, UPI
+- ALL functional: billing toggle animates prices, FAQ accordion, CTA buttons
+
+### 4. Routing
+- **Navbar**: Added `'pricing'` and `'auth'` to NavView; "Pricing" nav link routes to pricing view
+- **page.tsx**: 
+  - `handleOpenAuth` now sets view to `'auth'` (full-page auth instead of modal)
+  - `view === 'pricing'` renders `<PricingView>`
+  - `view === 'auth'` renders `<AuthPages>` (navbar hidden on auth view)
+  - Footer hidden on pricing and auth views
+  - Login/signup buttons across the app now navigate to the full-page auth experience
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - Pricing: "Simple Pricing" ✓, 3 plans (Starter/Creator/Agency) ✓, MOST POPULAR badge ✓, Monthly/Yearly toggle ✓, FAQ ✓
+  - Login: welcome/login text ✓, Google ✓, Facebook ✓, Mobile OTP ✓
+  - No console errors ✓
+
+Stage Summary:
+- Full authentication experience built (Login + Signup + Forgot Password) with 4 auth methods
+- Premium pricing page with 3 plans, comparison table, FAQ, billing toggle
+- New mascot integrated into auth pages
+- All forms functional with validation, loading states, error handling
+- Theme-aware (light/dark via CSS variables)
+- Zero lint/tsc errors, zero runtime errors
