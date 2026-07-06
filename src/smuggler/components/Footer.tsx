@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export interface FooterProps {
-  onNavigate?: (view: 'home' | 'tools') => void;
+  onNavigate?: (view: 'home' | 'tools' | 'library' | 'studio' | 'pricing' | 'settings') => void;
   onOpenAuth?: (mode: 'login' | 'signup') => void;
 }
 
@@ -26,14 +26,16 @@ interface NavLink {
 
 const INTELLIGENCE_LINKS: NavLink[] = [
   { label: 'All Tools', onClick: undefined, href: '#tools' },
-  { label: 'Content Calendar', href: '#' },
-  { label: 'Secret Library', href: '#' },
+  { label: 'Creator Studio', onClick: undefined, href: '#studio' },
+  { label: 'Library', onClick: undefined, href: '#library' },
 ];
 
 const AGENCY_LINKS: NavLink[] = [
   { label: 'About Us', href: '#' },
-  { label: 'Pricing & Plans', href: '#' },
-  { label: 'Support Desk', href: '#' },
+  { label: 'Pricing & Plans', onClick: undefined, href: '#pricing' },
+  { label: 'Contact Us', href: '#' },
+  { label: 'Help / Support', href: '#' },
+  { label: 'Account Settings', onClick: undefined, href: '#settings' },
 ];
 
 const LEGAL_LINKS: NavLink[] = [
@@ -85,12 +87,21 @@ const SOCIALS = [
 export default function Footer({ onNavigate, onOpenAuth }: FooterProps) {
   const [email, setEmail] = useState('');
 
-  // Build the Intelligence links with the All Tools → onNavigate binding.
-  const intelligenceLinks: NavLink[] = INTELLIGENCE_LINKS.map((link) =>
-    link.label === 'All Tools' && onNavigate
-      ? { ...link, onClick: () => onNavigate('tools') }
-      : link,
-  );
+  // Build links with navigation bindings.
+  const intelligenceLinks: NavLink[] = INTELLIGENCE_LINKS.map((link) => {
+    if (!onNavigate) return link;
+    if (link.label === 'All Tools') return { ...link, onClick: () => onNavigate('tools') };
+    if (link.label === 'Creator Studio') return { ...link, onClick: () => onNavigate('studio') };
+    if (link.label === 'Library') return { ...link, onClick: () => onNavigate('library') };
+    return link;
+  });
+
+  const agencyLinks: NavLink[] = AGENCY_LINKS.map((link) => {
+    if (!onNavigate) return link;
+    if (link.label === 'Pricing & Plans') return { ...link, onClick: () => onNavigate('pricing') };
+    if (link.label === 'Account Settings') return { ...link, onClick: () => onNavigate('settings') };
+    return link;
+  });
 
   const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -156,7 +167,7 @@ export default function Footer({ onNavigate, onOpenAuth }: FooterProps) {
           {/* Link columns */}
           <div className="flex gap-12 md:gap-20">
             <LinkColumn title="Intelligence" links={intelligenceLinks} />
-            <LinkColumn title="Agency" links={AGENCY_LINKS} />
+            <LinkColumn title="Agency" links={agencyLinks} />
             <LinkColumn title="Legal" links={LEGAL_LINKS} />
           </div>
 

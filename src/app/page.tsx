@@ -270,7 +270,7 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {view !== 'home' && view !== 'tool-page' && view !== 'hook-generator' && view !== 'library' && view !== 'studio' && view !== 'pricing' && view !== 'auth' && view !== 'settings' && (
+      {view !== 'auth' && (
         <div className="mt-auto">
           <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
         </div>

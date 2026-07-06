@@ -1678,3 +1678,60 @@ Stage Summary:
 - Universal BackButton component created and added to all major pages
 - Global responsive optimizations (mobile-first, touch-friendly, reduced-motion support)
 - Zero lint/tsc errors, zero runtime errors
+
+---
+Task ID: 24 (Final polish: shared footer + mobile hero fix + back button verification)
+Agent: main (orchestrator)
+Task: Add shared footer to all pages, fix mobile homepage hero, verify back buttons
+
+## Completed Modifications
+
+### 1. Shared Footer on ALL pages
+- **`src/app/page.tsx`**: Changed footer visibility from `{view !== 'home' && view !== 'tool-page' && ...}` to `{view !== 'auth' && ...}` — footer now shows on ALL pages except auth (which has its own full-screen layout)
+- **`src/smuggler/components/Footer.tsx`**:
+  - Updated `FooterProps.onNavigate` type to accept all view types: `'home' | 'tools' | 'library' | 'studio' | 'pricing' | 'settings'`
+  - Added navigation links: "Creator Studio" → studio, "Library" → library, "Pricing & Plans" → pricing, "Account Settings" → settings, "Contact Us", "Help / Support"
+  - Updated link mapping to wire all navigation links to `onNavigate` callbacks
+  - Footer now includes: Intelligence (All Tools, Creator Studio, Library), Agency (About Us, Pricing & Plans, Contact Us, Help/Support, Account Settings), Legal (Privacy, Terms, Cookies)
+
+### 2. Mobile Homepage Hero Fix
+- **`src/smuggler/components/Homepage.tsx`**: Added a mobile-only mascot section between the hero text and the desktop-only 3D tilt mascot:
+  - `motion.div` with `className="flex justify-center lg:hidden"` — visible only on screens < 1024px
+  - Contains a 240x240 circular mascot badge with gold border, drop-shadow, and floating animation (`y: [0, -8, 0]`, 5s infinite)
+  - Entrance animation: opacity 0→1, y 20→0, delay 0.5s
+  - This prevents the "empty broken section" on mobile — the mascot now appears below the hero text content in a clean stacked layout
+
+### 3. Back Button Verification
+All major internal pages already have back buttons (added in Task 23):
+- **StudioView**: BackButton → Home ✓
+- **LibraryView**: BackButton → Home ✓
+- **SettingsView**: BackButton → Studio ✓
+- **PricingView**: BackButton → Home ✓
+- **ToolPageEngine**: Back breadcrumb → All Tools ✓
+- **HookGeneratorPage**: Back breadcrumb → All Tools ✓
+- **AuthPages**: "Back to home" link ✓
+- **Navbar**: Home icon on all non-home pages ✓
+
+### 4. Files changed
+- `src/app/page.tsx` — EDITED (footer visibility)
+- `src/smuggler/components/Footer.tsx` — EDITED (expanded links + navigation wiring)
+- `src/smuggler/components/Homepage.tsx` — EDITED (mobile mascot section)
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - Footer present on Homepage ✓
+  - Footer present on Studio ✓
+  - Footer present on Pricing ✓
+  - Mobile mascot visible (375px viewport) ✓
+  - Back button on Studio ✓
+  - No console errors ✓
+
+Stage Summary:
+- Footer now appears consistently on ALL pages (except auth)
+- Mobile homepage hero has a mascot visible below the text (no empty broken section)
+- All back buttons working across the app
+- No regressions to desktop/tablet layouts
+- Zero lint/tsc errors, zero runtime errors

@@ -534,7 +534,24 @@ function HeroSection({ onExploreTools }: { onExploreTools: () => void }) {
           </motion.div>
         </motion.div>
 
-        {/* RIGHT column - 3D tilt mascot */}
+        {/* Mobile mascot — shown below hero text on small screens */}
+        <motion.div
+          className="flex justify-center lg:hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+        >
+          <motion.img
+            src="/smuggler/assets/hero-mascot-new.png"
+            alt="Content Smuggler spy mascot"
+            className="h-[240px] w-[240px] rounded-full border-2 object-cover"
+            style={{ borderColor: 'rgba(192,152,88,0.3)', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.15))' }}
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </motion.div>
+
+        {/* RIGHT column - 3D tilt mascot (desktop only) */}
         <div
           className="relative hidden flex-1 lg:block"
           style={{ perspective: '1200px' }}
