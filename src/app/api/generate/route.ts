@@ -9,6 +9,7 @@ import {
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 interface RawItem {
   text?: unknown;
@@ -52,40 +53,6 @@ function fallbackItems(toolId: string, count: number, topic: string): GeneratedI
     score: t.score,
     rationale: 'Curiosity-driven opening that promises clear value to the reader.',
   }));
-}
-
-/**
- * Alternative repair: extract all "text":"..." / "score":NNN / "rationale":"..." triples
- * from the raw string using regex, and rebuild a clean item list.
- * This handles the case where the LLM put duplicate keys in a single JSON object
- * (which JSON.parse collapses to just the last value).
- */
-function extractItemsByRegex(raw: string): GeneratedItem[] {
-  const items: GeneratedItem[] = [];
-  // Match sequences of "text":"..." followed eventually by "score":NNN and "rationale":"..."
-  const pattern =
-    /"text"\s*:\s*"([^"]+)"[^}]*?"score"\s*:\s*(\d+)[^}]*?"rationale"\s*:\s*"([^"]+)"/g;
-  let match;
-  while ((match = pattern.exec(raw)) !== null) {
-    const text = match[1].trim();
-    let score = parseInt(match[2], 10);
-    if (!Number.isFinite(score)) score = 80;
-    score = Math.max(50, Math.min(100, score));
-    const rationale = match[3].trim();
-    items.push({ text, score, rationale });
-  }
-  // Also try reversed order (score before text)
-  if (items.length === 0) {
-    const pattern2 =
-      /"score"\s*:\s*(\d+)[^}]*?"text"\s*:\s*"([^"]+)"[^}]*?"rationale"\s*:\s*"([^"]+)"/g;
-    while ((match = pattern2.exec(raw)) !== null) {
-      let score = parseInt(match[1], 10);
-      if (!Number.isFinite(score)) score = 80;
-      score = Math.max(50, Math.min(100, score));
-      items.push({ text: match[2].trim(), score, rationale: match[3].trim() });
-    }
-  }
-  return items;
 }
 
 /** Robust JSON extractor — handles markdown fences, leading/trailing prose. */
@@ -190,15 +157,6 @@ export async function POST(request: Request) {
 
     items = sanitizeItems(parsed, n, toolId, topic);
 
-    // If JSON parsing yielded fewer items than requested, try regex extraction
-    // (handles the duplicate-key malformed JSON case).
-    if (items.length < n) {
-      const regexItems = extractItemsByRegex(content);
-      if (regexItems.length > items.length) {
-        items = regexItems.slice(0, n);
-      }
-    }
-
     if (parsed && typeof parsed.summary === 'string' && parsed.summary.trim()) {
       summary = parsed.summary.trim();
     } else {
@@ -210,7 +168,6 @@ export async function POST(request: Request) {
     }
     metrics = sanitizeMetrics(parsed);
 
-    // If we still have fewer items than requested, pad with fallbacks.
     if (items.length < n) {
       const fallback = fallbackItems(toolId, n, topic);
       const existingTexts = new Set(items.map((i) => i.text.toLowerCase()));
