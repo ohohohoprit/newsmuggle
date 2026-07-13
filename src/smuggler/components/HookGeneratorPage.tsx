@@ -86,53 +86,68 @@ const SCORE_GUIDE = [
   { range: 'Below 50', label: 'Poor', color: '#9B3D3D' },
 ];
 
-/* ---------- Typewriter Text (Pro Tip) ----------
- * Types out `text` char-by-char, shows a blinking caret while typing,
- * holds the full text briefly, then erases and restarts the loop.
+/* ---------- Typewriter Text (Pro Tip — multi-tip cycling) ----------
+ * Cycles through multiple tips with typewriter animation.
  */
-function TypewriterText({
-  text,
-  typeSpeed = 32,
-  holdMs = 2600,
-  eraseSpeed = 14,
-  pauseBetweenMs = 600,
-  className,
-}: {
-  text: string;
-  typeSpeed?: number;
-  holdMs?: number;
-  eraseSpeed?: number;
-  pauseBetweenMs?: number;
-  className?: string;
-}) {
+const HOOK_TIPS = [
+  "Curiosity beats information in the first 3 seconds.",
+  "Promise transformation, not features.",
+  "Great hooks create open loops the brain must close.",
+  "Challenge a common assumption your audience holds.",
+  "Use numbers — they signal specificity and value.",
+  "Start with a question your audience secretly asks.",
+  "Negative hooks ('Stop doing X') often outperform positive ones.",
+  "The best hooks make viewers feel they're missing out.",
+  "Keep hooks under 12 words for maximum impact.",
+  "Contrast creates tension — before vs. after works.",
+  "Personal stories outperform generic advice.",
+  "A great hook promises the payoff but delays the reveal.",
+  "Use power words: secret, hidden, banned, exposed.",
+  "Test 5+ hooks per video — never settle for the first.",
+  "Your hook should make viewers uncomfortable with not knowing.",
+  "Specificity beats vagueness: '5 hacks' > 'some hacks'.",
+  "Emotional hooks travel further than logical ones.",
+  "The hook is 80% of whether your video gets clicked.",
+  "Contrarian opinions drive engagement and shares.",
+  "Ask yourself: would I click this hook?",
+];
+
+function TypewriterText({ tips = HOOK_TIPS }: { tips?: string[] }) {
+  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * tips.length));
   const [display, setDisplay] = useState('');
   const [phase, setPhase] = useState<'typing' | 'holding' | 'erasing' | 'paused'>('typing');
+
+  const text = tips[tipIndex] || tips[0] || '';
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     if (phase === 'typing') {
       if (display.length < text.length) {
-        timer = setTimeout(() => setDisplay(text.slice(0, display.length + 1)), typeSpeed);
+        timer = setTimeout(() => setDisplay(text.slice(0, display.length + 1)), 35);
       } else {
-        timer = setTimeout(() => setPhase('holding'), 220);
+        timer = setTimeout(() => setPhase('holding'), 300);
       }
     } else if (phase === 'holding') {
-      timer = setTimeout(() => setPhase('erasing'), holdMs);
+      timer = setTimeout(() => setPhase('erasing'), 3000);
     } else if (phase === 'erasing') {
       if (display.length > 0) {
-        timer = setTimeout(() => setDisplay(text.slice(0, display.length - 1)), eraseSpeed);
+        timer = setTimeout(() => setDisplay(text.slice(0, display.length - 1)), 15);
       } else {
-        timer = setTimeout(() => setPhase('paused'), 120);
+        timer = setTimeout(() => setPhase('paused'), 200);
       }
     } else {
-      // paused
-      timer = setTimeout(() => setPhase('typing'), pauseBetweenMs);
+      timer = setTimeout(() => {
+        let nextIdx = Math.floor(Math.random() * tips.length);
+        if (tips.length > 1 && nextIdx === tipIndex) nextIdx = (nextIdx + 1) % tips.length;
+        setTipIndex(nextIdx);
+        setPhase('typing');
+      }, 400);
     }
     return () => clearTimeout(timer);
-  }, [display, phase, text, typeSpeed, holdMs, eraseSpeed, pauseBetweenMs]);
+  }, [display, phase, text, tips, tipIndex]);
 
   return (
-    <span className={className}>
+    <span>
       {display}
       <span className="smuggler-caret-blink" aria-hidden="true" />
     </span>
@@ -639,7 +654,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
 
   return (
     <section
-      className="smuggler-bg-premium relative min-h-screen"
+      className="smuggler-bg-premium relative min-h-screen overflow-hidden"
       style={{
         backgroundColor: 'var(--smuggler-bg)',
         backgroundImage:
@@ -647,6 +662,15 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
         color: 'var(--smuggler-text)',
       }}
     >
+      {/* Ambient floating particles */}
+      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+        <motion.div className="absolute left-[10%] top-[20%] h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'rgba(192,152,88,0.3)' }} animate={{ y: [0, -20, 0], opacity: [0.2, 0.6, 0.2] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} />
+        <motion.div className="absolute right-[15%] top-[35%] h-1 w-1 rounded-full" style={{ backgroundColor: 'rgba(89,127,86,0.3)' }} animate={{ y: [0, -15, 0], opacity: [0.1, 0.5, 0.1] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
+        <motion.div className="absolute left-[80%] top-[60%] h-2 w-2 rounded-full" style={{ backgroundColor: 'rgba(192,152,88,0.2)' }} animate={{ y: [0, -12, 0], opacity: [0.15, 0.4, 0.15] }} transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }} />
+        <motion.div className="absolute left-[5%] top-[70%] h-1 w-1 rounded-full" style={{ backgroundColor: 'rgba(192,152,88,0.25)' }} animate={{ y: [0, -18, 0], opacity: [0.1, 0.5, 0.1] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }} />
+      </div>
+      {/* Ambient radial glow */}
+      <div className="pointer-events-none absolute inset-0 z-0" style={{ background: 'radial-gradient(circle at 50% 0%, rgba(192,152,88,0.04), transparent 50%), radial-gradient(circle at 80% 80%, rgba(89,127,86,0.03), transparent 50%)' }} aria-hidden="true" />
       <div className="mx-auto max-w-[1280px] px-4 py-8 sm:px-8 lg:px-12">
         {/* ===========================
             1. HERO SECTION
@@ -777,7 +801,7 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                 <span className="ml-auto inline-block h-1 w-1 rounded-full bg-[#C09A4D]/50" aria-hidden="true" />
               </div>
               <p className="m-0 min-h-[3.4rem] text-[0.88rem] leading-[1.7] text-[var(--smuggler-text-secondary)]">
-                <TypewriterText text="The best hooks create curiosity, promise value, or challenge the status quo." />
+                <TypewriterText />
               </p>
               <p
                 className="mt-2.5 text-right text-[0.82rem] italic text-[var(--smuggler-text-muted)]"

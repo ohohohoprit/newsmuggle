@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import {
   ChevronLeft,
@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { generateContent } from '@/smuggler/lib/generate-client';
+import { getToolTips } from '@/smuggler/lib/tool-tips';
 import { getToolConfig, type FieldConfig, type MetricConfig } from '@/smuggler/lib/tool-configs';
 import { ALL_TOOLS, type SmugglerTool } from '@/smuggler/data/tools';
 
@@ -41,32 +42,41 @@ const PLATFORM_OPTIONS = [
   { name: 'LinkedIn', icon: Linkedin, color: '#0A66C2' },
 ];
 
-/* ---------- Typewriter Text (Pro Tip) ---------- */
-function TypewriterText({ text }: { text: string }) {
+/* ---------- Typewriter Text (Pro Tip — multi-tip cycling) ---------- */
+function TypewriterText({ tips }: { tips: string[] }) {
+  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * tips.length));
   const [display, setDisplay] = useState('');
   const [phase, setPhase] = useState<'typing' | 'holding' | 'erasing' | 'paused'>('typing');
+
+  const text = tips[tipIndex] || tips[0] || '';
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     if (phase === 'typing') {
       if (display.length < text.length) {
-        timer = setTimeout(() => setDisplay(text.slice(0, display.length + 1)), 32);
+        timer = setTimeout(() => setDisplay(text.slice(0, display.length + 1)), 35);
       } else {
-        timer = setTimeout(() => setPhase('holding'), 220);
+        timer = setTimeout(() => setPhase('holding'), 300);
       }
     } else if (phase === 'holding') {
-      timer = setTimeout(() => setPhase('erasing'), 2600);
+      timer = setTimeout(() => setPhase('erasing'), 3000);
     } else if (phase === 'erasing') {
       if (display.length > 0) {
-        timer = setTimeout(() => setDisplay(text.slice(0, display.length - 1)), 14);
+        timer = setTimeout(() => setDisplay(text.slice(0, display.length - 1)), 15);
       } else {
-        timer = setTimeout(() => setPhase('paused'), 120);
+        timer = setTimeout(() => setPhase('paused'), 200);
       }
     } else {
-      timer = setTimeout(() => setPhase('typing'), 600);
+      // Pick a random next tip (different from current) — schedule for next tick
+      timer = setTimeout(() => {
+        let nextIdx = Math.floor(Math.random() * tips.length);
+        if (tips.length > 1 && nextIdx === tipIndex) nextIdx = (nextIdx + 1) % tips.length;
+        setTipIndex(nextIdx);
+        setPhase('typing');
+      }, 400);
     }
     return () => clearTimeout(timer);
-  }, [display, phase, text]);
+  }, [display, phase, text, tips, tipIndex]);
 
   return (
     <span>
@@ -485,6 +495,7 @@ function FieldRenderer({
 export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
   const tool = ALL_TOOLS.find((t) => t.id === toolId);
   const config = getToolConfig(toolId, tool);
+  const toolTips = useMemo(() => getToolTips(toolId), [toolId]);
   const ToolIcon = tool?.icon ?? Sparkles;
 
   // Initialize field state from config defaults
@@ -592,9 +603,44 @@ export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
 
   return (
     <section
-      className="smuggler-bg-premium relative min-h-screen"
+      className="smuggler-bg-premium relative min-h-screen overflow-hidden"
       style={{ backgroundColor: 'var(--smuggler-bg)', backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")", color: 'var(--smuggler-text)' }}
     >
+      {/* Ambient floating particles — cinematic atmosphere */}
+      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+        <motion.div
+          className="absolute left-[10%] top-[20%] h-1.5 w-1.5 rounded-full"
+          style={{ backgroundColor: 'rgba(192,152,88,0.3)' }}
+          animate={{ y: [0, -20, 0], opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute right-[15%] top-[35%] h-1 w-1 rounded-full"
+          style={{ backgroundColor: 'rgba(89,127,86,0.3)' }}
+          animate={{ y: [0, -15, 0], opacity: [0.1, 0.5, 0.1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        />
+        <motion.div
+          className="absolute left-[80%] top-[60%] h-2 w-2 rounded-full"
+          style={{ backgroundColor: 'rgba(192,152,88,0.2)' }}
+          animate={{ y: [0, -12, 0], opacity: [0.15, 0.4, 0.15] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        />
+        <motion.div
+          className="absolute left-[5%] top-[70%] h-1 w-1 rounded-full"
+          style={{ backgroundColor: 'rgba(192,152,88,0.25)' }}
+          animate={{ y: [0, -18, 0], opacity: [0.1, 0.5, 0.1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        />
+      </div>
+      {/* Ambient radial glow */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background: 'radial-gradient(circle at 50% 0%, rgba(192,152,88,0.04), transparent 50%), radial-gradient(circle at 80% 80%, rgba(89,127,86,0.03), transparent 50%)',
+        }}
+        aria-hidden="true"
+      />
       <div className="mx-auto max-w-[1280px] px-4 py-8 sm:px-8 lg:px-12">
         {/* HERO */}
         <div className="relative mb-8">
@@ -646,7 +692,7 @@ export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
                 <span className="ml-auto inline-block h-1 w-1 rounded-full bg-[#C09A4D]/50" aria-hidden="true" />
               </div>
               <p className="m-0 min-h-[3.4rem] text-[0.88rem] leading-[1.7] text-[var(--smuggler-text-secondary)]">
-                <TypewriterText text={tool.agentTip} />
+                <TypewriterText tips={toolTips} />
               </p>
               <p className="mt-2.5 text-right text-[0.82rem] italic text-[var(--smuggler-text-muted)]" style={{ fontFamily: 'var(--font-heading)' }}>— Content Smuggler</p>
             </motion.div>
