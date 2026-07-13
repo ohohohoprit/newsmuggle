@@ -3,8 +3,6 @@
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import {
-  Crosshair,
-  UserRoundSearch,
   Star,
   ChevronDown,
   Search,
@@ -37,7 +35,6 @@ const NAV_LINKS: NavLinkConfig[] = [
   { label: 'Library', view: 'library' },
   { label: 'Tools', view: 'tools', hasCaret: true },
   { label: 'Pricing', view: 'pricing' },
-  { label: 'Resources', hasCaret: true },
 ];
 
 function ThemeToggle() {
@@ -47,7 +44,7 @@ function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 text-[var(--smuggler-text-secondary)] transition-all hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-gold)]"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 text-[var(--smuggler-text-secondary)] transition-all hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-gold)]"
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {isDark ? <Sun size={16} /> : <Moon size={16} />}
@@ -68,12 +65,12 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-4 sm:px-8 lg:px-16"
+        className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-3.5 sm:px-8 lg:px-16"
         aria-label="Primary"
       >
         {/* Left: Home Icon (hidden on homepage) + Logo + Nav Links */}
         <div className="flex items-center gap-3 md:gap-6 lg:gap-10">
-          {/* Home icon — hidden on homepage, shown on all other pages */}
+          {/* Home icon — clean, no background, hidden on homepage */}
           {currentView !== 'home' && currentView !== 'auth' && (
             <motion.button
               type="button"
@@ -82,16 +79,22 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.25 }}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.12 }}
               whileTap={{ scale: 0.92 }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all hover:shadow-[0_0_12px_rgba(192,152,88,0.3)]"
-              style={{ border: '1px solid var(--smuggler-border)', backgroundColor: 'var(--smuggler-bg-panel)' }}
+              className="flex shrink-0 items-center justify-center transition-all"
+              style={{ filter: 'drop-shadow(0 0 0 transparent)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(192,152,88,0.4))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = 'drop-shadow(0 0 0 transparent)';
+              }}
               aria-label="Return to homepage"
             >
               <img
                 src="/smuggler/assets/home-icon.png"
                 alt="Home"
-                className="h-6 w-6 object-contain"
+                className="h-8 w-8 object-contain"
                 style={{ mixBlendMode: 'multiply' }}
               />
             </motion.button>
@@ -118,7 +121,7 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
             </div>
 
             {/* Logo text */}
-            <div className="flex flex-col leading-none">
+            <div className="hidden flex-col leading-none sm:flex">
               <span
                 className="flex items-center gap-1.5"
                 style={{
@@ -172,7 +175,7 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
           </button>
 
           {/* Nav Links - desktop only */}
-          <ul className="hidden items-center gap-10 md:flex">
+          <ul className="hidden items-center gap-8 md:flex lg:gap-10">
             {NAV_LINKS.map((link) => {
               const isActive =
                 link.view !== undefined && link.view === currentView;
@@ -214,48 +217,44 @@ export function Navbar({ onOpenAuth, onNavigate, onOpenPalette, currentView, hid
           </ul>
         </div>
 
-        {/* Right: Search trigger + Theme Toggle + Settings + Auth Buttons */}
-        <div className="flex items-center gap-3">
+        {/* Right: Search + Theme Toggle + Settings + Auth Buttons */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <button
             type="button"
             onClick={() => onNavigate('settings')}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 text-[var(--smuggler-text-secondary)] transition-all hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-gold)]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 text-[var(--smuggler-text-secondary)] transition-all hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-gold)]"
             aria-label="Account settings"
           >
             <Settings size={16} />
           </button>
+          {/* Search tools input — wider, replaces both desktop + mobile search */}
           <button
             type="button"
             onClick={onOpenPalette}
-            className="group hidden items-center gap-2 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/30 px-3 py-2 text-[0.8rem] text-[var(--smuggler-text-muted)] transition-colors hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-text)] md:flex"
+            className="group flex items-center gap-2 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/30 px-3 py-2 text-[0.8rem] text-[var(--smuggler-text-muted)] transition-colors hover:border-[var(--smuggler-gold)]/40 hover:text-[var(--smuggler-text)]"
             aria-label="Open command palette"
+            style={{ minWidth: '140px' }}
           >
-            <Search size={14} />
-            <span>Search tools...</span>
-            <kbd className="ml-2 rounded border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 px-1.5 py-0.5 font-mono text-[0.6rem] text-[var(--smuggler-text-muted)]">
+            <Search size={14} className="shrink-0" />
+            <span className="hidden sm:inline truncate">Search tools...</span>
+            <kbd className="ml-auto hidden rounded border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)]/50 px-1.5 py-0.5 font-mono text-[0.6rem] text-[var(--smuggler-text-muted)] sm:inline">
               ⌘K
             </kbd>
           </button>
           <button
             type="button"
-            onClick={onOpenPalette}
-            className="smuggler-btn smuggler-btn-secondary md:hidden"
-            aria-label="Search tools"
-          >
-            <Search size={16} />
-          </button>
-          <button
-            type="button"
             onClick={() => onOpenAuth('login')}
-            className="smuggler-btn smuggler-btn-secondary hidden sm:inline-flex"
+            className="smuggler-btn smuggler-btn-secondary hidden sm:inline-flex whitespace-nowrap"
+            style={{ minWidth: '80px', justifyContent: 'center' }}
           >
             Log in
           </button>
           <button
             type="button"
             onClick={() => onOpenAuth('signup')}
-            className="smuggler-btn smuggler-btn-primary"
+            className="smuggler-btn smuggler-btn-primary whitespace-nowrap"
+            style={{ minWidth: '90px', justifyContent: 'center' }}
           >
             Sign up
           </button>

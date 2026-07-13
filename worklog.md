@@ -1735,3 +1735,62 @@ Stage Summary:
 - All back buttons working across the app
 - No regressions to desktop/tablet layouts
 - Zero lint/tsc errors, zero runtime errors
+
+---
+Task ID: 25 (Navbar polish — remove Resources, remove extra search, improve Home icon, fix login/signup)
+Agent: main (orchestrator)
+Task: Final navbar refinement — remove clutter, improve Home icon, fix button wrapping
+
+## Completed Modifications
+
+### 1. Removed "Resources" from navbar
+- Removed `{ label: 'Resources', hasCaret: true }` from NAV_LINKS array
+- Navbar now has 4 links: Studio, Library, Tools, Pricing
+- Visually balanced — no leftover spacing
+
+### 2. Removed standalone mobile Search icon button
+- Removed the `smuggler-btn smuggler-btn-secondary md:hidden` Search icon button (was redundant with the search input)
+- The search input now serves both desktop and mobile (shows icon-only on mobile, full text on sm+)
+- Search input min-width set to 140px for better presence
+
+### 3. Improved Home icon
+- Removed circular/boxed background (border + backgroundColor)
+- Increased icon size from h-6 w-6 to h-8 w-8
+- No border, no background — clean standalone icon
+- Hover: `whileHover={{ scale: 1.12 }}` + soft gold glow via `drop-shadow` filter
+- Click: `whileTap={{ scale: 0.92 }}`
+- `mixBlendMode: multiply` for clean light-mode integration
+- Premium, minimal navigation icon (not a button)
+
+### 4. Fixed Login/Signup button wrapping
+- Added `whitespace-nowrap` to both buttons — prevents "Log in" from wrapping to two lines
+- Added `min-width: 80px` for "Log in" and `min-width: 90px` for "Sign up"
+- Added `justify-center` for centered text
+- Both buttons now stay on a single line at all viewport sizes
+
+### 5. Additional polish
+- Logo text hidden on mobile (`hidden sm:flex`) — prevents clutter on small screens (logo image still visible)
+- Navbar padding slightly reduced (`py-3.5` from `py-4`) for tighter feel
+- Nav links gap adjusted: `gap-8 md:flex lg:gap-10` for better balance
+- Search input: `min-width: 140px` + `truncate` on text + `shrink-0` on icon
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser QA:
+  - Home icon hidden on Homepage ✓
+  - "Resources" removed from navbar ✓
+  - Home icon visible on Studio (no border, no bg) ✓
+  - Search input present ✓
+  - No standalone mobile search icon ✓
+  - "Log in" — white-space: nowrap, min-width: 80px (single line) ✓
+  - "Sign up" — white-space: nowrap, min-width: 90px (single line) ✓
+  - No console errors ✓
+
+Stage Summary:
+- Navbar is cleaner, more premium, and more intentional
+- No redundant elements (Resources removed, duplicate search removed)
+- Home icon is a clean standalone icon (no boxed background)
+- Login/Signup buttons never wrap
+- All existing functionality preserved
