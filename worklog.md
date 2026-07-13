@@ -1865,3 +1865,89 @@ Stage Summary:
 - Typewriter animation with random tip selection
 - All existing functionality preserved (generation, copy, save, export, favorite)
 - Zero lint/tsc errors, zero runtime errors
+
+---
+Task ID: 27 (Deep visual polish — premium depth, glass highlights, layered shadows)
+Agent: main (orchestrator)
+Task: Enhance visual depth of all tool page plates, inputs, buttons — without redesigning
+
+## Completed Modifications
+
+### 1. Premium Panel (`.smuggler-panel-premium`) — deeply layered luxury surface
+**Before**: 4 shadow layers, simple gradient
+**After**: 6 shadow layers + glass highlight + dual radial gradients:
+- `0 1px 0 0 rgba(255,255,255,0.7) inset` — inner top glass highlight
+- `0 -1px 0 0 rgba(0,0,0,0.03) inset` — inner bottom shadow for depth
+- `0 2px 0 0 rgba(255,255,255,0.3)` — outer glass edge
+- `0 4px 8px rgba(60,40,10,0.04)` — close ambient shadow
+- `0 8px 24px -6px rgba(140,106,59,0.12)` — medium depth shadow
+- `0 16px 40px -10px rgba(140,106,59,0.08)` — far ambient shadow
+- `::before` pseudo-element: glass highlight line at top edge (gradient line)
+- Background: 3-layer gradient (white top + gold corner + green corner)
+- Transition: `cubic-bezier(0.25, 1, 0.5, 1)` for premium easing
+- Hover: deeper shadows + `translateY(-3px)` + gold border glow
+
+### 2. Analysis Panel (`.smuggler-panel-analysis`) — same treatment
+Same 6-layer shadow system + glass highlight ::before + dual radial gradients.
+
+### 3. Hook Card (`.smuggler-hook-card`) — same treatment
+Same 6-layer shadow system + glass highlight ::before + dual radial gradients.
+
+### 4. Pro Tip Card (`.smuggler-protip-card`) — enhanced
+Deeper layered shadows (6 layers) + glass highlight + dual radial gradients.
+
+### 5. Premium Input (`.smuggler-input-premium`) — deeply inset
+**Before**: 2 shadow layers
+**After**: 3 shadow layers + enhanced hover/focus:
+- `0 1px 0 0 rgba(255,255,255,0.8) inset` — top glass highlight
+- `0 1px 3px rgba(60,40,10,0.05) inset` — inner depth shadow
+- `0 1px 0 0 rgba(255,255,255,0.3)` — outer glass edge
+- Hover: adds `0 0 0 1px rgba(192,152,88,0.08)` gold ring
+- Focus: `0 0 0 4px rgba(192,152,88,0.12)` + `0 0 16px rgba(192,152,88,0.08)` glow
+- Dual gradient background (paper tint + glass highlight)
+- Border: `rgba(192,152,88,0.18)` gold-tinted
+
+### 6. Generate Button (`.smuggler-press-3d`) — deep layered luxury
+**Before**: 2 shadow layers
+**After**: 4 shadow layers + light reflection:
+- `0 1px 0 0 rgba(255,255,255,0.2) inset` — inner top highlight
+- `0 4px 0 0 #14542f` — 3D bottom edge
+- `0 6px 14px rgba(30,94,62,0.35)` — medium glow
+- `0 10px 28px -6px rgba(30,94,62,0.2)` — far ambient glow
+- `::before` pseudo-element: light reflection gradient (top 40% of button)
+- Hover: brighter + deeper shadows
+- Active: compressed 3D press
+- Transition: `cubic-bezier(0.25, 1, 0.5, 1)`
+
+### 7. Output Panel (`.smuggler-hooks-panel`) — ambient lighting
+- Added dual gradient background (glass top + gold radial)
+- `::after` pseudo-element: glass highlight line at top edge
+- Creates "AI terminal" ambient feel
+
+### 8. Micro Details
+- `.smuggler-section-heading::after`: gold gradient divider line beneath headings
+- `.smuggler-back-breadcrumb`: hover letter-spacing animation
+- `.smuggler-ai-badge`: shimmer animation (green gradient sweep)
+- `.smuggler-dropdown-anim`: dropdown entrance animation
+- `.smuggler-icon-hover`: scale + rotate + glow on hover
+- `.smuggler-divider-gradient`: elegant gold gradient divider
+
+## Verification Results
+
+- ✅ `bun run lint` passes (0 errors)
+- ✅ `npx tsc --noEmit` passes (0 errors in src/)
+- ✅ agent-browser shadow verification (after clean .next rebuild):
+  - Panel: 6 shadow layers confirmed (inner top + inner bottom + glass + 3 outer) ✓
+  - Button: 4 shadow layers confirmed (inner highlight + 3D + 2 ambient) ✓
+  - Input: 3 shadow layers confirmed (inner top + inner depth + outer glass) ✓
+  - Generate works: "Your Generated Content" appears ✓
+  - No console errors ✓
+
+Stage Summary:
+- All tool page plates now have deeply layered luxury surfaces (6 shadow layers + glass highlights)
+- Inputs have inset shadows + gold focus rings with glow
+- Generate button has light reflection + 4-layer shadows
+- Output panel has ambient lighting
+- Micro details: section heading dividers, badge shimmer, icon hover, dropdown animation
+- All changes are CSS-only — no layout, functionality, or component changes
+- Zero lint/tsc errors, zero runtime errors

@@ -617,31 +617,50 @@
    ===========================
 */
 
-/* 3D press button (Generate) */
+/* 3D press button (Generate — deep layered luxury) */
 .smuggler-press-3d {
   position: relative;
   transform: translateY(0);
-  transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.25s ease, filter 0.25s ease;
   box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.2) inset,
     0 4px 0 0 #14542f,
-    0 6px 14px rgba(30, 94, 62, 0.35);
+    0 6px 14px rgba(30, 94, 62, 0.35),
+    0 10px 28px -6px rgba(30, 94, 62, 0.2);
+}
+.smuggler-press-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
 }
 .smuggler-press-3d:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.08);
   box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset,
     0 5px 0 0 #14552f,
-    0 9px 18px rgba(30, 94, 62, 0.45);
+    0 9px 18px rgba(30, 94, 62, 0.45),
+    0 14px 36px -6px rgba(30, 94, 62, 0.25);
 }
 .smuggler-press-3d:active {
   transform: translateY(3px);
   box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.15) inset,
     0 1px 0 0 #14552f,
     0 2px 6px rgba(30, 94, 62, 0.3);
 }
 .smuggler-press-3d:disabled {
   transform: translateY(0);
   filter: grayscale(0.3) brightness(0.9);
-  box-shadow: 0 2px 0 0 #14552f;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.1) inset,
+    0 2px 0 0 #14542f;
 }
 
 /* Ripple effect on click */
@@ -718,71 +737,124 @@
   z-index: 1;
 }
 
-/* --- Premium panel (layered shadow + soft gold border + inner highlight) --- */
+/* --- Premium panel (deeply layered luxury surface) --- */
 .smuggler-panel-premium {
   position: relative;
-  border: 1px solid rgba(192, 152, 88, 0.22);
+  border: 1px solid rgba(192, 152, 88, 0.25);
   background-color: var(--smuggler-bg-panel);
   background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 18%),
-    radial-gradient(circle at 0% 0%, rgba(192, 152, 88, 0.04), transparent 40%);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 1px 2px rgba(60, 40, 10, 0.04),
-    0 6px 16px -4px rgba(140, 106, 59, 0.10),
-    0 12px 28px -8px rgba(140, 106, 59, 0.06);
-  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
-}
-.smuggler-panel-premium:hover {
-  border-color: rgba(192, 152, 88, 0.4);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.15) 8%, transparent 25%),
+    radial-gradient(circle at 0% 0%, rgba(192, 152, 88, 0.06), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(89, 127, 86, 0.03), transparent 45%);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
-    0 2px 4px rgba(60, 40, 10, 0.06),
-    0 10px 24px -4px rgba(140, 106, 59, 0.14),
-    0 18px 40px -10px rgba(140, 106, 59, 0.08);
-  transform: translateY(-2px);
+    0 -1px 0 0 rgba(0, 0, 0, 0.03) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.3),
+    0 4px 8px rgba(60, 40, 10, 0.04),
+    0 8px 24px -6px rgba(140, 106, 59, 0.12),
+    0 16px 40px -10px rgba(140, 106, 59, 0.08);
+  transition: box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease;
+}
+.smuggler-panel-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+.smuggler-panel-premium:hover {
+  border-color: rgba(192, 152, 88, 0.45);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.04) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.4),
+    0 6px 12px rgba(60, 40, 10, 0.06),
+    0 14px 36px -6px rgba(140, 106, 59, 0.16),
+    0 24px 56px -12px rgba(140, 106, 59, 0.1);
+  transform: translateY(-3px);
 }
 
 /* --- Premium analysis panel (analysis cards) --- */
 .smuggler-panel-analysis {
   position: relative;
-  border: 1px solid rgba(192, 152, 88, 0.2);
-  background-color: var(--smuggler-bg-panel);
-  background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 16%);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.55) inset,
-    0 1px 2px rgba(60, 40, 10, 0.03),
-    0 4px 12px -3px rgba(140, 106, 59, 0.08);
-  transition: box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
-}
-.smuggler-panel-analysis:hover {
-  border-color: rgba(192, 152, 88, 0.38);
-  transform: translateY(-3px);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.65) inset,
-    0 2px 4px rgba(60, 40, 10, 0.05),
-    0 10px 24px -4px rgba(140, 106, 59, 0.14);
-}
-
-/* --- Hook card premium --- */
-.smuggler-hook-card {
-  position: relative;
   border: 1px solid rgba(192, 152, 88, 0.22);
   background-color: var(--smuggler-bg-panel);
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 14%);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.1) 10%, transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(192, 152, 88, 0.05), transparent 50%);
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 1px 2px rgba(60, 40, 10, 0.03),
-    0 3px 8px -2px rgba(140, 106, 59, 0.07);
-  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    0 1px 0 0 rgba(255, 255, 255, 0.65) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.02) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.2),
+    0 3px 6px rgba(60, 40, 10, 0.03),
+    0 6px 18px -4px rgba(140, 106, 59, 0.1),
+    0 12px 30px -8px rgba(140, 106, 59, 0.06);
+  transition: box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.smuggler-panel-analysis::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+.smuggler-panel-analysis:hover {
+  border-color: rgba(192, 152, 88, 0.42);
+  transform: translateY(-3px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.75) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.03) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.3),
+    0 5px 10px rgba(60, 40, 10, 0.05),
+    0 12px 28px -4px rgba(140, 106, 59, 0.16),
+    0 20px 48px -10px rgba(140, 106, 59, 0.1);
+}
+
+/* --- Hook card premium (deeply layered result cards) --- */
+.smuggler-hook-card {
+  position: relative;
+  border: 1px solid rgba(192, 152, 88, 0.24);
+  background-color: var(--smuggler-bg-panel);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.1) 12%, transparent 30%),
+    radial-gradient(circle at 100% 0%, rgba(192, 152, 88, 0.04), transparent 40%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.65) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.02) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.2),
+    0 2px 4px rgba(60, 40, 10, 0.03),
+    0 4px 12px -2px rgba(140, 106, 59, 0.09),
+    0 8px 20px -4px rgba(140, 106, 59, 0.05);
+  transition: box-shadow 0.35s cubic-bezier(0.25, 1, 0.5, 1), transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.35s ease;
+}
+.smuggler-hook-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  pointer-events: none;
+  z-index: 1;
 }
 .smuggler-hook-card:hover {
-  border-color: rgba(192, 152, 88, 0.38);
+  border-color: rgba(192, 152, 88, 0.42);
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
-    0 2px 5px rgba(60, 40, 10, 0.05),
-    0 10px 24px -4px rgba(140, 106, 59, 0.14);
+    0 1px 0 0 rgba(255, 255, 255, 0.75) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.03) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.3),
+    0 3px 6px rgba(60, 40, 10, 0.05),
+    0 10px 28px -4px rgba(140, 106, 59, 0.16),
+    0 18px 40px -8px rgba(140, 106, 59, 0.1);
 }
 
 /* --- Hero title (serif + gold gradient + shimmer) --- */
@@ -841,20 +913,22 @@
   position: relative;
 }
 
-/* --- Pro Tip card premium --- */
+/* --- Pro Tip card premium (deep luxury surface) --- */
 .smuggler-protip-card {
   position: relative;
-  border: 1px solid rgba(192, 152, 88, 0.3);
+  border: 1px solid rgba(192, 152, 88, 0.32);
   background-color: var(--smuggler-bg-panel);
   background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 20%),
-    radial-gradient(circle at 100% 0%, rgba(192, 152, 88, 0.06), transparent 50%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.1) 12%, transparent 30%),
+    radial-gradient(circle at 100% 0%, rgba(192, 152, 88, 0.08), transparent 50%);
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 1px 2px rgba(60, 40, 10, 0.04),
-    0 6px 16px -4px rgba(140, 106, 59, 0.1),
-    0 10px 24px -6px rgba(140, 106, 59, 0.06);
-  transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.03) inset,
+    0 2px 0 0 rgba(255, 255, 255, 0.25),
+    0 3px 6px rgba(60, 40, 10, 0.04),
+    0 8px 20px -4px rgba(140, 106, 59, 0.12),
+    0 14px 36px -8px rgba(140, 106, 59, 0.08);
+  transition: box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease;
 }
 .smuggler-protip-card::before {
   content: '';
@@ -873,27 +947,36 @@
   z-index: 1;
 }
 
-/* --- Premium input field --- */
+/* --- Premium input field (deep inset luxury surface) --- */
 .smuggler-input-premium {
-  border: 1px solid #E5DDC8;
+  border: 1px solid rgba(192, 152, 88, 0.18);
   background-color: var(--smuggler-bg-panel);
-  background-image: linear-gradient(180deg, rgba(245, 235, 210, 0.18) 0%, transparent 30%);
+  background-image:
+    linear-gradient(180deg, rgba(245, 235, 210, 0.2) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 15%);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
-    0 1px 2px rgba(60, 40, 10, 0.03) inset;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+    0 1px 3px rgba(60, 40, 10, 0.05) inset,
+    0 1px 0 0 rgba(255, 255, 255, 0.3);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 .smuggler-input-premium:hover {
-  border-color: rgba(192, 152, 88, 0.45);
+  border-color: rgba(192, 152, 88, 0.5);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
+    0 1px 3px rgba(60, 40, 10, 0.06) inset,
+    0 0 0 1px rgba(192, 152, 88, 0.08),
+    0 1px 0 0 rgba(255, 255, 255, 0.4);
 }
 .smuggler-input-premium:focus-within,
 .smuggler-input-premium:focus {
-  border-color: rgba(192, 152, 88, 0.65) !important;
-  background-color: #FFFDF7;
+  border-color: rgba(192, 152, 88, 0.7) !important;
+  background-color: var(--smuggler-bg-panel);
   box-shadow:
-    0 0 0 3px rgba(192, 152, 88, 0.14),
+    0 0 0 4px rgba(192, 152, 88, 0.12),
     0 1px 0 0 rgba(255, 255, 255, 0.9) inset,
-    0 2px 8px rgba(192, 152, 88, 0.12) !important;
+    0 1px 3px rgba(60, 40, 10, 0.06) inset,
+    0 0 16px rgba(192, 152, 88, 0.08) !important;
 }
 
 /* --- Premium platform button --- */
@@ -1340,4 +1423,93 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* =====================================================================
+   DEEP VISUAL POLISH — Tool Pages (premium depth, glass, ambient)
+   =====================================================================
+*/
+
+/* Output panel scanning glow — subtle ambient lighting */
+.smuggler-hooks-panel {
+  position: relative;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 10%, transparent 30%),
+    radial-gradient(circle at 50% 0%, rgba(192, 152, 88, 0.05), transparent 50%);
+}
+.smuggler-hooks-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Section heading with elegant divider decoration */
+.smuggler-section-heading::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 2px;
+  margin-top: 6px;
+  background: linear-gradient(90deg, var(--smuggler-gold), transparent);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+/* Breadcrumb hover animation */
+.smuggler-back-breadcrumb {
+  transition: all 0.25s ease;
+}
+.smuggler-back-breadcrumb:hover {
+  letter-spacing: 0.3px;
+}
+
+/* AI Powered badge shimmer */
+@keyframes smuggler-badge-shimmer {
+  0%, 90%, 100% { background-position: -100% center; }
+  45% { background-position: 200% center; }
+}
+.smuggler-ai-badge {
+  background: linear-gradient(
+    90deg,
+    var(--smuggler-accent-green) 0%,
+    #2a7a4a 40%,
+    #3a9a5a 50%,
+    #2a7a4a 60%,
+    var(--smuggler-accent-green) 100%
+  );
+  background-size: 200% auto;
+  animation: smuggler-badge-shimmer 6s ease-in-out infinite;
+}
+
+/* Dropdown animation */
+@keyframes smuggler-dropdown-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.smuggler-dropdown-anim {
+  animation: smuggler-dropdown-in 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: top right;
+}
+
+/* Icon hover effect */
+.smuggler-icon-hover {
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), filter 0.25s ease;
+}
+.smuggler-icon-hover:hover {
+  transform: scale(1.15) rotate(3deg);
+  filter: drop-shadow(0 0 6px rgba(192, 152, 88, 0.3));
+}
+
+/* Elegant divider gradient */
+.smuggler-divider-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(192, 152, 88, 0.3), transparent);
+  border: none;
+  margin: 1.5rem 0;
 }
