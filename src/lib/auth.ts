@@ -77,6 +77,8 @@ async function auditLog(action: string, userId: string | null, req: Request, sta
   }).catch(() => {}); // never fail the request because of audit logging
 }
 
+export { auditLog };
+
 // ===== Session Management =====
 
 export async function createSession(userId: string, req: Request): Promise<SessionData> {
