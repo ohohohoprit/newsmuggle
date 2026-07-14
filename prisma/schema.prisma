@@ -977,3 +977,155 @@ model UsageThresholdAlert {
   @@index([resolvedAt])
   @@map("usage_threshold_alerts")
 }
+
+// ===== SECURITY & MONITORING =====
+
+model SecurityEvent {
+  id              String   @id @default(cuid())
+  userId          String?
+  workspaceId     String?
+  eventType       String   // rate_limit_hit | abuse_detected | suspicious_pattern | auth_failure_burst | blocked_request | permission_denied | invalid_input_burst
+  severity        String   @default("low") // low | medium | high | critical
+  ip              String?
+  userAgent       String?
+  path            String?
+  method          String?
+  riskScore      Int      @default(0) // 0-100
+  payload         String?  // JSON: event details
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([workspaceId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([severity, createdAt])
+  @@index([resolvedAt])
+  @@map("security_events")
+}
+
+model RateLimitBucket {
+  id              String   @id @default(cuid())
+  key             String   @unique // ip:<addr> | user:<id> | workspace:<id> | route:<path>:<ip>
+  tokens          Float    @default(0)
+  maxTokens       Int      @default(100)
+  refillRate      Float    @default(1) // tokens per second
+  lastRefillAt    DateTime @default(now())
+  blockedUntil    DateTime?
+  blockCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("rate_limit_buckets")
+}
+
+model CacheEntry {
+  id              String   @id @default(cuid())
+  key             String   @unique // namespace:identifier
+  value           String   // JSON-serialized value
+  ttlSeconds      Int      @default(60)
+  expiresAt       DateTime
+  hitCount        Int      @default(0)
+  sizeBytes       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@index([key])
+  @@map("cache_entries")
+}
+
+model HealthCheckLog {
+  id              String   @id @default(cuid())
+  checkType       String   // liveness | readiness | dependency
+  serviceName     String   // database | ai_provider | billing | studio | notifications
+  status          String   // healthy | degraded | unhealthy
+  latencyMs       Int      @default(0)
+  errorMessage    String?
+  metadata        String?  // JSON
+  createdAt       DateTime @default(now())
+
+  @@index([checkType, createdAt])
+  @@index([serviceName, status, createdAt])
+  @@map("health_check_logs")
+}
+
+model MetricSnapshot {
+  id              String   @id @default(cuid())
+  metricType      String   // request_latency | error_count | job_success | job_failure | active_users | api_calls
+  periodStart     DateTime
+  periodEnd       DateTime
+  period          String   // minute | hour | day
+  count           Int      @default(0)
+  sum             Float    @default(0)
+  avg             Float    @default(0)
+  min             Float    @default(0)
+  max             Float    @default(0)
+  p50             Float    @default(0)
+  p95             Float    @default(0)
+  p99             Float    @default(0)
+  metadata        String?  // JSON: tags, labels
+  createdAt       DateTime @default(now())
+
+  @@unique([metricType, period, periodStart])
+  @@index([metricType, periodStart])
+  @@map("metric_snapshots")
+}
+
+model ServiceIncident {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  severity        String   @default("warning") // info | warning | critical | maintenance
+  status          String   @default("open") // open | monitoring | resolved | postmortem
+  serviceName     String?  // database | ai_provider | billing | studio | notifications | global
+  startedAt       DateTime @default(now())
+  resolvedAt      DateTime?
+  affectedUsers   Int      @default(0)
+  metadata        String?  // JSON
+  createdById     String?
+  resolvedById    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, severity])
+  @@index([serviceName, status])
+  @@index([startedAt])
+  @@map("service_incidents")
+}
+
+model AuditQueryLog {
+  id              String   @id @default(cuid())
+  queriedById     String
+  queryFilters    String   // JSON: the filters used
+  resultCount     Int      @default(0)
+  ipAddress       String?
+  createdAt       DateTime @default(now())
+
+  @@index([queriedById, createdAt])
+  @@map("audit_query_logs")
+}
+
+model AbuseDetectionFlag {
+  id              String   @id @default(cuid())
+  userId          String?
+  workspaceId     String?
+  ip              String?
+  flagType        String   // rapid_requests | failed_auth_burst | excessive_tool_runs | quota_abuse | suspicious_pattern
+  riskScore       Int      @default(0) // 0-100
+  evidence        String?  // JSON: detection details
+  autoBlocked     Boolean  @default(false)
+  blockedUntil    DateTime?
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolution      String?  // false_positive | confirmed | escalated
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, resolvedAt])
+  @@index([workspaceId, resolvedAt])
+  @@index([ip, resolvedAt])
+  @@index([flagType, resolvedAt])
+  @@index([riskScore])
+  @@map("abuse_detection_flags")
+}

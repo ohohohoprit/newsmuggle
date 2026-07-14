@@ -174,17 +174,20 @@ function toDTO(plan: {
 
 // ===== Public API =====
 
-/** List all public plans (sorted by sortOrder). */
+/** List all public plans (sorted by sortOrder). Cached for 5 minutes. */
 export async function listPublicPlans(): Promise<PlanDTO[]> {
-  const plans = await db.plan.findMany({
-    where: { isPublic: true, isActive: true },
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+  const { getOrSet, CacheKeys } = await import('@/lib/cache/service');
+  return getOrSet(CacheKeys.plansList(), 300, async () => {
+    const plans = await db.plan.findMany({
+      where: { isPublic: true, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+    if (plans.length === 0) {
+      // Fallback to seed data if DB not yet seeded
+      return PLAN_SEEDS.map((s) => seedToDTO(s));
+    }
+    return plans.map(toDTO);
   });
-  if (plans.length === 0) {
-    // Fallback to seed data if DB not yet seeded
-    return PLAN_SEEDS.map((s) => seedToDTO(s));
-  }
-  return plans.map(toDTO);
 }
 
 /** List ALL plans (including private/inactive) — admin only. */
@@ -339,6 +342,14 @@ export async function seedPlans(req?: Request, userId?: string): Promise<{ creat
 
   if (req && userId) {
     await auditLog('billing_plans_seed', userId, req, 'success', { created, updated, total: PLAN_SEEDS.length });
+  }
+
+  // Invalidate plan caches
+  try {
+    const { clearNamespace } = await import('@/lib/cache/service');
+    clearNamespace('plans');
+  } catch {
+    // best-effort
   }
 
   return { created, updated, total: PLAN_SEEDS.length };
