@@ -5,6 +5,7 @@
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { ensurePersonalWorkspace } from '@/lib/workspace-bootstrap';
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const OTP_DURATION_MS = 5 * 60 * 1000; // 5 minutes
@@ -106,6 +107,13 @@ export async function createSession(userId: string, req: Request): Promise<Sessi
       lastLoginIp: ip,
       loginCount: { increment: 1 },
     },
+  });
+
+  // Ensure the user has a personal workspace (creates one on first login,
+  // and sets it as active if they don't have one yet). Safe to call every login.
+  await ensurePersonalWorkspace(userId).catch((err) => {
+    // Never fail login because of workspace bootstrap
+    console.error('[auth] ensurePersonalWorkspace failed:', err);
   });
 
   return {

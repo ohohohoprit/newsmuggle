@@ -2057,3 +2057,84 @@ All models have proper relations, cascade deletes, and `@@map` table names.
 - ✅ Prisma schema pushed to SQLite ✓
 - ✅ Prisma Client generated ✓
 - ✅ `src/lib/db.ts` updated for production logging ✓
+
+---
+Task ID: 29
+Agent: main (orchestrator)
+Task: Build only the backend workspace system for Content Smuggler. No frontend changes. Reuse existing auth/onboarding/RBAC. Add Workspace/WorkspaceMember/WorkspaceInvite models, full API surface, role enforcement, invite flow, audit logging, workspace isolation.
+
+Work Log:
+- Read existing backend: prisma/schema.prisma, src/lib/{auth,rbac,onboarding,auth-validation,db}.ts, src/app/api/auth/*, src/app/api/onboarding/*
+- Confirmed auth (register/login/otp/google), onboarding (status/update/complete), RBAC (requireAuth/requireRole/requirePlan) all functional
+- Added 3 new Prisma models to prisma/schema.prisma:
+  - Workspace (id, name, slug unique, description, type personal|team, ownerId, avatar, settings JSON-string, timestamps)
+  - WorkspaceMember (id, workspaceId, userId, role owner|admin|editor|viewer, status active|invited|removed, invitedBy, joinedAt, unique [workspaceId,userId])
+  - WorkspaceInvite (id, workspaceId, email, token unique, role, invitedBy, expiresAt, acceptedAt/acceptedBy, revokedAt/revokedBy, createdAt)
+- Added User.activeWorkspaceId (optional, FK -> Workspace, onDelete SetNull) + relations: ownedWorkspaces, workspaceMemberships, activeWorkspace
+- Ran `bun run db:push` — schema synced, Prisma Client regenerated
+- Created src/lib/workspace-types.ts — shared types/constants (WorkspaceRole, ROLE_RANK, canManageRole, isAtLeast) to avoid circular imports
+- Created src/lib/workspace-bootstrap.ts — ensurePersonalWorkspace(userId) that depends ONLY on db (no auth import) so createSession can safely call it without circular dependency
+- Created src/lib/workspace-validation.ts — pure validators (validateWorkspaceName/Description/Slug/Type, validateRole/InviteRole, validateInviteEmail/Token, validateWorkspaceId/MemberId)
+- Created src/lib/workspace.ts — full service layer:
+  - WorkspaceError class (code + status)
+  - requireMembership() / requireRole() — single chokepoint for workspace isolation
+  - listWorkspaces, getActiveWorkspace, getWorkspaceDetail
+  - createTeamWorkspace, updateWorkspace, switchActiveWorkspace, deleteWorkspace
+  - inviteMember (secure token + 7-day expiry, revokes previous pending for same email), listInvites, revokeInvite
+  - getInviteByToken (public lookup), acceptInvite (email-mismatch check, reactivates removed memberships)
+  - listMembers, updateMemberRole, removeMember, leaveWorkspace
+  - Audit logs every mutation via existing auditLog() helper from auth.ts
+  - Role rules enforced: owner cannot be removed/demoted/assigned via invite; admins cannot manage other admins or promote to admin; viewer/editor blocked from admin actions; owner cannot leave
+  - Member list + counts filter to status='active' (removed members preserved for audit but hidden)
+- Wired ensurePersonalWorkspace() into auth.ts createSession() (called by ALL login paths: register, login, otp verify, google callback) with .catch() so login never fails due to workspace bootstrap
+- Created 11 API route handlers (route handlers ONLY do HTTP/JSON, call service layer):
+  - GET/POST /api/workspaces
+  - GET /api/workspaces/active
+  - GET/PATCH /api/workspaces/[id]
+  - POST /api/workspaces/[id]/switch
+  - GET/POST /api/workspaces/[id]/invite
+  - GET /api/workspaces/[id]/members
+  - POST /api/workspaces/[id]/members/[memberId]/role
+  - DELETE /api/workspaces/[id]/members/[memberId]
+  - POST /api/workspaces/[id]/leave
+  - GET /api/workspaces/invites/[token]
+  - POST /api/workspaces/invites/[token]/accept
+- Ran `bun run lint` — 0 errors
+- Ran `npx tsc --noEmit` — 0 src/ errors (only pre-existing skills/ and examples/ errors remain, out of scope)
+- End-to-end verified 24 workspace scenarios via curl:
+  1. Register auto-creates personal workspace ✓
+  2. List workspaces shows 1 personal (owner, active) ✓
+  3. Active workspace endpoint ✓
+  4. Detail includes owner + member count ✓
+  5. Create team workspace (creator=owner, auto-switched active) ✓
+  6. PATCH rename/description ✓
+  7. Switch active workspace ✓
+  8. List shows correct isActive flags ✓
+  9. Members list ✓
+  10. Invite creates with token (returned ONCE at creation, hidden in list) ✓
+  11. List invites hides token ✓
+  12. Wrong-email accept -> 403 INVITE_EMAIL_MISMATCH ✓
+  13. Correct-email accept -> joins as editor ✓
+  14. Teammate sees personal + team workspaces ✓
+  15. Owner sees 2 members ✓
+  16. Owner promotes editor -> admin ✓
+  17. Cannot assign owner role -> 400 CANNOT_ASSIGN_OWNER ✓
+  18. Admin cannot remove owner -> 403 CANNOT_REMOVE_OWNER ✓
+  19. Owner demotes admin -> viewer ✓
+  20. Viewer cannot PATCH workspace -> 403 INSUFFICIENT_ROLE ✓
+  21. Non-member cannot GET detail -> 403 NOT_WORKSPACE_MEMBER ✓
+  22. Teammate leaves workspace ✓
+  23. Members list excludes removed (count=1, only owner shown) ✓
+  24. Owner cannot leave own workspace -> 400 OWNER_CANNOT_LEAVE ✓
+
+Stage Summary:
+- Backend workspace system fully built and verified. No frontend files touched.
+- The UI still says "Library" but the backend model is "Workspace" as required.
+- Architecture: route handlers (HTTP only) -> service layer (business logic + RBAC + isolation) -> Prisma (DB only). Validation schemas in a dedicated module. Shared types isolated to avoid circular imports.
+- Workspace isolation enforced: every workspace read/write goes through requireMembership()/requireRole() which verifies active membership.
+- Role hierarchy: owner > admin > editor > viewer. Owner protected from removal/demotion. Admins cannot manage other admins or promote to admin. Invite role cannot be owner.
+- Invite flow: secure random token (48 hex chars), 7-day expiry, email-mismatch check on accept, auto-revoke previous pending invite for same email, max 50 pending invites per workspace.
+- Personal workspace auto-created on first login (createSession hook, idempotent, never fails login).
+- Active workspace tracking via User.activeWorkspaceId (SetNull on workspace delete). switchActiveWorkspace verifies membership.
+- All mutations audit-logged (workspace_create, workspace_update, workspace_switch, workspace_delete, workspace_invite_create, workspace_invite_revoke, workspace_invite_accept, workspace_member_role_update, workspace_member_remove, workspace_member_leave).
+- Next phase opportunity: wire frontend "Library" view to /api/workspaces (frontend work, out of scope for this task).

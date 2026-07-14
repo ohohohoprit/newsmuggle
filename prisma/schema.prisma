@@ -34,6 +34,7 @@ model User {
   lastLoginAt       DateTime?
   lastLoginIp       String?
   loginCount        Int       @default(0)
+  activeWorkspaceId String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -50,7 +51,77 @@ model User {
   invoices          Invoice[]
   auditLogs         AuditLog[]
 
+  ownedWorkspaces      Workspace[]       @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMember[]
+  activeWorkspace      Workspace?        @relation("UserActiveWorkspace", fields: [activeWorkspaceId], references: [id], onDelete: SetNull)
+
   @@map("users")
+}
+
+// ===== WORKSPACES =====
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  type        String   @default("personal") // personal | team
+  ownerId     String
+  avatar      String?
+  settings    String?  // JSON-encoded settings blob
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner         User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  activeForUsers User[]           @relation("UserActiveWorkspace")
+  members       WorkspaceMember[]
+  invites       WorkspaceInvite[]
+
+  @@index([ownerId])
+  @@index([type])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   @default("viewer") // owner | admin | editor | viewer
+  status      String   @default("active") // active | invited | removed
+  invitedBy   String?
+  joinedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@map("workspace_members")
+}
+
+model WorkspaceInvite {
+  id          String    @id @default(cuid())
+  workspaceId String
+  email       String
+  token       String    @unique
+  role        String    @default("viewer") // admin | editor | viewer (never owner)
+  invitedBy   String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  acceptedBy  String?
+  revokedAt   DateTime?
+  revokedBy   String?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
+  @@map("workspace_invites")
 }
 
 model Account {
