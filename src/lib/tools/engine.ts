@@ -25,6 +25,8 @@ import { db } from '@/lib/db';
 import { auditLog } from '@/lib/auth';
 import { requireMembership } from '@/lib/workspace';
 import { PLAN_FEATURES, type Plan } from '@/lib/rbac';
+import { checkAndIncrementQuota as billingCheckQuota } from '@/lib/billing/quota';
+import { QuotaExceededError as BillingQuotaExceededError } from '@/lib/billing/errors';
 import {
   type ToolDefinitionDTO,
   type FieldConfig,
@@ -441,9 +443,18 @@ export async function runTool(
     );
   }
 
-  // 5. Check quota
-  const monthlyLimit = getMonthlyLimit(toolRaw, ctx.userPlan);
-  const quota = await checkAndIncrementQuota(workspaceId, null, monthlyLimit);
+  // 5. Check quota (delegates to the billing service which resolves
+  //    the workspace's effective plan + entitlements)
+  let quota;
+  try {
+    quota = await billingCheckQuota(workspaceId);
+  } catch (err) {
+    // Translate billing quota errors into ToolError for the API layer
+    if (err instanceof BillingQuotaExceededError) {
+      throw new ToolError('QUOTA_EXCEEDED', err.message, 429);
+    }
+    throw err;
+  }
 
   // 6. Render prompt
   const promptTemplate = parsePromptTemplate(toolRaw.promptTemplate);

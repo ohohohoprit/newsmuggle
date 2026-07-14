@@ -2331,3 +2331,127 @@ Stage Summary:
 - Backward compatibility maintained: old /api/generate endpoint untouched (still calls ZAI SDK directly for legacy callers). The new AI service is used only by the tool engine's runTool() path.
 - ZAI provider is always available (SDK uses internal sandbox credentials); other providers require their respective API key env vars.
 - Next phase opportunity: wire frontend to use /api/tools/[slug]/run (which now goes through the unified AI service) instead of /api/generate (frontend work, out of scope for this task).
+
+---
+Task ID: 32
+Agent: main (orchestrator)
+Task: Build Billing & Subscription Backend (Step 6). Workspace-aware billing with plan lifecycle, upgrades/downgrades, usage enforcement, quota sync, checkout flow, webhook handling, invoice history, plan-based access control. Provider abstraction for Stripe + Razorpay. No frontend changes. Integrate with existing tool engine + AI service quota system.
+
+Work Log:
+- Inspected existing codebase: found basic Invoice model (userId, amount only), PLAN_FEATURES hardcoded in rbac.ts, tool engine used workspace-scoped ToolUsageQuota but disconnected from any subscription, no provider abstraction
+- Designed and added 6 new Prisma models to prisma/schema.prisma:
+  - Plan (slug unique, name, description, priceMonthly/Yearly in cents, currency, maxGenerations, maxTools, maxStorage, teamSeats, apiAccess, whiteLabel, features JSON, stripePriceIdMonthly/Yearly, razorpayPlanIdMonthly/Yearly, isPublic, isActive, sortOrder) — DB-driven plan catalog, admin-editable
+  - Subscription (workspaceId unique — one per workspace, planId, status trialing|active|past_due|canceled|incomplete|paused, interval monthly|yearly, currentPeriodStart/End, cancelAtPeriodEnd, canceledAt, trialEnd, provider, providerSubscriptionId, providerCustomerId, providerStatus, providerMetadata JSON, startedAt)
+  - BillingEvent (workspaceId, userId, type subscription_created|renewed|upgraded|downgraded|canceled|payment_succeeded|payment_failed|invoice_generated|quota_reset|usage_threshold_reached, provider, providerEventId — idempotency key with @@unique([provider, providerEventId]), status received|processing|processed|failed, payload JSON, errorMessage, processedAt)
+  - Invoice (extended — workspaceId, userId, subscriptionId, amount in cents, currency, status draft|open|paid|void|uncollectible, invoiceNo, description, periodStart/End, provider, providerInvoiceId, providerPaymentId, hostedInvoiceUrl, invoicePdfUrl, paidAt, attemptCount)
+  - UsageSnapshot (workspaceId, periodStart, periodEnd, planSlug, generationsUsed/Limit, tokensUsed, costUsd, storageUsedMb, teamSeatsUsed, snapshotData JSON — @@unique([workspaceId, periodStart]) for monthly archival)
+  - QuotaSyncJob (workspaceId, type usage_sync|quota_reset|invoice_generate|threshold_check, status pending|running|completed|failed, periodStart/End, scheduledFor, startedAt, completedAt, errorMessage, result JSON)
+- Added relations: User.billingEvents, Workspace.{subscription, invoices, billingEvents, usageSnapshots, quotaSyncJobs}
+- Ran `bun run db:push` — schema synced, Prisma Client regenerated
+- Created src/lib/billing/types.ts — shared types: BillingProviderSlug, SubscriptionStatus, SubscriptionInterval, BillingEventType, InvoiceStatus, PlanDTO, SubscriptionDTO, BillingStatusDTO, PlanEntitlements, InvoiceDTO, BillingEventDTO, CheckoutRequest/Session, PlanChangeRequest/Result, WebhookResult, UsageSummary, QuotaCheckResult
+- Created src/lib/billing/errors.ts — BillingError hierarchy with 11 error subclasses: PlanNotFoundError, PlanInactiveError, SubscriptionNotFoundError, SubscriptionInactiveError, WorkspaceNotBillableError, QuotaExceededError, PlanDowngradeBlockedError, ProviderNotConfiguredError, ProviderError, WebhookSignatureInvalidError, BillingValidationError, BillingForbiddenError — each with code+status+toJSON()
+- Created src/lib/billing/plans.ts — plan catalog:
+  - PLAN_SEEDS: 3 plans (Starter $0/10gens, Creator $19/100gens, Agency $49/1000gens) with full feature sets
+  - Env-driven provider price ID resolution (STRIPE_PRICE_<PLAN>_<INTERVAL>, RAZORPAY_PLAN_<PLAN>_<INTERVAL>)
+  - listPublicPlans(), listAllPlans(), getPlanBySlug(), getEntitlements(), getSeedEntitlements() (fallback without DB)
+  - seedPlans() — idempotent upsert, picks up env price IDs, doesn't overwrite manual DB edits with nulls
+- Created src/lib/billing/validation.ts — pure validators: validatePlanSlug, validateInterval, validateSubscriptionStatus, validateProvider, validateUrl (https or relative), validateWorkspaceId, validateLimit/Offset, validateProrate
+- Created src/lib/billing/subscription.ts — subscription state management:
+  - getSubscription(workspaceId) — returns DTO or null
+  - resolveEntitlements(workspaceId) — THE function the tool engine calls: resolves effective plan + limits via subscription or starter fallback, handles grace periods (canceled/past_due subs keep access until period ends)
+  - upsertSubscription() — create or update, mirrors plan onto workspace owner's User.plan for backward compat with RBAC
+  - cancelSubscription() — at period end or immediately
+  - reactivateSubscription() — undo cancellation if within period
+  - changePlan() — upgrade (immediate + prorated) or downgrade (scheduled at period end or immediate with prorate=true), computes proration credits/charges
+  - getBillingPeriod() — returns current period range
+- Created src/lib/billing/quota.ts — quota enforcement + usage sync:
+  - checkAndIncrementQuota(workspaceId) — THE function the tool engine calls: resolves entitlements via billing service, finds/creates ToolUsageQuota row, throws QuotaExceededError (429) if exceeded, increments if allowed
+  - getQuotaStatus() — peek without incrementing
+  - getUsageSummary() — full usage (generations, tokens, cost, storage, team seats, percentUsed)
+  - resetQuota() — called by quota_reset webhook or monthly cron, creates new period + snapshots previous
+  - createUsageSnapshot() — archival record of a billing period
+  - checkUsageThresholds() — returns crossed thresholds (80%, 90%, 100%)
+- Created src/lib/billing/invoices.ts — invoice read model: listInvoices (paginated + status filter), getInvoice (with workspace access check), createInvoice (idempotent on providerInvoiceId), updateInvoiceStatus
+- Created src/lib/billing/status.ts — getBillingStatus() aggregates subscription + plan + usage + entitlements + renewal info into single BillingStatusDTO
+- Created src/lib/billing/providers/base.ts — BillingProvider abstract class: createCheckout, cancelSubscription, changePlan, getSubscription, verifyWebhook, parseWebhookEvent
+- Created src/lib/billing/providers/stripe.ts — StripeBillingProvider:
+  - Uses Stripe REST API via fetch (no SDK dependency at import time)
+  - createCheckout → Stripe Checkout Sessions (hosted page)
+  - cancelSubscription → DELETE /subscriptions/{id}
+  - changePlan → POST /subscriptions/{id} with new price
+  - verifyWebhook → dynamically imports 'stripe' SDK for signature verification, falls back with clear error if SDK not installed
+  - parseWebhookEvent → extracts workspaceId from metadata, maps Stripe event types to billing event types
+- Created src/lib/billing/providers/razorpay.ts — RazorpayBillingProvider:
+  - Uses Razorpay REST API via fetch with HTTP Basic Auth
+  - createCheckout → creates Razorpay subscription, returns hosted checkout URL
+  - cancelSubscription → POST /subscriptions/{id}/cancel (immediate) or PATCH (at cycle end)
+  - changePlan → PATCH /subscriptions/{id} with new plan_id
+  - verifyWebhook → HMAC-SHA256 verification using crypto module (no SDK needed)
+  - parseWebhookEvent → maps Razorpay event types to billing event types
+- Created src/lib/billing/providers/manual.ts — ManualBillingProvider (default fallback):
+  - Always available, no external API
+  - createCheckout → returns confirmation URL that activates subscription directly
+  - cancelSubscription/changePlan → no-op (subscription service handles DB updates)
+  - verifyWebhook → throws (manual provider doesn't receive webhooks)
+- Created src/lib/billing/providers/index.ts — provider registry:
+  - getConfiguredProvider() — reads BILLING_PROVIDER env var, falls back to manual if not configured
+  - getProvider(slug), listProviders(), getConfiguredProviderSlug()
+- Created src/lib/billing/checkout.ts — createCheckout() service: resolves workspace (verifies owner/admin via requireMembership), resolves plan, resolves provider + priceId, creates checkout session via provider, for manual provider creates subscription immediately
+- Created src/lib/billing/events.ts — idempotent event handlers:
+  - recordEvent() — creates BillingEvent with @@unique([provider, providerEventId]) for idempotency
+  - findExistingEvent() — checks for replay
+  - processWebhookEvent() — idempotent: returns immediately if already processed
+  - 10 event handlers: handleSubscriptionCreated/Renewed/Upgraded/Downgraded/Canceled, handlePaymentSucceeded/Failed, handleInvoiceGenerated, handleQuotaReset, handleUsageThreshold
+  - Event type mapping for both Stripe and Razorpay webhook event names
+- Created src/lib/billing/webhooks.ts — handleWebhook(): verifies signature via provider, parses event, calls processWebhookEvent (idempotent)
+- Refactored src/lib/tools/engine.ts to use billing quota:
+  - Replaced getMonthlyLimit() + checkAndIncrementQuota() with billingCheckQuota() from @/lib/billing/quota
+  - Translates BillingQuotaExceededError into ToolError('QUOTA_EXCEEDED', 429)
+  - The tool engine now delegates quota enforcement to the billing service which resolves workspace entitlements
+- Created 11 API route handlers:
+  - GET /api/billing/plans (public — list public plans)
+  - GET /api/billing/status (auth — full billing status for active workspace)
+  - GET /api/billing/invoices (auth — paginated invoice history with status filter)
+  - GET /api/billing/usage (auth — usage summary with tokens/cost/storage/team seats)
+  - POST /api/billing/checkout (auth — create checkout session, owner/admin only)
+  - POST /api/billing/upgrade (auth — upgrade plan with proration, owner/admin only)
+  - POST /api/billing/downgrade (auth — downgrade plan, scheduled at period end, owner/admin only)
+  - POST /api/billing/cancel (auth — cancel subscription at period end or immediately, owner/admin only)
+  - POST /api/billing/webhook/stripe (public — Stripe webhook receiver, verifies signature)
+  - POST /api/billing/webhook/razorpay (public — Razorpay webhook receiver, verifies signature)
+  - POST /api/admin/billing/seed (admin — seed/sync plan catalog into DB)
+- Ran `bun run lint` — 0 errors
+- Ran `npx tsc --noEmit` — 0 src/ errors
+- End-to-end verified 20+ scenarios via curl:
+  - Plans: list before seed (fallback) → seed → list from DB (3 plans with pricing) ✓
+  - Status: shows starter plan, no subscription, 10 gen limit, 0 usage ✓
+  - Usage: period range, 0/10 gens, 0 tokens, $0 cost, 1 team seat ✓
+  - Invoices: empty initially ✓
+  - Checkout (manual provider): creates starter subscription ✓
+  - Status after checkout: subscription=yes, plan=starter, active=true, 10 gen limit ✓
+  - Upgrade starter→creator: immediate, prorated charge $18.39 ✓
+  - Status after upgrade: plan=creator, 100 gen limit ✓
+  - Downgrade creator→starter: scheduled at period end ✓
+  - Cancel: at period end, status=active, cancelAtPeriodEnd=true ✓
+  - Tool run with billing quota: status=success, quota 1/100 (billing integration works) ✓
+  - Quota enforcement: set plan limit=2, run 1 (1/2), run 2 (2/2), run 3 blocked with 429 QUOTA_EXCEEDED ✓
+  - Webhook Stripe without signature → 400 Missing stripe-signature header ✓
+  - Webhook Stripe with invalid signature → processed=false (signature verification failed) ✓
+  - Webhook Razorpay without signature → 400 Missing x-razorpay-signature header ✓
+  - RBAC: workspace owner can checkout, non-members cannot ✓
+
+Stage Summary:
+- Billing & Subscription backend fully built and verified. No frontend files touched.
+- Architecture: workspace-aware (subscription belongs to workspace, not user). Provider abstraction (Stripe + Razorpay + Manual fallback). DB-driven plan catalog (admin-editable, env-synced price IDs). Idempotent webhooks (@@unique on providerEventId). Graceful quota enforcement (blocks with structured 429 error, includes used/limit/remaining).
+- 6 new Prisma models: Plan, Subscription, BillingEvent, Invoice (extended), UsageSnapshot, QuotaSyncJob
+- 11 new API routes + 1 admin seed route
+- Tool engine integration: the tool engine's checkAndIncrementQuota() now delegates to billing/quota.ts which resolves workspace entitlements via the subscription service. Old tool engine and AI layer work exactly as before — only the quota source changed.
+- Provider abstraction: adding a future provider = create a class extending BillingProvider + add to the registry array. No other file changes.
+- Manual setup still required (code is ready, env vars need to be entered):
+  - Stripe: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_<PLAN>_<INTERVAL>
+  - Razorpay: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RAZORPAY_PLAN_<PLAN>_<INTERVAL>
+  - BILLING_PROVIDER env var (stripe | razorpay | none)
+  - Webhook endpoints to register: /api/billing/webhook/stripe, /api/billing/webhook/razorpay
+  - 'stripe' npm package needs to be installed for Stripe webhook signature verification (bun add stripe)
+- Backward compatibility: PLAN_FEATURES in rbac.ts untouched (still used as fallback). User.plan field mirrors workspace subscription plan for existing RBAC checks. Old /api/generate endpoint untouched.
+- Next backend step: Notification system (real-time + email notifications for billing events, quota thresholds, subscription renewals) + cron jobs for monthly quota resets + usage threshold checks.

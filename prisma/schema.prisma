@@ -26,7 +26,7 @@ model User {
   language          String    @default("English")
   creatorCategory   String?
   role              String    @default("user") // user | admin
-  plan              String    @default("starter") // starter | creator | agency
+  plan              String    @default("starter") // starter | creator | agency (mirror of active workspace subscription plan)
   planRenewsAt      DateTime?
   usageCount        Int       @default(0)
   usageLimit        Int       @default(10)
@@ -55,6 +55,7 @@ model User {
   workspaceMemberships WorkspaceMember[]
   activeWorkspace      Workspace?        @relation("UserActiveWorkspace", fields: [activeWorkspaceId], references: [id], onDelete: SetNull)
   toolExecutions       ToolExecution[]
+  billingEvents        BillingEvent[]
 
   @@map("users")
 }
@@ -79,6 +80,11 @@ model Workspace {
   invites       WorkspaceInvite[]
   toolExecutions ToolExecution[]
   toolQuotas    ToolUsageQuota[]
+  subscription  Subscription?
+  invoices      Invoice[]
+  billingEvents BillingEvent[]
+  usageSnapshots UsageSnapshot[]
+  quotaSyncJobs  QuotaSyncJob[]
 
   @@index([ownerId])
   @@index([type])
@@ -309,21 +315,166 @@ model Activity {
   @@map("activities")
 }
 
-// ===== BILLING =====
+// ===== BILLING & SUBSCRIPTION =====
+
+model Plan {
+  id              String   @id @default(cuid())
+  slug            String   @unique // starter | creator | agency
+  name            String
+  description     String?
+  priceMonthly    Int      @default(0) // in cents (USD)
+  priceYearly     Int      @default(0) // in cents (USD)
+  currency        String   @default("usd")
+  maxGenerations  Int      @default(10) // monthly AI generation limit
+  maxTools        Int      @default(5) // max enabled custom tools
+  maxStorage      Int      @default(1) // GB
+  teamSeats       Int      @default(0)
+  apiAccess       Boolean  @default(false)
+  whiteLabel      Boolean  @default(false)
+  features        String?  // JSON: additional feature flags
+  stripePriceIdMonthly String?
+  stripePriceIdYearly  String?
+  razorpayPlanIdMonthly String?
+  razorpayPlanIdYearly  String?
+  isPublic        Boolean  @default(true)
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                    String    @id @default(cuid())
+  workspaceId           String    @unique // one subscription per workspace
+  planId                String
+  status                String    @default("trialing") // trialing | active | past_due | canceled | incomplete | paused
+  interval              String    @default("monthly") // monthly | yearly
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean   @default(false)
+  canceledAt            DateTime?
+  trialEnd              DateTime?
+  provider              String?   // stripe | razorpay | none (for manual/free)
+  providerSubscriptionId String?  // Stripe subscription ID or Razorpay subscription ID
+  providerCustomerId    String?   // Stripe customer ID or Razorpay customer ID
+  providerStatus        String?   // provider-specific status string
+  providerMetadata      String?   // JSON: provider-specific metadata
+  startedAt             DateTime  @default(now())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  plan      Plan      @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([planId])
+  @@index([status])
+  @@index([provider])
+  @@map("subscriptions")
+}
+
+model BillingEvent {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  userId            String?
+  type              String   // subscription_created | subscription_renewed | subscription_upgraded | subscription_downgraded | subscription_canceled | payment_succeeded | payment_failed | invoice_generated | quota_reset | usage_threshold_reached
+  provider          String?  // stripe | razorpay | system
+  providerEventId   String?  // idempotency key — provider's event/charge ID
+  status            String   @default("processed") // received | processing | processed | failed
+  payload           String   // JSON: full event payload (sanitized)
+  errorMessage      String?
+  processedAt       DateTime?
+  createdAt         DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, providerEventId])
+  @@index([workspaceId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("billing_events")
+}
 
 model Invoice {
-  id           String   @id @default(cuid())
-  userId       String
-  amount       Float
-  currency     String   @default("USD")
-  status       String   @default("paid")
-  invoiceNo    String?
-  downloadUrl  String?
-  createdAt    DateTime @default(now())
+  id                    String    @id @default(cuid())
+  workspaceId           String
+  userId                String?
+  subscriptionId        String?
+  amount                Int       @default(0) // in cents (USD)
+  currency              String    @default("usd")
+  status                String    @default("open") // draft | open | paid | void | uncollectible
+  invoiceNo             String?
+  description           String?
+  periodStart           DateTime?
+  periodEnd             DateTime?
+  provider              String?   // stripe | razorpay | none
+  providerInvoiceId     String?   // Stripe invoice ID or Razorpay invoice ID
+  providerPaymentId     String?   // Stripe charge/payment_intent ID or Razorpay payment ID
+  hostedInvoiceUrl      String?
+  invoicePdfUrl         String?
+  paidAt                DateTime?
+  attemptCount          Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([status])
+  @@index([provider])
   @@map("invoices")
+}
+
+model UsageSnapshot {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  periodStart     DateTime // first day of the month (UTC)
+  periodEnd       DateTime // last day of the month (UTC)
+  planSlug        String
+  generationsUsed Int      @default(0)
+  generationsLimit Int     @default(0)
+  tokensUsed      Int      @default(0)
+  costUsd         Float    @default(0)
+  storageUsedMb   Int      @default(0)
+  teamSeatsUsed   Int      @default(0)
+  snapshotData    String?  // JSON: detailed breakdown
+  createdAt       DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, periodStart])
+  @@index([workspaceId, periodStart])
+  @@map("usage_snapshots")
+}
+
+model QuotaSyncJob {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  type            String   // usage_sync | quota_reset | invoice_generate | threshold_check
+  status          String   @default("pending") // pending | running | completed | failed
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  scheduledFor    DateTime @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  errorMessage    String?
+  result          String?  // JSON: job result data
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+  @@index([type, status])
+  @@index([scheduledFor])
+  @@map("quota_sync_jobs")
 }
 
 // ===== TEAM =====
