@@ -85,6 +85,8 @@ model Workspace {
   billingEvents BillingEvent[]
   usageSnapshots UsageSnapshot[]
   quotaSyncJobs  QuotaSyncJob[]
+  connectedAccounts ConnectedAccount[]
+  studioSyncJobs    StudioSyncJob[]
 
   @@index([ownerId])
   @@index([type])
@@ -658,4 +660,165 @@ model ToolUsageQuota {
   @@unique([workspaceId, toolId, periodStart])
   @@index([workspaceId, periodStart])
   @@map("tool_usage_quotas")
+}
+
+// ===== CREATOR STUDIO =====
+
+model ConnectedAccount {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  provider        String    // youtube | instagram | facebook | tiktok
+  providerAccountId String  // platform's channel/user ID
+  handle          String?   // @username or channel handle
+  displayName     String?
+  avatar          String?
+  description     String?
+  accountType     String    @default("personal") // personal | business | creator
+  followerCount   Int       @default(0)
+  followingCount  Int       @default(0)
+  totalViews      Int       @default(0)
+  totalPosts      Int       @default(0)
+  isVerified      Boolean   @default(false)
+  isConnected     Boolean   @default(true)
+  accessToken     String?   // encrypted in production
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+  tokenScope      String?   // JSON: granted scopes
+  connectedById   String
+  lastSyncedAt    DateTime?
+  syncStatus      String    @default("pending") // pending | syncing | synced | failed | stale
+  syncCursor      String?   // JSON: cursor for incremental sync
+  providerMetadata String?  // JSON: provider-specific data
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contentItems    SocialContentItem[]
+  metricSnapshots SocialMetricSnapshot[]
+  audienceSnapshots SocialAudienceSnapshot[]
+  syncFailures    SyncFailureLog[]
+  syncJobs        StudioSyncJob[]
+
+  @@unique([workspaceId, provider, providerAccountId])
+  @@index([workspaceId, provider])
+  @@index([syncStatus])
+  @@map("connected_accounts")
+}
+
+model SocialContentItem {
+  id              String   @id @default(cuid())
+  connectedAccountId String
+  providerContentId String  // platform's video/post ID
+  type            String   // video | post | reel | story | short
+  title           String?
+  description     String?
+  thumbnailUrl    String?
+  contentUrl      String?
+  publishedAt     DateTime
+  durationSeconds Int?
+  viewCount       Int      @default(0)
+  likeCount       Int      @default(0)
+  commentCount    Int      @default(0)
+  shareCount      Int      @default(0)
+  engagementRate  Float    @default(0)
+  tags            String?  // JSON array
+  metadata        String?  // JSON: provider-specific data
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  connectedAccount ConnectedAccount @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([connectedAccountId, providerContentId])
+  @@index([connectedAccountId, publishedAt])
+  @@index([connectedAccountId, type])
+  @@map("social_content_items")
+}
+
+model SocialMetricSnapshot {
+  id              String   @id @default(cuid())
+  connectedAccountId String
+  snapshotDate    DateTime  // the date this snapshot represents (UTC midnight)
+  followerCount   Int      @default(0)
+  followingCount  Int      @default(0)
+  totalViews      Int      @default(0)
+  totalPosts      Int      @default(0)
+  newFollowers    Int      @default(0)  // gained since last snapshot
+  newViews        Int      @default(0)
+  newPosts        Int      @default(0)
+  avgEngagementRate Float  @default(0)
+  estimatedReach  Int      @default(0)
+  metadata        String?  // JSON: additional metrics
+  createdAt       DateTime @default(now())
+
+  connectedAccount ConnectedAccount @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([connectedAccountId, snapshotDate])
+  @@index([connectedAccountId, snapshotDate])
+  @@map("social_metric_snapshots")
+}
+
+model SocialAudienceSnapshot {
+  id              String   @id @default(cuid())
+  connectedAccountId String
+  snapshotDate    DateTime  // UTC midnight
+  ageRange        String?  // e.g. "18-24"
+  gender          String?  // male | female | other
+  country         String?
+  city            String?
+  percentage      Float    @default(0)  // % of audience in this segment
+  count           Int      @default(0)
+  metadata        String?  // JSON: additional demographic data
+  createdAt       DateTime @default(now())
+
+  connectedAccount ConnectedAccount @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+
+  @@index([connectedAccountId, snapshotDate])
+  @@index([connectedAccountId, country])
+  @@map("social_audience_snapshots")
+}
+
+model StudioSyncJob {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  connectedAccountId String?
+  provider        String   // youtube | instagram | all
+  type            String   // full | incremental | metrics | content | audience
+  status          String   @default("pending") // pending | running | completed | failed | partial
+  triggeredBy     String   // system | user | webhook
+  userId          String?  // who triggered (if user)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  errorMessage    String?
+  result          String?  // JSON: { itemsSynced, snapshotsCreated, failures }
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  connectedAccount ConnectedAccount? @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+  @@index([provider, status])
+  @@index([type, status])
+  @@index([createdAt])
+  @@map("studio_sync_jobs")
+}
+
+model SyncFailureLog {
+  id              String   @id @default(cuid())
+  connectedAccountId String
+  syncJobId       String?
+  errorType       String   // auth_error | rate_limit | network | provider_error | parse_error
+  errorMessage    String
+  errorCode       String?
+  statusCode      Int?
+  payload         String?  // JSON: request/response context
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  connectedAccount ConnectedAccount @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+
+  @@index([connectedAccountId, createdAt])
+  @@index([errorType])
+  @@index([resolvedAt])
+  @@map("sync_failure_logs")
 }
