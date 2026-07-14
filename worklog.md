@@ -2231,3 +2231,103 @@ Stage Summary:
 - Idempotent seed: can be re-run safely. Preserves isEnabled/usageLimit overrides on existing tools.
 - Cache: 60s TTL in-memory cache for tool definitions, longer for categories. Invalidated on admin mutations.
 - Next phase opportunity: wire frontend ToolModal to /api/tools/[slug]/run instead of /api/generate (frontend work, out of scope for this task).
+
+---
+Task ID: 31
+Agent: main (orchestrator)
+Task: Build a Unified AI Generation Layer. The Tool Engine must no longer communicate directly with the AI SDK. All AI requests go through one centralized AI service with provider abstraction (ZAI, Gemini, OpenAI, Claude, Grok, DeepSeek), retry system, usage tracking, streaming support, and normalized errors. No frontend changes.
+
+Work Log:
+- Read existing state: src/lib/tools/engine.ts (had callLlm() that called ZAI SDK directly), prisma/schema.prisma (ToolExecution model), src/lib/tools/types.ts (ModelConfig with only 3 providers)
+- Confirmed the single direct AI call site: `callLlm()` in engine.ts imported z-ai-web-dev-sdk directly and called `zai.chat.completions.create()`
+- Extended prisma/schema.prisma ToolExecution model with 7 new fields for usage tracking:
+  - provider (zai|gemini|openai|claude|grok|deepseek)
+  - model (resolved model name)
+  - promptTokens, completionTokens, totalTokens
+  - costUsd (estimated cost in USD)
+  - retries (number of retries that occurred)
+  - Added @@index([provider])
+  - Kept legacy tokenUsage field as alias for totalTokens (backward compat)
+- Updated src/lib/tools/types.ts ModelConfig.provider type from 'zai'|'openai'|'anthropic' to AIProviderSlug = 'zai'|'gemini'|'openai'|'claude'|'grok'|'deepseek' + ALL_AI_PROVIDERS constant
+- Updated src/lib/tools/validation.ts validateModelConfig to accept all 6 providers
+- Ran `bun run db:push` — schema synced, Prisma Client regenerated
+- Created src/lib/ai/types.ts — unified types:
+  - AIGenerateRequest (messages, system, temperature, maxTokens, provider/model overrides, metadata)
+  - AIGenerateResponse (content, provider, model, latencyMs, usage, cost, finishReason, retries)
+  - AIUsage (promptTokens, completionTokens, totalTokens)
+  - AICost (usd, promptPer1k, completionPer1k)
+  - AIProvider interface (slug, name, isAvailable, getDefaultModel, getModels, resolveModel, generate, generateStream?)
+  - AIProviderInfo, AIModelInfo, AIMessage, AIStreamChunk
+  - AIRetryConfig + DEFAULT_RETRY_CONFIG (3 retries, 500ms initial, 8s max, backoff factor 2, retryable statuses 408/425/429/500/502/503/504)
+- Created src/lib/ai/errors.ts — normalized error hierarchy:
+  - AIServiceError base class (code, message, retryable, meta{provider,model,status,retryAfterMs,raw})
+  - 10 error codes: AUTH_ERROR, RATE_LIMIT, TIMEOUT, NETWORK_ERROR, SAFETY_BLOCK, CONTEXT_LENGTH, INVALID_REQUEST, PROVIDER_ERROR, INTERNAL_ERROR, UNAVAILABLE
+  - 10 typed error subclasses (AIAuthError, AIRateLimitError, AITimeoutError, AINetworkError, AISafetyBlockError, AIContextLengthError, AIInvalidRequestError, AIProviderError, AIInternalError, AIUnavailableError)
+  - normalizeError() factory that translates arbitrary thrown values (SDK errors, HTTP status codes, AbortError, TypeError, plain Errors) into the appropriate AIServiceError subclass via classifyHttpError()
+- Created src/lib/ai/metrics.ts — usage tracking + cost calculation:
+  - calculateCost(usage, model) — per-1K-token pricing
+  - estimateUsage(messages, completion) — heuristic fallback (~4 chars/token) for providers that don't return usage
+  - recordUsage(record) — persists to ToolExecution row
+  - getUsageSummary(opts) — aggregate query (totalExecutions, totalTokens, totalCostUsd, avgLatencyMs, byProvider breakdown) for admin dashboards
+- Created src/lib/ai/providers/base.ts — BaseAIProvider abstract class:
+  - Credential lookup from env vars
+  - createTimeout(timeoutMs, externalSignal) — AbortController + cleanup
+  - requireAvailable() guard
+  - buildMessages(req) — prepends system prompt
+  - resolveModel(modelId) — finds model by id or returns default
+  - zeroUsage() helper
+- Created 6 provider implementations:
+  - src/lib/ai/providers/zai.ts — ZAIProvider (uses z-ai-web-dev-sdk, 3 models: glm-4.6, glm-4.5, default; isAvailable() always true because SDK uses internal sandbox credentials)
+  - src/lib/ai/providers/openai.ts — OpenAIProvider (OpenAI-compatible REST API via fetch, 4 models: gpt-4o-mini, gpt-4o, gpt-4-turbo, gpt-3.5-turbo; serves as base for Grok + DeepSeek)
+  - src/lib/ai/providers/claude.ts — ClaudeProvider (Anthropic Messages API with top-level system field + x-api-key header + anthropic-version header, 3 models: claude-3-5-sonnet, claude-3-5-haiku, claude-3-opus)
+  - src/lib/ai/providers/gemini.ts — GeminiProvider (Google Generative Language API with contents/parts format + systemInstruction + key as query param, 3 models: gemini-1.5-flash, gemini-1.5-pro, gemini-2.0-flash)
+  - src/lib/ai/providers/grok.ts — GrokProvider (extends OpenAIProvider, overrides baseURL to api.x.ai, 3 models: grok-2-latest, grok-2-mini, grok-beta)
+  - src/lib/ai/providers/deepseek.ts — DeepSeekProvider (extends OpenAIProvider, overrides baseURL to api.deepseek.com, 2 models: deepseek-chat, deepseek-reasoner)
+- Created src/lib/ai/providers/index.ts — provider registry:
+  - Singleton instances of all 6 providers
+  - getProvider(slug), getAllProviders(), getAvailableProviders(), getProviderInfos(), isKnownProvider(slug)
+  - Adding a future provider = create a class + add to the array — no other file changes
+- Created src/lib/ai/router.ts — provider selection:
+  - resolveProvider(requestProvider, requestModel, toolConfig) — 4-level precedence: per-request override → tool default → env default (AI_DEFAULT_PROVIDER/AI_DEFAULT_MODEL) → first available provider
+  - effectiveModelConfig(resolved) — returns what was ACTUALLY used for persistence
+  - Falls back gracefully (if requested provider unavailable, warns + falls through to next level)
+- Created src/lib/ai/service.ts — the unified AI service (singleton `aiService`):
+  - generate(req, opts) — main entry: resolveProvider → provider.generate with retry loop → return unified response
+  - generateStream(req, opts) — async generator yielding AIStreamChunk, falls back to non-streaming if provider doesn't support it. Designed now so streaming can be wired into the tool engine later without API changes.
+  - Retry system: exponential backoff (500ms → 1s → 2s → 4s → 8s cap) with ±25% jitter, respects Retry-After header for rate limit errors, retries only retryable errors (RATE_LIMIT, TIMEOUT, NETWORK_ERROR, PROVIDER_ERROR, INTERNAL_ERROR)
+  - isRetryable(err) checks error code + HTTP status against retryableStatuses
+  - setRetryConfig(config) for test overrides
+- Refactored src/lib/tools/engine.ts to use the AI service:
+  - Replaced direct ZAI SDK import + callLlm() body with aiService.generate() call
+  - callLlm() now returns LlmCallResult with provider, model, promptTokens, completionTokens, totalTokens, costUsd, retries
+  - runTool() persists all usage fields to ToolExecution (provider, model, promptTokens, completionTokens, totalTokens, costUsd, retries)
+  - Error handling normalizes AIServiceError into "[CODE] message" format for errorMessage field
+  - Updated header docstring to reflect new architecture
+  - The engine never touches any AI SDK directly anymore
+- Created 2 admin API routes:
+  - GET /api/admin/ai/providers — lists all 6 providers with availability, default model, model list, streaming/thinking support
+  - GET /api/admin/ai/usage — aggregated usage stats (tokens, cost, latency, byProvider breakdown) with optional workspaceId/since/until filters
+- Ran `bun run lint` — 0 errors
+- Ran `npx tsc --noEmit` — 0 src/ errors
+- End-to-end verified via curl:
+  1. GET /api/admin/ai/providers: 6 providers listed, ZAI available=true, others false ✓
+  2. POST /api/tools/hook-generator/run through new AI service: status=success, 5 items, latency=8268ms ✓
+  3. Usage tracking persisted: provider=zai, model=glm-4.6, promptTokens=361, completionTokens=214, totalTokens=575, cost=$0, retries=0 ✓
+  4. GET /api/admin/ai/usage: aggregated by provider (zai: count=2, tokens=1151) ✓
+  5. Backward compat: old /api/generate endpoint still works (untouched, calls ZAI SDK directly) ✓
+  6. Non-admin blocked from /api/admin/ai/providers → 403 FORBIDDEN ✓
+  7. Starter plan on creator-only tool → 403 PLAN_UPGRADE_REQUIRED ✓
+
+Stage Summary:
+- Unified AI Generation Layer fully built and verified. No frontend files touched.
+- The Tool Engine no longer communicates directly with any AI SDK — all calls go through `aiService.generate()`.
+- 6 providers supported: ZAI (wired + available), OpenAI, Claude, Gemini, Grok, DeepSeek (all wired, need API key env vars to activate).
+- Architecture is open/closed: adding a future provider = create one class extending BaseAIProvider (or OpenAIProvider for OpenAI-compatible APIs) + add to the registry array. No changes needed to router, service, or tool engine.
+- Provider selection precedence: per-request override → tool default (ToolDefinition.modelConfig) → environment default (AI_DEFAULT_PROVIDER/AI_DEFAULT_MODEL) → first available provider.
+- Retry system: exponential backoff (500ms→8s) with jitter, 3 retries default, respects Retry-After, retries only transient errors (RATE_LIMIT, TIMEOUT, NETWORK_ERROR, PROVIDER_ERROR, INTERNAL_ERROR).
+- 10 normalized error codes with typed subclasses. normalizeError() factory translates any thrown value (SDK errors, HTTP statuses, AbortError, TypeError) into the right subclass.
+- Usage tracking: promptTokens, completionTokens, totalTokens, costUsd, latencyMs, retries, provider, model all persisted to ToolExecution. Aggregate query helper for admin dashboards.
+- Streaming designed-in: generateStream() exists now, forwards to provider's native streaming if available, falls back to non-streaming otherwise. Can be wired into the tool engine later without API changes.
+- Backward compatibility maintained: old /api/generate endpoint untouched (still calls ZAI SDK directly for legacy callers). The new AI service is used only by the tool engine's runTool() path.
+- ZAI provider is always available (SDK uses internal sandbox credentials); other providers require their respective API key env vars.
+- Next phase opportunity: wire frontend to use /api/tools/[slug]/run (which now goes through the unified AI service) instead of /api/generate (frontend work, out of scope for this task).

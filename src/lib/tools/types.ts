@@ -74,8 +74,12 @@ export interface OutputSchema {
 
 // ===== Model config =====
 
+export type AIProviderSlug = 'zai' | 'gemini' | 'openai' | 'claude' | 'grok' | 'deepseek';
+
+export const ALL_AI_PROVIDERS: AIProviderSlug[] = ['zai', 'gemini', 'openai', 'claude', 'grok', 'deepseek'];
+
 export interface ModelConfig {
-  provider: 'zai' | 'openai' | 'anthropic';
+  provider: AIProviderSlug;
   model: string;
   temperature?: number;
   maxTokens?: number;

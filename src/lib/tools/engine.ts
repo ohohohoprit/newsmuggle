@@ -8,10 +8,15 @@
  *   4. Check plan access (tool.minPlan vs user.plan).
  *   5. Check usage quota (workspace-scoped, monthly, reset via cron).
  *   6. Render the prompt template with the validated inputs.
- *   7. Call the unified AI generation service (ZAI SDK).
+ *   7. Call the unified AI service (aiService.generate) which routes to
+ *      the appropriate provider (ZAI / OpenAI / Claude / Gemini / Grok /
+ *      DeepSeek) with retries + usage tracking.
  *   8. Parse the output according to outputFormat (text | json | items | structured).
- *   9. Persist a ToolExecution row.
+ *   9. Persist a ToolExecution row (including token usage + cost).
  *  10. Return a structured ToolExecutionResult.
+ *
+ * The engine never touches any AI SDK directly — all AI calls go through
+ * the unified AI service layer (src/lib/ai/service.ts).
  *
  * Every step is auditable. Failures are stored as status='failed' so the
  * user can see them in history and admins can debug.
@@ -35,6 +40,7 @@ import {
 } from '@/lib/tools/types';
 import { getToolBySlug, getToolRaw } from '@/lib/tools/registry';
 import { validateRunInputs } from '@/lib/tools/validation';
+import { aiService, AIServiceError } from '@/lib/ai/service';
 
 // ===== Constants =====
 
@@ -304,29 +310,58 @@ async function checkAndIncrementQuota(
   return { used, limit, remaining: Math.max(0, limit - used) };
 }
 
-// ===== AI call =====
+// ===== AI call (delegates to the unified AI service) =====
 
+interface LlmCallResult {
+  content: string;
+  latencyMs: number;
+  provider: string;
+  model: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  retries: number;
+}
+
+/**
+ * Call the unified AI service to generate a completion.
+ *
+ * The tool engine never touches any provider SDK directly — it goes
+ * through `aiService.generate()` which handles provider selection,
+ * retries, error normalization, and usage tracking.
+ */
 async function callLlm(
   modelConfig: ModelConfig,
   system: string,
   user: string,
-): Promise<{ content: string; latencyMs: number }> {
-  const start = Date.now();
-  // Only the ZAI provider is wired in this project. Other providers are
-  // validated by the schema but fall back to ZAI at runtime.
-  const ZAI = (await import('z-ai-web-dev-sdk')).default;
-  const zai = await ZAI.create();
+): Promise<LlmCallResult> {
+  const response = await aiService.generate(
+    {
+      system,
+      messages: [{ role: 'user', content: user }],
+      temperature: modelConfig.temperature ?? 0.8,
+      ...(modelConfig.maxTokens ? { maxTokens: modelConfig.maxTokens } : {}),
+      thinkingEnabled: modelConfig.thinkingEnabled,
+    },
+    {
+      toolConfig: modelConfig,
+      timeoutMs: 60_000,
+      maxRetries: 3,
+    },
+  );
 
-  const completion = await zai.chat.completions.create({
-    messages: [
-      { role: 'assistant', content: system },
-      { role: 'user', content: user },
-    ],
-    thinking: { type: 'disabled' },
-  });
-
-  const content = completion.choices[0]?.message?.content ?? '';
-  return { content, latencyMs: Date.now() - start };
+  return {
+    content: response.content,
+    latencyMs: response.latencyMs,
+    provider: response.provider,
+    model: response.model,
+    promptTokens: response.usage.promptTokens,
+    completionTokens: response.usage.completionTokens,
+    totalTokens: response.usage.totalTokens,
+    costUsd: response.cost.usd,
+    retries: response.retries,
+  };
 }
 
 // ===== Public API =====
@@ -431,24 +466,25 @@ export async function runTool(
     ? toolRaw.outputFormat
     : 'items') as OutputFormat;
 
-  // 7. Call LLM + 8. Parse output
+  // 7. Call AI service + 8. Parse output
   let parsed: ParsedOutput;
   let status: 'success' | 'failed' | 'partial' = 'success';
   let errorMessage: string | null = null;
   let latencyMs = 0;
+  let aiResult: LlmCallResult | null = null;
 
   try {
-    const { content, latencyMs: llmLatency } = await callLlm(modelConfig, systemPrompt, userPrompt);
-    latencyMs = llmLatency;
+    aiResult = await callLlm(modelConfig, systemPrompt, userPrompt);
+    latencyMs = aiResult.latencyMs;
 
     if (outputFormat === 'items') {
-      parsed = parseItemsOutput(content, count, slug);
+      parsed = parseItemsOutput(aiResult.content, count, slug);
     } else if (outputFormat === 'structured') {
-      parsed = parseStructuredOutput(content);
+      parsed = parseStructuredOutput(aiResult.content);
     } else if (outputFormat === 'json') {
-      parsed = parseJsonOutput(content);
+      parsed = parseJsonOutput(aiResult.content);
     } else {
-      parsed = parseTextOutput(content);
+      parsed = parseTextOutput(aiResult.content);
     }
 
     // If parsing yielded nothing useful, mark as partial
@@ -462,16 +498,21 @@ export async function runTool(
     }
   } catch (err) {
     status = 'failed';
-    errorMessage = err instanceof Error ? err.message : 'LLM call failed.';
+    // Normalize AI service errors into a human-readable message
+    if (err instanceof AIServiceError) {
+      errorMessage = `[${err.code}] ${err.message}`;
+    } else {
+      errorMessage = err instanceof Error ? err.message : 'AI call failed.';
+    }
     latencyMs = Date.now() - startedAt;
     parsed = outputFormat === 'items'
-      ? { items: buildFallbackItems(slug, count), summary: 'Generated fallback results (LLM call failed).' }
+      ? { items: buildFallbackItems(slug, count), summary: 'Generated fallback results (AI call failed).' }
       : outputFormat === 'text'
-        ? { text: '', summary: 'LLM call failed.' }
-        : { data: null, summary: 'LLM call failed.' };
+        ? { text: '', summary: 'AI call failed.' }
+        : { data: null, summary: 'AI call failed.' };
   }
 
-  // 9. Persist execution
+  // 9. Persist execution (including AI usage tracking)
   const output = JSON.stringify({
     items: parsed.items,
     text: parsed.text,
@@ -493,8 +534,15 @@ export async function runTool(
       status,
       errorMessage,
       modelConfig: JSON.stringify(modelConfig),
+      provider: aiResult?.provider ?? null,
+      model: aiResult?.model ?? null,
       latencyMs,
-      tokenUsage: 0,
+      promptTokens: aiResult?.promptTokens ?? 0,
+      completionTokens: aiResult?.completionTokens ?? 0,
+      totalTokens: aiResult?.totalTokens ?? 0,
+      tokenUsage: aiResult?.totalTokens ?? 0,
+      costUsd: aiResult?.costUsd ?? 0,
+      retries: aiResult?.retries ?? 0,
     },
   });
 

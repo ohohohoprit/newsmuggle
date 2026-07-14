@@ -467,8 +467,15 @@ model ToolExecution {
   status          String   @default("success") // success | failed | partial
   errorMessage     String?
   modelConfig     String?  // JSON: the model config used
+  provider        String?  // zai | gemini | openai | claude | grok | deepseek
+  model           String?  // the actual model name used (resolved)
   latencyMs       Int      @default(0)
-  tokenUsage      Int      @default(0)
+  promptTokens    Int      @default(0)
+  completionTokens Int     @default(0)
+  totalTokens     Int      @default(0)
+  tokenUsage      Int      @default(0) // legacy alias kept for backward compat
+  costUsd         Float    @default(0)
+  retries         Int      @default(0)
   createdAt       DateTime @default(now())
 
   tool      ToolDefinition @relation(fields: [toolId], references: [id], onDelete: Cascade)
@@ -480,6 +487,7 @@ model ToolExecution {
   @@index([workspaceId])
   @@index([createdAt])
   @@index([status])
+  @@index([provider])
   @@map("tool_executions")
 }
 

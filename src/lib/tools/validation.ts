@@ -171,8 +171,9 @@ export function validateModelConfig(raw: unknown): ModelConfig {
   }
   const m = raw as Record<string, unknown>;
   const provider = (typeof m.provider === 'string' ? m.provider : 'zai') as ModelConfig['provider'];
-  if (!['zai', 'openai', 'anthropic'].includes(provider)) {
-    throw new Error('modelConfig.provider must be zai, openai, or anthropic.');
+  const ALL_PROVIDERS = ['zai', 'gemini', 'openai', 'claude', 'grok', 'deepseek'];
+  if (!ALL_PROVIDERS.includes(provider)) {
+    throw new Error(`modelConfig.provider must be one of: ${ALL_PROVIDERS.join(', ')}.`);
   }
   const model = typeof m.model === 'string' && m.model.trim() ? m.model.trim() : 'default';
   const temperature =
