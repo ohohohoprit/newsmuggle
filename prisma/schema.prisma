@@ -54,6 +54,7 @@ model User {
   ownedWorkspaces      Workspace[]       @relation("WorkspaceOwner")
   workspaceMemberships WorkspaceMember[]
   activeWorkspace      Workspace?        @relation("UserActiveWorkspace", fields: [activeWorkspaceId], references: [id], onDelete: SetNull)
+  toolExecutions       ToolExecution[]
 
   @@map("users")
 }
@@ -76,6 +77,8 @@ model Workspace {
   activeForUsers User[]           @relation("UserActiveWorkspace")
   members       WorkspaceMember[]
   invites       WorkspaceInvite[]
+  toolExecutions ToolExecution[]
+  toolQuotas    ToolUsageQuota[]
 
   @@index([ownerId])
   @@index([type])
@@ -372,4 +375,128 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+// ===== TOOL REGISTRY =====
+
+model ToolCategory {
+  id          String   @id @default(cuid())
+  slug        String   @unique // writing | seo | video | social-media | repurposing | analytics | planning | business | ai-utility
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tools ToolDefinition[]
+
+  @@map("tool_categories")
+}
+
+model ToolDefinition {
+  id              String   @id @default(cuid())
+  slug            String   @unique // hook-generator | title-optimizer | ...
+  name            String
+  description     String
+  categoryId      String
+  icon            String?
+  agentTip        String?
+  outputFormat    String   @default("items") // text | json | items | structured
+  outputLabel     String   @default("Your Generated Results")
+  outputItemNoun  String   @default("result")
+  analysisTitle   String   @default("Why these results work?")
+  inputSchema     String   // JSON: array of field configs
+  outputSchema    String?  // JSON: optional output schema descriptor
+  promptTemplate  String   // system + user prompt template with {{var}} placeholders
+  modelConfig     String   @default("{\"provider\":\"zai\",\"model\":\"default\",\"temperature\":0.8}")
+  defaultCount    Int      @default(5)
+  countOptions    String   @default("[1,3,5,10,15,20]")
+  minPlan         String   @default("starter") // starter | creator | agency
+  usageLimit      Int      @default(0) // per-workspace per-month; 0 = use plan default
+  tags            String?  // JSON array of tags
+  isPopular       Boolean  @default(false)
+  isNew           Boolean  @default(false)
+  isEnabled       Boolean  @default(true)
+  isSystem        Boolean  @default(true) // system tools can't be deleted via admin API
+  sortOrder       Int      @default(0)
+  version         Int      @default(1)
+  examples        String?  // JSON array of example input/output pairs
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category    ToolCategory    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  executions  ToolExecution[]
+  presets     ToolPreset[]
+
+  @@index([categoryId])
+  @@index([isEnabled])
+  @@index([slug])
+  @@map("tool_definitions")
+}
+
+model ToolPreset {
+  id          String   @id @default(cuid())
+  toolId      String
+  name        String
+  description String?
+  inputs      String   // JSON: preset input values
+  isPublic    Boolean  @default(false)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tool ToolDefinition @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId])
+  @@index([createdBy])
+  @@map("tool_presets")
+}
+
+model ToolExecution {
+  id              String   @id @default(cuid())
+  toolId          String
+  userId          String
+  workspaceId     String
+  inputs          String   // JSON: the inputs that were run
+  outputFormat    String   // text | json | items | structured
+  output          String   // JSON: the full structured result
+  summary         String?
+  metrics         String?  // JSON: quality metrics
+  status          String   @default("success") // success | failed | partial
+  errorMessage     String?
+  modelConfig     String?  // JSON: the model config used
+  latencyMs       Int      @default(0)
+  tokenUsage      Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  tool      ToolDefinition @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([toolId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("tool_executions")
+}
+
+model ToolUsageQuota {
+  id          String   @id @default(cuid())
+  workspaceId String
+  toolId      String?
+  periodStart DateTime // first day of the month (UTC)
+  periodEnd   DateTime // last day of the month (UTC)
+  used        Int      @default(0)
+  limit       Int      @default(0) // 0 = unlimited
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, toolId, periodStart])
+  @@index([workspaceId, periodStart])
+  @@map("tool_usage_quotas")
 }

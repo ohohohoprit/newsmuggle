@@ -2138,3 +2138,96 @@ Stage Summary:
 - Active workspace tracking via User.activeWorkspaceId (SetNull on workspace delete). switchActiveWorkspace verifies membership.
 - All mutations audit-logged (workspace_create, workspace_update, workspace_switch, workspace_delete, workspace_invite_create, workspace_invite_revoke, workspace_invite_accept, workspace_member_role_update, workspace_member_remove, workspace_member_leave).
 - Next phase opportunity: wire frontend "Library" view to /api/workspaces (frontend work, out of scope for this task).
+
+---
+Task ID: 30
+Agent: main (orchestrator)
+Task: Build only the backend generic tool registry + tool execution engine for Content Smuggler. One backend system powering all 95+ tools from a single implementation. No frontend changes. Reuse existing auth/onboarding/RBAC/workspace helpers.
+
+Work Log:
+- Read existing state: src/smuggler/data/tools.ts (96 tools across 9 categories), src/smuggler/lib/tool-configs.ts (1372 lines of field configs), src/smuggler/lib/tool-prompts.ts (16 specific prompts + generic fallback), src/app/api/generate/route.ts (existing ZAI SDK integration), prisma/schema.prisma (workspace models)
+- Confirmed auth, onboarding, RBAC, and workspace backend all functional from previous tasks
+- Designed and added 5 new Prisma models to prisma/schema.prisma:
+  - ToolCategory (slug, name, description, icon, color, sortOrder)
+  - ToolDefinition (slug, name, description, categoryId, icon, agentTip, outputFormat, outputLabel, outputItemNoun, analysisTitle, inputSchema JSON, outputSchema JSON, promptTemplate JSON, modelConfig JSON, defaultCount, countOptions, minPlan, usageLimit, tags, isPopular, isNew, isEnabled, isSystem, sortOrder, version, examples) — 28 fields
+  - ToolPreset (toolId, name, description, inputs JSON, isPublic, createdBy)
+  - ToolExecution (toolId, userId, workspaceId, inputs JSON, outputFormat, output JSON, summary, metrics JSON, status, errorMessage, modelConfig, latencyMs, tokenUsage) — full execution audit trail
+  - ToolUsageQuota (workspaceId, toolId nullable, periodStart, periodEnd, used, limit) — monthly workspace-scoped quota with unique constraint
+- Added relations: User.toolExecutions, Workspace.toolExecutions, Workspace.toolQuotas
+- Ran `bun run db:push` — schema synced, Prisma Client regenerated
+- Created src/lib/tools/types.ts — shared types: OutputFormat (text|json|items|structured), FieldType, FieldConfig, ModelConfig, PromptTemplate, ToolDefinitionDTO, ToolItem, ToolMetrics, ToolExecutionResult, ToolExecutionHistoryItem, ToolError class, planRank helper
+- Created src/lib/tools/validation.ts — pure validators: validateToolSlug/Name/Description, validateCategorySlug/Name, validateOutputFormat, validatePlan, validateFieldType, validateFieldConfigs (full input schema validation), validateModelConfig, validateCountOptions, validateTags, validateRunInputs (runtime input validation against field schema with count resolution + snapping), validateSearchQuery, validateCategoryFilter, validateLimit/Offset
+- Created src/lib/tools/registry.ts — DB-backed registry with in-memory cache:
+  - 60s TTL cache for tool definitions, longer TTL for categories
+  - Cache invalidation on create/update/delete
+  - toDTO() mapper (intentionally does NOT expose promptTemplate — only the engine reads that)
+  - listTools (with category filter + search + pagination + includeDisabled for admins)
+  - getToolBySlug, getToolRaw (engine-only, includes promptTemplate)
+  - listCategories (with tool counts), getCategoryIdBySlug (cached)
+  - createTool, updateTool, deleteTool (admin mutations; system tools can't be deleted)
+  - upsertCategory, upsertTool (idempotent seed helpers; preserves isEnabled overrides on re-seed)
+- Created src/lib/tools/engine.ts — the unified execution engine:
+  - runTool() pipeline: resolve tool → validate inputs → resolve workspace + verify membership (reuses requireMembership from workspace service) → check plan access (planRank comparison) → check+increment quota → render prompt template ({{var}} interpolation) → call LLM (ZAI SDK) → parse output by format → persist ToolExecution → audit log → return structured result
+  - 4 output parsers: parseItemsOutput (items array with score/rationale + fallback), parseStructuredOutput (JSON object), parseJsonOutput (raw JSON), parseTextOutput (plain text with fence stripping)
+  - Robust JSON extractor (handles markdown fences, leading/trailing prose, partial JSON, array form)
+  - Quota system: monthly workspace-scoped, tool-specific limit overrides plan default, QUOTA_EXCEEDED (429) on limit reached
+  - Fallback items generator when LLM fails or returns unparseable output (status='partial' or 'failed')
+  - getToolHistory (workspace-scoped, paginated), getExecution (single execution by id with ownership check)
+  - Validation errors throw ToolError with 400 status (not 500)
+- Created src/lib/tools/seed.ts — maps existing 96 tools from src/smuggler/data/tools.ts + configs from src/smuggler/lib/tool-configs.ts into ToolDefinition rows:
+  - READ-ONLY consumer of frontend data files (no modification)
+  - 9 categories mapped (Writing, SEO, Video, Social Media, Repurposing, Analytics, Planning, Business, AI Utility)
+  - buildPromptTemplate(): preserves 16 tool-specific prompts from tool-prompts.ts, generates tool-aware generic prompts for the rest using tool name + description + input fields
+  - buildExamples(): generates example inputs per tool
+  - Idempotent: running twice updates system tools in place (preserves isEnabled/usageLimit overrides)
+  - Popular/heavy tools (repurpose-engine, channel-audit, video-to-blog, podcast-to-blog) require creator plan
+- Created 9 API route handlers (route handlers ONLY do HTTP/JSON, call service layer):
+  - GET /api/tools (list with category/search/pagination; auth optional; admins see disabled)
+  - GET /api/tools/categories (public)
+  - GET /api/tools/[slug] (single tool; 404 if not found/disabled)
+  - POST /api/tools/[slug]/run (execute; auth required; scoped to active workspace; maxDuration=60s)
+  - GET /api/tools/[slug]/history (paginated, workspace-scoped)
+  - GET /api/tools/[slug]/examples (public)
+  - GET /api/admin/tools (admin only; includes disabled)
+  - POST /api/admin/tools (admin only; create custom tool with full validation)
+  - PATCH /api/admin/tools/[slug] (admin only; update any field; bumps version)
+  - DELETE /api/admin/tools/[slug] (admin only; system tools can't be deleted)
+  - POST /api/admin/tools/seed (admin only; seed/re-sync all 96 system tools)
+- Ran `bun run lint` — 0 errors
+- Ran `npx tsc --noEmit` — 0 src/ errors
+- End-to-end verified 25+ scenarios via curl:
+  - Seed: 96 tools created across 9 categories ✓
+  - List tools: 96 total, category filter (seo=12), search (email=2) ✓
+  - Tool detail: hook-generator with 5 fields, defaultCount=5, minPlan=starter ✓
+  - Examples endpoint: returns example inputs ✓
+  - REAL LLM execution: hook-generator returned 5 items with scores 88-95, summary, metrics (curiosity=9.4, specificity=8.8, benefitDriven=9.2, emotionalImpact=8.6), latency 4852ms ✓
+  - Second tool (ai-writer) via same engine: 5 items, 13562ms ✓
+  - Quota tracking: 1/1000, 2/1000 for agency plan ✓
+  - Execution history: shows past runs with status + latency ✓
+  - Missing required field → 400 VALIDATION_ERROR ✓
+  - Nonexistent tool → 404 TOOL_NOT_FOUND ✓
+  - Unauthenticated → 401 UNAUTHENTICATED ✓
+  - Starter plan on creator-only tool → 403 PLAN_UPGRADE_REQUIRED ✓
+  - Non-admin on admin endpoint → 403 FORBIDDEN ✓
+  - Admin create custom tool → 201 with isSystem=false ✓
+  - Admin disable custom tool → isEnabled=false ✓
+  - Disabled tool hidden from non-admins → 404 ✓
+  - Admin delete custom tool → success ✓
+  - Admin delete system tool → 403 CANNOT_DELETE_SYSTEM_TOOL ✓
+  - Workspace isolation: starter's execution not visible in admin's history ✓
+  - Quota enforcement: tool-specific limit=2, run 3 blocked with 429 QUOTA_EXCEEDED ✓
+
+Stage Summary:
+- Backend tool registry + execution engine fully built and verified. No frontend files touched (seed.ts is a READ-ONLY consumer of existing frontend data files).
+- ONE engine powers ALL 96 tools. Adding a new tool = adding a row to the DB (via admin API or seed) — no new route needed.
+- Architecture: route handlers (HTTP only) → service layer (registry + engine + validation) → Prisma (DB only). Shared types isolated in types.ts.
+- Data-driven: every tool is fully defined by its DB row (inputSchema, promptTemplate, outputFormat, modelConfig, minPlan, usageLimit). The engine reads these at runtime.
+- 4 output formats supported: text (plain), json (raw JSON), items (array of {text,score,rationale}), structured (JSON object). All parsed robustly with fallbacks.
+- Workspace isolation: every execution is scoped to the caller's active workspace via requireMembership() (reused from workspace service). History is workspace-scoped.
+- Plan enforcement: tool.minPlan checked against user.plan via planRank. Creator-only tools blocked for starter users.
+- Quota system: monthly workspace-scoped, tool-specific limit overrides plan default, QUOTA_EXCEEDED (429) on limit. Tracked in ToolUsageQuota table.
+- Audit logging: every tool run logged via existing auditLog() helper (status: success/failed/partial). Admin create/update/delete also logged.
+- Prompt templates: 16 tools have specific prompts (preserved from tool-prompts.ts), 80 tools use tool-aware generic prompts built from name+description+fields. All support {{var}} interpolation.
+- Idempotent seed: can be re-run safely. Preserves isEnabled/usageLimit overrides on existing tools.
+- Cache: 60s TTL in-memory cache for tool definitions, longer for categories. Invalidated on admin mutations.
+- Next phase opportunity: wire frontend ToolModal to /api/tools/[slug]/run instead of /api/generate (frontend work, out of scope for this task).
