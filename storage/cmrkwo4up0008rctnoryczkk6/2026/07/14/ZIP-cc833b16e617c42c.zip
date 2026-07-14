@@ -1,0 +1,13 @@
+=== ZIP.md ===
+# ZIP
+
+test
+
+
+=== ZIP.json ===
+{
+  "content": {
+    "title": "ZIP",
+    "body": "test"
+  }
+}

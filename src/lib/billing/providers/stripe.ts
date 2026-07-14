@@ -262,10 +262,11 @@ export class StripeBillingProvider extends BillingProvider {
 
     // Stripe webhook verification requires the stripe SDK's crypto-based
     // signature check. We dynamically import the SDK only when a webhook
-    // is actually received. If the SDK isn't installed, we fall back to
-    // a manual HMAC-SHA256 verification (Stripe's scheme is documented).
+    // is actually received. The `require()` indirection prevents Turbopack
+    // from trying to statically resolve the 'stripe' module (which may not
+    // be installed in this environment).
     try {
-      const stripeModule: any = await import('stripe' as string).then((m: any) => (m.default ?? m)).catch(() => null);
+      const stripeModule: any = await (new Function('return import("stripe")')()).then((m: any) => (m.default ?? m)).catch(() => null);
       if (stripeModule) {
         const client = new stripeModule(this.secretKey!, { apiVersion: this.apiVersion as never });
         const event = client.webhooks.constructEvent(

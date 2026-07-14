@@ -92,6 +92,8 @@ model Workspace {
   notifications     Notification[]
   notificationEvents NotificationEvent[]
   thresholdAlerts   UsageThresholdAlert[]
+  fileAssets        FileAsset[]
+  exportJobs        ExportJob[]
 
   @@index([ownerId])
   @@index([type])
@@ -1128,4 +1130,175 @@ model AbuseDetectionFlag {
   @@index([flagType, resolvedAt])
   @@index([riskScore])
   @@map("abuse_detection_flags")
+}
+
+// ===== EXPORT & FILES =====
+
+model FileAsset {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  uploadedById    String
+  filename        String
+  originalName    String?
+  mimeType        String    @default("application/octet-stream")
+  sizeBytes       Int       @default(0)
+  storageKey      String    // path/key in storage provider
+  storageProvider String    @default("local") // local | s3 | r2 | gcs
+  category        String    @default("general") // upload | export | generated | studio
+  sourceType      String?   // tool_execution | studio_content | manual_upload | export
+  sourceId        String?   // ID of the source (e.g. ToolExecution ID)
+  description     String?
+  tags            String?   // JSON array
+  metadata        String?   // JSON: additional metadata
+  isPublic        Boolean   @default(false)
+  downloadCount   Int       @default(0)
+  expiresAt       DateTime? // for temporary files
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  downloads       FileDownload[]
+  accessLogs      FileAccessLog[]
+  exportJobs      ExportJob[]
+  signedUrlTokens SignedUrlToken[]
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, category])
+  @@index([sourceType, sourceId])
+  @@index([expiresAt])
+  @@index([deletedAt])
+  @@map("file_assets")
+}
+
+model ExportJob {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  userId          String
+  format          String    // pdf | docx | md | zip | json | csv
+  sourceType      String    // tool_execution | studio_content | manual | template
+  sourceId        String?
+  title           String
+  description     String?
+  status          String    @default("pending") // pending | processing | completed | failed | expired
+  fileAssetId     String?   // the generated FileAsset (if successful)
+  templateId      String?   // ExportTemplate used (if any)
+  options         String?   // JSON: export options (page size, orientation, etc.)
+  errorMessage    String?
+  attemptCount    Int       @default(0)
+  maxAttempts     Int       @default(3)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime? // export file expiry
+  metadata        String?   // JSON: export-specific data
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  fileAsset       FileAsset? @relation(fields: [fileAssetId], references: [id], onDelete: SetNull)
+  template        ExportTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  failureLogs     ExportFailureLog[]
+
+  @@index([workspaceId, status])
+  @@index([userId, createdAt])
+  @@index([format, status])
+  @@index([sourceType, sourceId])
+  @@index([createdAt])
+  @@map("export_jobs")
+}
+
+model ExportTemplate {
+  id              String   @id @default(cuid())
+  workspaceId     String?
+  userId          String?
+  name            String
+  description     String?
+  format          String   // pdf | docx | md | zip
+  template        String   // JSON: template definition (layout, styling, placeholders)
+  isPublic        Boolean  @default(false)
+  isSystem        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  exportJobs      ExportJob[]
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([isPublic])
+  @@map("export_templates")
+}
+
+model FileDownload {
+  id              String   @id @default(cuid())
+  fileAssetId     String
+  userId          String?
+  ipAddress       String?
+  userAgent       String?
+  signedUrlTokenId String?
+  downloadMethod  String   @default("direct") // direct | signed_url | api
+  createdAt       DateTime @default(now())
+
+  fileAsset FileAsset @relation(fields: [fileAssetId], references: [id], onDelete: Cascade)
+
+  @@index([fileAssetId, createdAt])
+  @@index([userId, createdAt])
+  @@map("file_downloads")
+}
+
+model FileAccessLog {
+  id              String   @id @default(cuid())
+  fileAssetId     String
+  userId          String?
+  action          String   // view | download | delete | signed_url_create | signed_url_use
+  ipAddress       String?
+  success         Boolean  @default(true)
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  fileAsset FileAsset @relation(fields: [fileAssetId], references: [id], onDelete: Cascade)
+
+  @@index([fileAssetId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("file_access_logs")
+}
+
+model ExportFailureLog {
+  id              String   @id @default(cuid())
+  exportJobId     String
+  errorType       String   // generation_error | storage_error | timeout | invalid_input | template_error
+  errorMessage    String
+  errorCode       String?
+  payload         String?  // JSON: context data
+  retryCount      Int      @default(0)
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  exportJob ExportJob @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+
+  @@index([exportJobId, createdAt])
+  @@index([errorType])
+  @@index([resolvedAt])
+  @@map("export_failure_logs")
+}
+
+model SignedUrlToken {
+  id              String   @id @default(cuid())
+  fileAssetId     String
+  token           String   @unique
+  createdBy       String
+  expiresAt       DateTime
+  downloadLimit   Int      @default(0) // 0 = unlimited
+  downloadCount   Int      @default(0)
+  ipAddress       String?  // optional IP restriction
+  isRevoked       Boolean  @default(false)
+  revokedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  fileAsset FileAsset @relation(fields: [fileAssetId], references: [id], onDelete: Cascade)
+
+  @@index([fileAssetId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("signed_url_tokens")
 }
