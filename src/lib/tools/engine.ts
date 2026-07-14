@@ -24,7 +24,6 @@
 import { db } from '@/lib/db';
 import { auditLog } from '@/lib/auth';
 import { requireMembership } from '@/lib/workspace';
-import { PLAN_FEATURES, type Plan } from '@/lib/rbac';
 import { checkAndIncrementQuota as billingCheckQuota } from '@/lib/billing/quota';
 import { QuotaExceededError as BillingQuotaExceededError } from '@/lib/billing/errors';
 import {
@@ -249,67 +248,6 @@ function buildFallbackItems(toolSlug: string, count: number): ToolItem[] {
     score: 80 + Math.floor(Math.random() * 15),
     rationale: 'Curiosity-driven opening that promises clear value.',
   }));
-}
-
-// ===== Quota helpers =====
-
-function getMonthRange(date = new Date()): { start: Date; end: Date } {
-  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
-  const end = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
-  return { start, end };
-}
-
-function getMonthlyLimit(tool: { usageLimit: number }, userPlan: string): number {
-  // Tool-specific limit wins if set; otherwise fall back to plan default
-  if (tool.usageLimit > 0) return tool.usageLimit;
-  const plan = (['starter', 'creator', 'agency'].includes(userPlan) ? userPlan : 'starter') as Plan;
-  return PLAN_FEATURES[plan].maxGenerations;
-}
-
-async function checkAndIncrementQuota(
-  workspaceId: string,
-  toolId: string | null,
-  limit: number,
-): Promise<{ used: number; limit: number; remaining: number }> {
-  const { start, end } = getMonthRange();
-  // workspace-wide quota (toolId = null). Use findFirst because the
-  // composite unique includes a nullable column.
-  const existing = await db.toolUsageQuota.findFirst({
-    where: {
-      workspaceId,
-      toolId: null,
-      periodStart: start,
-    },
-  });
-
-  const used = (existing?.used ?? 0) + 1;
-  if (used > limit) {
-    throw new ToolError(
-      'QUOTA_EXCEEDED',
-      `You have reached your monthly generation limit (${limit}). Upgrade your plan to continue.`,
-      429,
-    );
-  }
-
-  if (existing) {
-    await db.toolUsageQuota.update({
-      where: { id: existing.id },
-      data: { used: { increment: 1 } },
-    });
-  } else {
-    await db.toolUsageQuota.create({
-      data: {
-        workspaceId,
-        toolId: null,
-        periodStart: start,
-        periodEnd: end,
-        used: 1,
-        limit,
-      },
-    });
-  }
-
-  return { used, limit, remaining: Math.max(0, limit - used) };
 }
 
 // ===== AI call (delegates to the unified AI service) =====
