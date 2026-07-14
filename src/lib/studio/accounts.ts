@@ -267,6 +267,25 @@ export async function disconnectAccount(
       providerAccountId: account.providerAccountId,
     });
   }
+
+  // Emit notification event (non-blocking)
+  try {
+    const { emitNotificationEvent } = await import('@/lib/notifications/events');
+    await emitNotificationEvent({
+      workspaceId,
+      userId,
+      eventType: 'studio.account_disconnected',
+      source: 'studio',
+      payload: {
+        workspaceId,
+        provider: providerSlug,
+        displayName: account.displayName,
+        handle: account.handle,
+      },
+    });
+  } catch {
+    // notification failure shouldn't affect disconnect
+  }
 }
 
 /**

@@ -162,6 +162,29 @@ export async function processWebhookEvent(
   try {
     await handleEvent(normalized, provider, req, userId);
     await completeEvent(event.id, 'processed');
+
+    // Emit notification event (non-blocking — never fails the webhook)
+    try {
+      const { emitNotificationEvent } = await import('@/lib/notifications/events');
+      await emitNotificationEvent({
+        workspaceId: normalized.workspaceId,
+        userId: userId ?? null,
+        eventType: `billing.${mapEventType(normalized.eventType, provider)}`,
+        source: 'billing',
+        payload: {
+          workspaceId: normalized.workspaceId,
+          provider,
+          planSlug: normalized.planSlug,
+          interval: normalized.interval,
+          amount: normalized.amount,
+          currency: normalized.currency,
+          periodEnd: normalized.periodEnd?.toISOString(),
+        },
+      });
+    } catch (notifErr) {
+      console.error('[billing/events] notification emission failed:', notifErr);
+    }
+
     return { processed: true, duplicate: false };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error processing event';

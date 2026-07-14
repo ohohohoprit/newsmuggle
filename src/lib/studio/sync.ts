@@ -394,6 +394,27 @@ export async function syncAccount(
     });
   }
 
+  // Emit notification event (non-blocking)
+  try {
+    const { emitNotificationEvent } = await import('@/lib/notifications/events');
+    await emitNotificationEvent({
+      workspaceId,
+      userId,
+      eventType: status === 'failed' ? 'studio.sync_failed' : 'studio.sync_completed',
+      source: 'studio',
+      payload: {
+        workspaceId,
+        provider: providerSlug,
+        itemsSynced,
+        snapshotsCreated,
+        status,
+        error: errorMessage,
+      },
+    });
+  } catch {
+    // notification failure shouldn't affect sync
+  }
+
   return {
     jobId: job.id,
     connectedAccountId: account.id,

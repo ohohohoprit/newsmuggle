@@ -56,6 +56,8 @@ model User {
   activeWorkspace      Workspace?        @relation("UserActiveWorkspace", fields: [activeWorkspaceId], references: [id], onDelete: SetNull)
   toolExecutions       ToolExecution[]
   billingEvents        BillingEvent[]
+  notificationPreferences NotificationPreference[]
+  notificationEvents   NotificationEvent[]
 
   @@map("users")
 }
@@ -87,6 +89,9 @@ model Workspace {
   quotaSyncJobs  QuotaSyncJob[]
   connectedAccounts ConnectedAccount[]
   studioSyncJobs    StudioSyncJob[]
+  notifications     Notification[]
+  notificationEvents NotificationEvent[]
+  thresholdAlerts   UsageThresholdAlert[]
 
   @@index([ownerId])
   @@index([type])
@@ -516,18 +521,93 @@ model ApiKey {
 // ===== NOTIFICATIONS =====
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  actionUrl String?
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String?
+  type        String    // billing | studio | quota | system | tool | workspace
+  category    String    @default("general") // subscription | payment | usage | sync | account | security | general
+  priority    String    @default("normal") // low | normal | high | urgent
+  title       String
+  message     String
+  actionUrl   String?
+  read        Boolean   @default(false)
+  readAt      DateTime?
+  metadata    String?   // JSON: additional structured data
+  dedupKey    String?   // deduplication key — if set, prevents duplicate notifications
+  createdAt   DateTime  @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
+
+  @@index([userId, read])
+  @@index([workspaceId, createdAt])
+  @@index([type, createdAt])
+  @@index([category, createdAt])
+  @@index([dedupKey])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id              String   @id @default(cuid())
+  userId          String
+  category        String   // subscription | payment | usage | sync | account | security | general
+  inAppEnabled    Boolean  @default(true)
+  emailEnabled    Boolean  @default(true)
+  webhookEnabled  Boolean  @default(false)
+  minPriority     String   @default("low") // only notify for priority >= minPriority
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("notifications")
+  @@unique([userId, category])
+  @@map("notification_preferences")
+}
+
+model NotificationDelivery {
+  id              String   @id @default(cuid())
+  notificationId  String
+  channel         String   // in_app | email | webhook
+  status          String   @default("pending") // pending | sent | failed | skipped
+  recipient       String?  // email address or webhook URL
+  providerMessageId String? // provider's message ID (email/webhook)
+  attemptCount    Int      @default(0)
+  maxAttempts     Int      @default(3)
+  lastAttemptAt   DateTime?
+  nextAttemptAt   DateTime?
+  errorMessage    String?
+  payload         String?  // JSON: the delivered payload
+  sentAt          DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([status, nextAttemptAt])
+  @@index([channel, status])
+  @@map("notification_deliveries")
+}
+
+model NotificationEvent {
+  id              String   @id @default(cuid())
+  workspaceId     String?
+  userId          String?
+  eventType       String   // billing.subscription_created | billing.payment_failed | studio.sync_completed | quota.threshold_reached | etc.
+  source          String   // billing | studio | quota | system | tool
+  payload         String   // JSON: event data
+  notificationId  String?  // the notification created from this event (if any)
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([source, createdAt])
+  @@map("notification_events")
 }
 
 // ===== TOOL REGISTRY =====
@@ -821,4 +901,79 @@ model SyncFailureLog {
   @@index([errorType])
   @@index([resolvedAt])
   @@map("sync_failure_logs")
+}
+
+// ===== CRON JOBS & SCHEDULER =====
+
+model JobRun {
+  id              String    @id @default(cuid())
+  jobType         String    // quota_reset | usage_snapshot | threshold_check | stale_check | studio_sync | notification_cleanup | retry_failed
+  status          String    @default("running") // running | completed | failed | partial
+  triggeredBy     String    @default("system") // system | user | cron
+  userId          String?   // who triggered (if user)
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  durationMs      Int       @default(0)
+  errorMessage    String?
+  result          String?   // JSON: { processed, created, failed, ... }
+  metadata        String?   // JSON: job-specific data
+  createdAt       DateTime  @default(now())
+
+  @@index([jobType, status])
+  @@index([jobType, createdAt])
+  @@index([status, createdAt])
+  @@map("job_runs")
+}
+
+model JobCursor {
+  id              String   @id @default(cuid())
+  jobType         String   @unique
+  lastRunAt       DateTime?
+  lastRunDate     String?  // YYYY-MM-DD — used for daily dedup
+  lastCursor      String?  // JSON: cursor data (e.g. last processed workspaceId)
+  runCount        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("job_cursors")
+}
+
+model JobFailureLog {
+  id              String   @id @default(cuid())
+  jobRunId        String?
+  jobType         String
+  errorType       String   // auth_error | rate_limit | network | provider_error | internal_error
+  errorMessage    String
+  errorCode       String?
+  statusCode      Int?
+  payload         String?  // JSON: context data
+  resolvedAt      DateTime?
+  retryCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([jobType, resolvedAt])
+  @@index([errorType])
+  @@index([createdAt])
+  @@map("job_failure_logs")
+}
+
+model UsageThresholdAlert {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  threshold       Int      // 80 | 90 | 100
+  percentUsed     Float
+  used            Int
+  limit           Int
+  planSlug        String
+  alertKey        String   // dedup key: workspaceId:threshold:period
+  notifiedAt      DateTime @default(now())
+  resolvedAt      DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([alertKey])
+  @@index([workspaceId, notifiedAt])
+  @@index([threshold, notifiedAt])
+  @@index([resolvedAt])
+  @@map("usage_threshold_alerts")
 }
