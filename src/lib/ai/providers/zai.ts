@@ -25,13 +25,10 @@ export class ZAIProvider extends BaseAIProvider {
   protected readonly defaultModelId = 'glm-4.6';
 
   /**
-   * ZAI is always available in this environment — the SDK uses internal
-   * credentials provided by the sandbox, so no explicit API key env var
-   * is required. Other providers require their key env var to be set.
+   * ZAI availability depends on the ZAI_API_KEY env var being set,
+   * just like every other provider. In the sandbox environment the key
+   * is provided automatically; outside the sandbox ZAI won't work.
    */
-  override isAvailable(): boolean {
-    return true;
-  }
 
   protected readonly models: AIModelInfo[] = [
     {

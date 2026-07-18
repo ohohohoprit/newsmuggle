@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar, { type AuthMode, type NavView } from '@/smuggler/components/Navbar';
 import Homepage from '@/smuggler/components/Homepage';
-import ToolsSection from '@/smuggler/components/ToolsSection';
 import AllToolsSection from '@/smuggler/components/AllToolsSection';
 import HookGeneratorPage from '@/smuggler/components/HookGeneratorPage';
 import ToolPageEngine from '@/smuggler/components/ToolPageEngine';
@@ -12,19 +11,19 @@ import LibraryView from '@/smuggler/components/LibraryView';
 import StudioView from '@/smuggler/components/StudioView';
 import PricingView from '@/smuggler/components/PricingView';
 import AuthPages from '@/smuggler/components/AuthPages';
+import OnboardingView from '@/smuggler/components/OnboardingView';
 import SettingsView from '@/smuggler/components/SettingsView';
 import CommandPalette from '@/smuggler/components/CommandPalette';
 import Footer from '@/smuggler/components/Footer';
-import AuthModal from '@/smuggler/components/AuthModal';
-import ToolModal from '@/smuggler/components/ToolModal';
 import { useToolsStore } from '@/smuggler/store/useToolsStore';
 import { useUserStore } from '@/smuggler/store/useUserStore';
+import { useAuthStore } from '@/smuggler/store/useAuthStore';
+import { useLibraryStore } from '@/smuggler/store/useLibraryStore';
+import { useWorkspaceStore } from '@/smuggler/store/useWorkspaceStore';
 
 export default function Home() {
   const [view, setView] = useState<NavView>('home');
-  const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
-  const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
   const [activeToolId, setActiveToolId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -32,10 +31,46 @@ export default function Home() {
   // Hydrate favorites from localStorage on mount
   const hydrateFavorites = useToolsStore((s) => s.hydrateFavorites);
   const hydrateUser = useUserStore((s) => s.hydrate);
+  const refreshAuth = useAuthStore((s) => s.refresh);
+  const refreshWorkspace = useWorkspaceStore((s) => s.refresh);
   useEffect(() => {
     hydrateFavorites();
     hydrateUser();
-  }, [hydrateFavorites, hydrateUser]);
+    refreshAuth().then(() => {
+      const { user, status } = useAuthStore.getState();
+      if (user) {
+        const profile = useUserStore.getState().profile;
+        if (!profile.email) {
+          useUserStore.getState().updateProfile({
+            fullName: user.name || profile.fullName,
+            email: user.email || profile.email,
+            username: user.username || profile.username,
+            avatar: user.avatar || profile.avatar,
+          });
+        }
+        if (status === 'authenticated') {
+          useLibraryStore.getState().rehydrate();
+          if (!user.onboardingCompleted) {
+            setView('onboarding');
+          } else {
+            refreshWorkspace().then(() => {
+              const { billingStatus } = useWorkspaceStore.getState();
+              if (billingStatus) {
+                useUserStore.getState().updateBilling({
+                  plan: billingStatus.entitlements.plan as 'starter' | 'creator' | 'agency',
+                  usage: billingStatus.usage.generationsUsed,
+                  usageLimit: billingStatus.usage.generationsLimit,
+                  renewsOn: billingStatus.usage.periodEnd
+                    ? new Date(billingStatus.usage.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : '',
+                });
+              }
+            });
+          }
+        }
+      }
+    });
+  }, [hydrateFavorites, hydrateUser, refreshAuth, refreshWorkspace]);
 
   // Cmd/Ctrl+K to open command palette
   useEffect(() => {
@@ -76,14 +111,47 @@ export default function Home() {
     setAuthMode(mode);
   }, []);
 
-  const handleCloseAuth = useCallback(() => {
-    setAuthOpen(false);
+  const handleAuthSuccess = useCallback(() => {
+    useAuthStore.getState().refresh().then(() => {
+      useLibraryStore.getState().rehydrate();
+      const { user } = useAuthStore.getState();
+      if (user) {
+        const profile = useUserStore.getState().profile;
+        if (!profile.email) {
+          useUserStore.getState().updateProfile({
+            fullName: user.name || profile.fullName,
+            email: user.email || profile.email,
+            username: user.username || profile.username,
+            avatar: user.avatar || profile.avatar,
+          });
+        }
+        if (!user.onboardingCompleted) {
+          setView('onboarding');
+          setToast("Welcome, Agent. Let's set up your profile.");
+        } else {
+          setView('library');
+          setToast('Welcome, Agent. Your mission awaits. 🕵️‍♂️');
+          useWorkspaceStore.getState().refresh().then(() => {
+            const { billingStatus } = useWorkspaceStore.getState();
+            if (billingStatus) {
+              useUserStore.getState().updateBilling({
+                plan: billingStatus.entitlements.plan as 'starter' | 'creator' | 'agency',
+                usage: billingStatus.usage.generationsUsed,
+                usageLimit: billingStatus.usage.generationsLimit,
+                renewsOn: billingStatus.usage.periodEnd
+                  ? new Date(billingStatus.usage.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                  : '',
+              });
+            }
+          });
+        }
+      }
+    });
   }, []);
 
-  const handleAuthSuccess = useCallback(() => {
-    setAuthOpen(false);
-    setToast('Welcome, Agent. Your mission awaits. 🕵️‍♂️');
+  const handleCompleteOnboarding = useCallback(() => {
     setView('library');
+    setToast('Profile ready. Your mission awaits. 🕵️‍♂️');
   }, []);
 
   const handleSelectTool = useCallback((toolId: string) => {
@@ -99,10 +167,6 @@ export default function Home() {
     // All other tools use the generic ToolPageEngine
     setActiveToolId(toolId);
     setView('tool-page');
-  }, []);
-
-  const handleCloseTool = useCallback(() => {
-    setSelectedToolId(null);
   }, []);
 
   const handleExploreTools = useCallback(() => {
@@ -139,7 +203,7 @@ export default function Home() {
 
   return (
     <div className="smuggler-app flex min-h-screen flex-col">
-      {view !== 'auth' && (
+      {view !== 'auth' && view !== 'onboarding' && (
         <Navbar
           onOpenAuth={handleOpenAuth}
           onNavigate={handleNavigate}
@@ -256,6 +320,18 @@ export default function Home() {
             </motion.div>
           )}
 
+          {view === 'onboarding' && (
+            <motion.div
+              key="onboarding-view"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <OnboardingView onComplete={handleCompleteOnboarding} />
+            </motion.div>
+          )}
+
           {view === 'settings' && (
             <motion.div
               key="settings-view"
@@ -270,22 +346,11 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {view !== 'auth' && (
+      {view !== 'auth' && view !== 'onboarding' && (
         <div className="mt-auto">
           <Footer onNavigate={handleNavigate} onOpenAuth={handleOpenAuth} />
         </div>
       )}
-
-      {/* Modals */}
-      <AuthModal
-        open={authOpen}
-        mode={authMode}
-        onClose={handleCloseAuth}
-        onSwitchMode={handleSwitchAuthMode}
-        onAuthSuccess={handleAuthSuccess}
-      />
-
-      <ToolModal toolId={selectedToolId} onClose={handleCloseTool} />
 
       {/* Command Palette (Cmd/Ctrl+K) */}
       <CommandPalette

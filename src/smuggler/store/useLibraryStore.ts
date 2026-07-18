@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { useAuthStore } from "./useAuthStore";
 
 /* ---------- Types ---------- */
 
@@ -87,35 +88,41 @@ function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-/* ---------- Seed data (first visit) ---------- */
 
-const SEED_FOLDERS: LibraryFolder[] = [
-  { id: "f-yt", name: "YouTube Content", color: "#FF0000", parentId: null, createdAt: Date.now() - 86400000 * 7, updatedAt: Date.now() - 86400000 * 2 },
-  { id: "f-social", name: "Social Media", color: "#E1306C", parentId: null, createdAt: Date.now() - 86400000 * 6, updatedAt: Date.now() - 86400000 },
-  { id: "f-scripts", name: "Scripts & Ideas", color: "#4C6B4A", parentId: null, createdAt: Date.now() - 86400000 * 5, updatedAt: Date.now() - 86400000 * 3 },
-  { id: "f-brand", name: "Brand Assets", color: "#C09858", parentId: null, createdAt: Date.now() - 86400000 * 4, updatedAt: Date.now() - 86400000 * 7 },
-  { id: "f-invoices", name: "Invoices", color: "#3B648C", parentId: null, createdAt: Date.now() - 86400000 * 3, updatedAt: Date.now() - 86400000 * 5 },
-];
 
-const SEED_ITEMS: LibraryItem[] = [
-  { id: uid(), title: "5 Habits of Successful Creators", content: "Hook: The 5 AM routine that 7-figure creators swear by (and it's not what you think)...", type: "hook", toolName: "Hook Generator", category: "SEO", folderId: "f-yt", tags: ["productivity", "creators"], favorite: true, pinned: true, status: "active", createdAt: Date.now() - 7200000, updatedAt: Date.now() - 7200000, score: 92 },
-  { id: uid(), title: "YouTube Script: Productivity Hacks", content: "Hey everyone, today I'm sharing 5 productivity hacks that saved me 10+ hours every week...", type: "script", toolName: "Script Writer", category: "Writing", folderId: "f-scripts", tags: ["youtube", "script"], favorite: false, pinned: false, status: "active", createdAt: Date.now() - 14400000, updatedAt: Date.now() - 14400000, score: 88 },
-  { id: uid(), title: "Instagram Caption Pack", content: "Day 1: Stop scrolling. This changes everything. Day 2: The productivity hack nobody talks about...", type: "caption", toolName: "Caption Generator", category: "Social Media", folderId: "f-social", tags: ["instagram", "captions"], favorite: true, pinned: false, status: "active", createdAt: Date.now() - 21600000, updatedAt: Date.now() - 21600000, score: 85 },
-  { id: uid(), title: "Brand Voice Guide", content: "Tone: Confident but approachable. Vocabulary: Professional with casual touches. avoid jargon...", type: "brand-asset", toolName: "Brand Voice Generator", category: "Business", folderId: "f-brand", tags: ["branding", "voice"], favorite: false, pinned: true, status: "active", createdAt: Date.now() - 86400000, updatedAt: Date.now() - 86400000 },
-  { id: uid(), title: "Invoice: TechFlow Sponsorship", content: "Invoice #2024-045. Client: TechFlow Inc. Amount: $5,000. Net 30...", type: "invoice", toolName: "Invoice Generator", category: "Business", folderId: "f-invoices", tags: ["invoice", "sponsorship"], favorite: false, pinned: false, status: "active", createdAt: Date.now() - 172800000, updatedAt: Date.now() - 172800000 },
-  { id: uid(), title: "Blog to Twitter Thread", content: "Thread: I spent 30 days testing productivity apps. Here's what actually works (thread) 1/", type: "repurposed", toolName: "Blog to Twitter", category: "Repurposing", folderId: "f-yt", tags: ["twitter", "thread"], favorite: false, pinned: false, status: "active", createdAt: Date.now() - 259200000, updatedAt: Date.now() - 259200000, score: 79 },
-  { id: uid(), title: "Podcast Outline: Morning Routines", content: "Episode 42. Intro (2 min), Guest intro (3 min), Discussion (20 min), Q&A (5 min)...", type: "script", toolName: "Podcast Script Writer", category: "Video", folderId: "f-scripts", tags: ["podcast", "outline"], favorite: true, pinned: false, status: "draft", createdAt: Date.now() - 345600000, updatedAt: Date.now() - 345600000 },
-  { id: uid(), title: "Thumbnail Concept: Shock + Arrow", content: "Layout: Left 60% shocked face, right 40% product with red arrow. Text: INSANE...", type: "thumbnail", toolName: "Thumbnail Creator", category: "Video", folderId: "f-yt", tags: ["thumbnail", "youtube"], favorite: false, pinned: false, status: "active", createdAt: Date.now() - 432000000, updatedAt: Date.now() - 432000000, score: 91 },
-  { id: uid(), title: "Email Newsletter Draft", content: "Subject: This week's top 3 productivity finds. Hey friends, this week I discovered...", type: "ai-output", toolName: "AI Writer", category: "Writing", folderId: null, tags: ["email", "newsletter"], favorite: false, pinned: false, status: "draft", createdAt: Date.now() - 518400000, updatedAt: Date.now() - 518400000 },
-  { id: uid(), title: "Meta Description: Productivity Blog", content: "Discover 10 proven productivity hacks that top creators use daily. Save time and boost output...", type: "ai-output", toolName: "Meta Description Generator", category: "SEO", folderId: null, tags: ["seo", "meta"], favorite: false, pinned: false, status: "active", createdAt: Date.now() - 604800000, updatedAt: Date.now() - 604800000 },
-];
+/* ---------- API helpers ---------- */
 
-const SEED_ACTIVITY: LibraryActivity[] = [
-  { id: uid(), action: "generated", itemTitle: "5 Habits of Successful Creators", itemType: "hook", timestamp: Date.now() - 7200000 },
-  { id: uid(), action: "exported", itemTitle: "YouTube Script: Productivity Hacks", itemType: "script", timestamp: Date.now() - 14400000 },
-  { id: uid(), action: "created", itemTitle: "Invoice: TechFlow Sponsorship", itemType: "invoice", timestamp: Date.now() - 172800000 },
-  { id: uid(), action: "edited", itemTitle: "Brand Voice Guide", itemType: "brand-asset", timestamp: Date.now() - 86400000 },
-];
+async function apiGet(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`GET ${url} failed: ${res.status}`);
+  return res.json();
+}
+
+async function apiPost(url: string, body: unknown) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`POST ${url} failed: ${res.status}`);
+  return res.json();
+}
+
+async function apiPut(url: string, body: unknown) {
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PUT ${url} failed: ${res.status}`);
+  return res.json();
+}
+
+async function apiDelete(url: string) {
+  const res = await fetch(url, { method: "DELETE" });
+  if (!res.ok) throw new Error(`DELETE ${url} failed: ${res.status}`);
+  return res.json();
+}
 
 /* ---------- Store ---------- */
 
@@ -124,31 +131,34 @@ interface LibraryState {
   folders: LibraryFolder[];
   activity: LibraryActivity[];
   hydrated: boolean;
+  loading: boolean;
+  error: string | null;
 
-  hydrate: () => void;
+  hydrate: () => Promise<void>;
+  rehydrate: () => Promise<void>;
 
   /* Folder CRUD */
-  createFolder: (name: string, color?: string, parentId?: string | null) => string;
-  renameFolder: (id: string, name: string) => void;
-  deleteFolder: (id: string) => void;
-  moveFolder: (id: string, parentId: string | null) => void;
+  createFolder: (name: string, color?: string, parentId?: string | null) => Promise<string>;
+  renameFolder: (id: string, name: string) => Promise<void>;
+  deleteFolder: (id: string) => Promise<void>;
+  moveFolder: (id: string, parentId: string | null) => Promise<void>;
 
   /* Item CRUD */
-  addItem: (item: Omit<LibraryItem, "id" | "createdAt" | "updatedAt">) => string;
-  updateItem: (id: string, updates: Partial<LibraryItem>) => void;
-  deleteItem: (id: string) => void; // soft-delete → trash
-  permanentDelete: (id: string) => void;
-  restoreItem: (id: string) => void;
-  duplicateItem: (id: string) => void;
-  moveItemToFolder: (id: string, folderId: string | null) => void;
-  toggleFavorite: (id: string) => void;
-  togglePin: (id: string) => void;
+  addItem: (item: Omit<LibraryItem, "id" | "createdAt" | "updatedAt">) => Promise<string>;
+  updateItem: (id: string, updates: Partial<LibraryItem>) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
+  permanentDelete: (id: string) => Promise<void>;
+  restoreItem: (id: string) => Promise<void>;
+  duplicateItem: (id: string) => Promise<void>;
+  moveItemToFolder: (id: string, folderId: string | null) => Promise<void>;
+  toggleFavorite: (id: string) => Promise<void>;
+  togglePin: (id: string) => Promise<void>;
 
   /* Bulk */
-  bulkDelete: (ids: string[]) => void;
-  bulkMove: (ids: string[], folderId: string | null) => void;
-  bulkArchive: (ids: string[]) => void;
-  clearTrash: () => void;
+  bulkDelete: (ids: string[]) => Promise<void>;
+  bulkMove: (ids: string[], folderId: string | null) => Promise<void>;
+  bulkArchive: (ids: string[]) => Promise<void>;
+  clearTrash: () => Promise<void>;
 
   /* Query helpers */
   itemsInFolder: (folderId: string) => LibraryItem[];
@@ -162,16 +172,56 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   folders: [],
   activity: [],
   hydrated: false,
+  loading: false,
+  error: null,
 
-  hydrate: () => {
+  hydrate: async () => {
     if (get().hydrated) return;
-    const items = load<LibraryItem[]>(ITEMS_KEY, SEED_ITEMS);
-    const folders = load<LibraryFolder[]>(FOLDERS_KEY, SEED_FOLDERS);
-    const activity = load<LibraryActivity[]>(ACTIVITY_KEY, SEED_ACTIVITY);
-    set({ items, folders, activity, hydrated: true });
+    set({ loading: true, error: null });
+
+    const isAuthenticated = useAuthStore.getState().status === 'authenticated';
+
+    if (isAuthenticated) {
+      try {
+        const items = await apiGet("/api/library/items");
+        save(ITEMS_KEY, items);
+        set({ items });
+      } catch {
+        set({ items: load<LibraryItem[]>(ITEMS_KEY, []) });
+      }
+
+      try {
+        const folders = await apiGet("/api/library/folders");
+        save(FOLDERS_KEY, folders);
+        set({ folders });
+      } catch {
+        set({ folders: load<LibraryFolder[]>(FOLDERS_KEY, []) });
+      }
+
+      try {
+        const activity = await apiGet("/api/library/activity");
+        save(ACTIVITY_KEY, activity);
+        set({ activity });
+      } catch {
+        set({ activity: load<LibraryActivity[]>(ACTIVITY_KEY, []) });
+      }
+    } else {
+      set({
+        items: load<LibraryItem[]>(ITEMS_KEY, []),
+        folders: load<LibraryFolder[]>(FOLDERS_KEY, []),
+        activity: load<LibraryActivity[]>(ACTIVITY_KEY, []),
+      });
+    }
+
+    set({ hydrated: true, loading: false });
   },
 
-  createFolder: (name, color, parentId) => {
+  rehydrate: async () => {
+    set({ hydrated: false });
+    await get().hydrate();
+  },
+
+  createFolder: async (name, color, parentId) => {
     const folder: LibraryFolder = {
       id: uid(),
       name,
@@ -180,130 +230,201 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
+    const prevFolders = get().folders;
     set((s) => {
       const folders = [...s.folders, folder];
-      save(FOLDERS_KEY, folders);
       return { folders };
     });
+    try {
+      await apiPost("/api/library/folders", { name: folder.name, color: folder.color, parentId: folder.parentId });
+      save(FOLDERS_KEY, get().folders);
+    } catch {
+      set({ folders: prevFolders });
+    }
     return folder.id;
   },
 
-  renameFolder: (id, name) => {
+  renameFolder: async (id, name) => {
+    const prevFolders = get().folders;
     set((s) => {
       const folders = s.folders.map((f) => (f.id === id ? { ...f, name, updatedAt: Date.now() } : f));
-      save(FOLDERS_KEY, folders);
       return { folders };
     });
+    try {
+      await apiPut(`/api/library/folders/${id}`, { name });
+      save(FOLDERS_KEY, get().folders);
+    } catch {
+      set({ folders: prevFolders });
+    }
   },
 
-  deleteFolder: (id) => {
+  deleteFolder: async (id) => {
+    const prevItems = get().items;
+    const prevFolders = get().folders;
     set((s) => {
-      // Move items in folder to unsorted, delete folder
       const items = s.items.map((it) => (it.folderId === id ? { ...it, folderId: null } : it));
       const folders = s.folders.filter((f) => f.id !== id);
-      save(ITEMS_KEY, items);
-      save(FOLDERS_KEY, folders);
       return { items, folders };
     });
+    try {
+      await apiDelete(`/api/library/folders/${id}`);
+      save(ITEMS_KEY, get().items);
+      save(FOLDERS_KEY, get().folders);
+    } catch {
+      set({ items: prevItems, folders: prevFolders });
+    }
   },
 
-  moveFolder: (id, parentId) => {
+  moveFolder: async (id, parentId) => {
+    const prevFolders = get().folders;
     set((s) => {
       const folders = s.folders.map((f) => (f.id === id ? { ...f, parentId, updatedAt: Date.now() } : f));
-      save(FOLDERS_KEY, folders);
       return { folders };
     });
+    try {
+      await apiPut(`/api/library/folders/${id}`, { parentId });
+      save(FOLDERS_KEY, get().folders);
+    } catch {
+      set({ folders: prevFolders });
+    }
   },
 
-  addItem: (item) => {
+  addItem: async (item) => {
     const id = uid();
     const now = Date.now();
     const newItem: LibraryItem = { ...item, id, createdAt: now, updatedAt: now };
-    const activity: LibraryActivity = { id: uid(), action: "saved", itemTitle: newItem.title, itemType: newItem.type, timestamp: now };
+    const prevItems = get().items;
     set((s) => {
       const items = [newItem, ...s.items];
-      const acts = [activity, ...s.activity].slice(0, 50);
-      save(ITEMS_KEY, items);
-      save(ACTIVITY_KEY, acts);
-      return { items, activity: acts };
+      return { items };
     });
+    try {
+      await apiPost("/api/library/items", {
+        title: newItem.title,
+        content: newItem.content,
+        type: newItem.type,
+        toolName: newItem.toolName,
+        category: newItem.category,
+        folderId: newItem.folderId,
+        tags: newItem.tags,
+        favorite: newItem.favorite,
+        pinned: newItem.pinned,
+        status: newItem.status,
+        score: newItem.score,
+      });
+      save(ITEMS_KEY, get().items);
+    } catch (e) {
+      set({ items: prevItems });
+      throw e;
+    }
     return id;
   },
 
-  updateItem: (id, updates) => {
+  updateItem: async (id, updates) => {
+    const prevItems = get().items;
     set((s) => {
       const items = s.items.map((it) => (it.id === id ? { ...it, ...updates, updatedAt: Date.now() } : it));
-      save(ITEMS_KEY, items);
       return { items };
     });
+    try {
+      await apiPut(`/api/library/items/${id}`, updates);
+      save(ITEMS_KEY, get().items);
+    } catch {
+      set({ items: prevItems });
+    }
   },
 
-  deleteItem: (id) => {
-    get().updateItem(id, { status: "trash" as LibraryItemStatus });
+  deleteItem: async (id) => {
+    await get().updateItem(id, { status: "trash" as LibraryItemStatus });
   },
 
-  permanentDelete: (id) => {
+  permanentDelete: async (id) => {
+    const prevItems = get().items;
     set((s) => {
       const items = s.items.filter((it) => it.id !== id);
-      save(ITEMS_KEY, items);
       return { items };
     });
+    try {
+      await apiDelete(`/api/library/items/${id}`);
+      save(ITEMS_KEY, get().items);
+    } catch {
+      set({ items: prevItems });
+    }
   },
 
-  restoreItem: (id) => {
-    get().updateItem(id, { status: "active" as LibraryItemStatus });
+  restoreItem: async (id) => {
+    await get().updateItem(id, { status: "active" as LibraryItemStatus });
   },
 
-  duplicateItem: (id) => {
+  duplicateItem: async (id) => {
     const item = get().items.find((it) => it.id === id);
     if (!item) return;
-    get().addItem({
-      title: item.title + " (copy)",
-      content: item.content,
-      type: item.type,
-      toolName: item.toolName,
-      category: item.category,
-      folderId: item.folderId,
-      tags: item.tags,
-      favorite: false,
-      pinned: false,
-      status: "active",
-      score: item.score,
-    });
+    try {
+      await get().addItem({
+        title: item.title + " (copy)",
+        content: item.content,
+        type: item.type,
+        toolName: item.toolName,
+        category: item.category,
+        folderId: item.folderId,
+        tags: item.tags,
+        favorite: false,
+        pinned: false,
+        status: "active",
+        score: item.score,
+      });
+    } catch {
+      /* addItem already rolled back state */
+    }
   },
 
-  moveItemToFolder: (id, folderId) => {
-    get().updateItem(id, { folderId });
+  moveItemToFolder: async (id, folderId) => {
+    await get().updateItem(id, { folderId });
   },
 
-  toggleFavorite: (id) => {
+  toggleFavorite: async (id) => {
     const item = get().items.find((it) => it.id === id);
-    if (item) get().updateItem(id, { favorite: !item.favorite });
+    if (item) await get().updateItem(id, { favorite: !item.favorite });
   },
 
-  togglePin: (id) => {
+  togglePin: async (id) => {
     const item = get().items.find((it) => it.id === id);
-    if (item) get().updateItem(id, { pinned: !item.pinned });
+    if (item) await get().updateItem(id, { pinned: !item.pinned });
   },
 
-  bulkDelete: (ids) => {
-    ids.forEach((id) => get().updateItem(id, { status: "trash" as LibraryItemStatus }));
+  bulkDelete: async (ids) => {
+    for (const id of ids) {
+      await get().updateItem(id, { status: "trash" as LibraryItemStatus });
+    }
   },
 
-  bulkMove: (ids, folderId) => {
-    ids.forEach((id) => get().updateItem(id, { folderId }));
+  bulkMove: async (ids, folderId) => {
+    for (const id of ids) {
+      await get().updateItem(id, { folderId });
+    }
   },
 
-  bulkArchive: (ids) => {
-    ids.forEach((id) => get().updateItem(id, { status: "archived" as LibraryItemStatus }));
+  bulkArchive: async (ids) => {
+    for (const id of ids) {
+      await get().updateItem(id, { status: "archived" as LibraryItemStatus });
+    }
   },
 
-  clearTrash: () => {
-    set((s) => {
-      const items = s.items.filter((it) => it.status !== "trash");
-      save(ITEMS_KEY, items);
-      return { items };
-    });
+  clearTrash: async () => {
+    const trashIds = get().items.filter((it) => it.status === "trash").map((it) => it.id);
+    for (const id of trashIds) {
+      const prevItems = get().items;
+      set((s) => {
+        const items = s.items.filter((it) => it.id !== id);
+        return { items };
+      });
+      try {
+        await apiDelete(`/api/library/items/${id}`);
+        save(ITEMS_KEY, get().items);
+      } catch {
+        set({ items: prevItems });
+      }
+    }
   },
 
   itemsInFolder: (folderId) => get().items.filter((it) => it.folderId === folderId && it.status !== "trash"),

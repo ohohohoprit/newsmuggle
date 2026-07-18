@@ -198,11 +198,4 @@ export const CATEGORY_STATS: { name: string; count: number; color: string; icon:
   { name: "Marketing", count: ALL_TOOLS.filter((t) => t.category === "Social Media").length + ALL_TOOLS.filter((t) => t.category === "Business").length, color: "#A84841", icon: Megaphone },
 ];
 
-// Sample intel results for tool generation demo
-export const SAMPLE_HOOKS = [
-  "The AI tool that will save you 10 hours a week (and it's free).",
-  "Stop doing content research manually. Do THIS instead.",
-  "I tried the top 5 productivity apps so you don't have to. Here's the truth.",
-  "The secret formula top creators use to go viral consistently.",
-  "Why 99% of content fails (and how to be in the 1%).",
-];
+

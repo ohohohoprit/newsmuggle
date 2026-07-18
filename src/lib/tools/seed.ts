@@ -214,7 +214,7 @@ export async function seedTools(): Promise<SeedResult> {
     const outputFormat: OutputFormat = 'items';
 
     const modelConfig: ModelConfig = {
-      provider: 'zai',
+      provider: 'gemini',
       model: 'default',
       temperature: 0.8,
     };

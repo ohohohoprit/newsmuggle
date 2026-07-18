@@ -40,7 +40,7 @@ export class GeminiProvider extends BaseAIProvider {
   readonly slug: AIProviderSlug = 'gemini';
   readonly name = 'Gemini (Google)';
   protected readonly apiKeyEnvVar = 'GEMINI_API_KEY';
-  protected readonly defaultModelId = 'gemini-1.5-flash';
+  protected readonly defaultModelId = 'gemini-3.1-flash-lite';
 
   protected get baseURL(): string {
     return process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta';
@@ -48,19 +48,11 @@ export class GeminiProvider extends BaseAIProvider {
 
   protected readonly models: AIModelInfo[] = [
     {
-      id: 'gemini-1.5-flash',
-      name: 'Gemini 1.5 Flash',
-      promptCostPer1k: 0.000075,
-      completionCostPer1k: 0.0003,
-      contextWindow: 1_000_000,
-      supportsStreaming: true,
-    },
-    {
-      id: 'gemini-1.5-pro',
-      name: 'Gemini 1.5 Pro',
-      promptCostPer1k: 0.00125,
-      completionCostPer1k: 0.005,
-      contextWindow: 2_000_000,
+      id: 'gemini-3.1-flash-lite',
+      name: 'Gemini 3.1 Flash Lite',
+      promptCostPer1k: 0.0,
+      completionCostPer1k: 0.0,
+      contextWindow: 1_048_576,
       supportsStreaming: true,
     },
     {
@@ -68,7 +60,15 @@ export class GeminiProvider extends BaseAIProvider {
       name: 'Gemini 2.0 Flash',
       promptCostPer1k: 0.0001,
       completionCostPer1k: 0.0004,
-      contextWindow: 1_000_000,
+      contextWindow: 1_048_576,
+      supportsStreaming: true,
+    },
+    {
+      id: 'gemini-2.0-flash-lite',
+      name: 'Gemini 2.0 Flash Lite',
+      promptCostPer1k: 0.0,
+      completionCostPer1k: 0.0,
+      contextWindow: 1_048_576,
       supportsStreaming: true,
     },
   ];

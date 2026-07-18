@@ -103,23 +103,18 @@ function uid(): string {
 /* ---------- Defaults ---------- */
 
 const DEFAULT_PROFILE: UserProfile = {
-  fullName: "Agent Smith",
-  username: "agentsmith",
-  email: "agent.smith@example.com",
-  mobile: "+91 98765 43210",
-  bio: "Professional content creator. Building a faceless YouTube empire.",
-  country: "India",
-  timezone: "(GMT+05:30) Asia/Kolkata",
+  fullName: "",
+  username: "",
+  email: "",
+  mobile: "",
+  bio: "",
+  country: "",
+  timezone: "",
   language: "English",
   dateFormat: "DD/MM/YYYY",
-  creatorCategory: "Content Creator",
-  avatar: "", // empty = use default logo
-  socialLinks: {
-    youtube: "@agentsmith",
-    instagram: "@agentsmith.content",
-    twitter: "@contentsmuggler",
-    website: "agentsmith.com",
-  },
+  creatorCategory: "",
+  avatar: "",
+  socialLinks: {},
 };
 
 const DEFAULT_SECURITY: SecuritySettings = {
@@ -166,11 +161,7 @@ const DEFAULT_BILLING: BillingInfo = {
   ],
 };
 
-const DEFAULT_TEAM: TeamMember[] = [
-  { id: uid(), name: "Agent Smith", email: "agent.smith@example.com", role: "admin", avatar: "", status: "active" },
-  { id: uid(), name: "Jane Doe", email: "jane@example.com", role: "editor", avatar: "https://i.pravatar.cc/100?img=20", status: "active" },
-  { id: uid(), name: "John Doe", email: "john@example.com", role: "viewer", avatar: "https://i.pravatar.cc/100?img=21", status: "invited" },
-];
+const DEFAULT_TEAM: TeamMember[] = [];
 
 const DEFAULT_API_KEYS: ApiKey[] = [
   { id: uid(), name: "Production API", key: "cs_live_a1b2c3d4e5f6g7h8i9j0", created: Date.now() - 86400000 * 30, lastUsed: Date.now() - 3600000 },
@@ -210,6 +201,7 @@ interface UserState {
   upgradePlan: (plan: "starter" | "creator" | "agency") => void;
   cancelSubscription: () => void;
   reactivateSubscription: () => void;
+  updateBilling: (data: Partial<BillingInfo>) => void;
 
   /* Team */
   inviteMember: (email: string, role: TeamMember["role"]) => void;
@@ -338,6 +330,18 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   reactivateSubscription: () => {
     get().upgradePlan("creator");
+  },
+
+  updateBilling: (data) => {
+    set((s) => {
+      const billing = { ...s.billing, ...data };
+      const persist: PersistData = {
+        profile: s.profile, security: s.security, notifications: s.notifications,
+        preferences: s.preferences, billing, team: s.team, apiKeys: s.apiKeys,
+      };
+      save(SETTINGS_KEY, persist);
+      return { billing };
+    });
   },
 
   inviteMember: (email, role) => {

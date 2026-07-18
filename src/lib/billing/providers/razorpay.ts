@@ -216,7 +216,11 @@ export class RazorpayBillingProvider extends BillingProvider {
     const body = typeof payload === 'string' ? payload : payload.toString('utf8');
     const expected = crypto.createHmac('sha256', this.webhookSecret).update(body).digest('hex');
 
-    if (expected !== signature) {
+    // Timing-safe comparison (guard length mismatch first — timingSafeEqual
+    // throws on unequal-length buffers).
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const signatureBuf = Buffer.from(signature, 'utf8');
+    if (expectedBuf.length !== signatureBuf.length || !crypto.timingSafeEqual(expectedBuf, signatureBuf)) {
       throw new WebhookSignatureInvalidError('razorpay');
     }
 

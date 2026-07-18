@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { verifyOtp, setSessionCookie, AuthError } from '@/lib/auth';
 import { validatePhone, validateOtpCode, validateName } from '@/lib/auth-validation';
+import { applySecurity } from '@/lib/security/middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  const guard = await applySecurity(req, { routeKey: 'auth:otp' });
+  if (guard.error) return guard.error;
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();

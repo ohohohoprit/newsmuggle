@@ -4,9 +4,23 @@ import { handleGoogleCallback, setSessionCookie, type GoogleUserinfo } from '@/l
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function isConfiguredSecret(value: string | undefined): value is string {
+  if (!value) return false;
+  const v = value.trim();
+  if (!v) return false;
+  if (/^REPLACE/i.test(v)) return false;
+  return true;
+}
+
+function clearOAuthStateCookie(): string {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return `cs_oauth_state=; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Lax; Path=/; Max-Age=0`;
+}
+
 /**
  * GET /api/auth/google/callback
  * Handles Google OAuth callback — exchanges code for tokens, gets userinfo, creates session.
+ * Redirects back into the SPA root with query flags (this app uses client-side views).
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -21,19 +35,24 @@ export async function GET(req: Request) {
     return NextResponse.redirect(`${url.origin}/?auth_error=missing_params`, 302);
   }
 
-  // Verify state cookie
+  // Verify state cookie (value may contain '=' — take everything after first '=')
   const cookieHeader = req.headers.get('cookie') || '';
-  const stateCookie = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith('cs_oauth_state='));
-  if (!stateCookie || stateCookie.split('=')[1] !== state) {
+  const stateCookie = cookieHeader
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith('cs_oauth_state='));
+  const stateValue = stateCookie ? stateCookie.slice('cs_oauth_state='.length) : null;
+  if (!stateValue || stateValue !== state) {
     return NextResponse.redirect(`${url.origin}/?auth_error=state_mismatch`, 302);
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  // Must match the redirect_uri used when starting the flow
   const authUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL || url.origin;
-  const redirectUri = `${authUrl}/api/auth/google/callback`;
+  const redirectUri = `${authUrl.replace(/\/$/, '')}/api/auth/google/callback`;
 
-  if (!clientId || !clientSecret) {
+  if (!isConfiguredSecret(clientId) || !isConfiguredSecret(clientSecret)) {
     return NextResponse.redirect(`${url.origin}/?auth_error=config`, 302);
   }
 
@@ -69,13 +88,20 @@ export async function GET(req: Request) {
 
     const userinfo: GoogleUserinfo = await userinfoRes.json();
 
+    if (!userinfo.sub) {
+      return NextResponse.redirect(`${url.origin}/?auth_error=userinfo`, 302);
+    }
+
     // Create session
     const session = await handleGoogleCallback(userinfo, req);
 
-    const redirectTo = session.user.onboardingCompleted ? '/studio' : '/?onboarding=true';
+    // SPA lives on `/` with client-side views — never redirect to a missing /studio page
+    const redirectTo = session.user.onboardingCompleted
+      ? '/?auth=success'
+      : '/?auth=success&onboarding=true';
     const res = NextResponse.redirect(`${url.origin}${redirectTo}`, 302);
     setSessionCookie(res, session.token, session.expiresAt);
-    res.headers.append('Set-Cookie', 'cs_oauth_state=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
+    res.headers.append('Set-Cookie', clearOAuthStateCookie());
     return res;
   } catch (err) {
     console.error('[Google OAuth] Callback error:', err);

@@ -14,6 +14,7 @@
  */
 import { db } from '@/lib/db';
 import { auditLog } from '@/lib/auth';
+import { addDays } from 'date-fns';
 import type { Plan } from '@/lib/rbac';
 import type {
   SubscriptionDTO,
@@ -244,7 +245,7 @@ export async function upsertSubscription(
   const now = new Date();
   const periodStart = opts.currentPeriodStart ?? now;
   const periodEnd = opts.currentPeriodEnd ?? (interval === 'yearly' ? addMonths(now, 12) : addMonths(now, 1));
-  const trialEnd = opts.trialDays ? addMonths(now, 0) : (opts.trialDays ? new Date(now.getTime() + opts.trialDays * 24 * 60 * 60 * 1000) : null);
+  const trialEnd = opts.trialDays && opts.trialDays > 0 ? addDays(now, opts.trialDays) : null;
 
   const existing = await db.subscription.findUnique({ where: { workspaceId } });
 

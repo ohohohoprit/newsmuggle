@@ -34,14 +34,10 @@ export async function handleWebhook(
     rawEvent = await provider.verifyWebhook(rawBody, signature, signatureHeader);
   } catch (err) {
     if (err instanceof WebhookSignatureInvalidError) {
-      return {
-        received: true,
-        eventId: null,
-        eventType: null,
-        processed: false,
-        duplicate: false,
-        error: err.message,
-      };
+      // Rethrow so route handlers can return HTTP 401 — an invalid
+      // signature must NOT produce a 200 (which would tell the sender
+      // the forged payload was accepted).
+      throw err;
     }
     throw err;
   }

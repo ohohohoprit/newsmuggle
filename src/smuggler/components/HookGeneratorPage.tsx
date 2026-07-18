@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { generateContent } from '@/smuggler/lib/generate-client';
+import { useLibraryStore } from '@/smuggler/store/useLibraryStore';
 
 export interface HookGeneratorPageProps {
   onBack: () => void;
@@ -550,6 +551,8 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
   const [hooks, setHooks] = useState<GeneratedHook[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const savedContentRef = useRef<string | null>(null);
   const [analysisSummary, setAnalysisSummary] = useState(
     'This hook creates curiosity by highlighting a big benefit (saving 10+ hours) and sets up a promise of valuable, actionable tips.',
   );
@@ -649,7 +652,37 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
     );
   };
 
-  const handleSaveAll = () => showToast('Hooks saved to your vault');
+  const handleSaveAll = async () => {
+    if (saving || hooks.length === 0) return;
+    const contentStr = hooks.map((h) => h.text).join('\n---\n');
+    if (savedContentRef.current === contentStr) {
+      showToast('Already saved to your vault');
+      return;
+    }
+    setSaving(true);
+    try {
+      const addItem = useLibraryStore.getState().addItem;
+      await addItem({
+        title: hooks[0].text.length > 60 ? hooks[0].text.slice(0, 57) + '...' : hooks[0].text,
+        content: contentStr,
+        type: 'hook',
+        toolName: 'Hook Generator',
+        category: 'SEO',
+        folderId: null,
+        tags: [],
+        favorite: false,
+        pinned: false,
+        status: 'active',
+        score: Math.round(hooks.reduce((s, h) => s + h.score, 0) / hooks.length),
+      });
+      savedContentRef.current = contentStr;
+      showToast('Hooks saved to your vault');
+    } catch {
+      showToast('Failed to save — please try again');
+    } finally {
+      setSaving(false);
+    }
+  };
   const handleExport = () => showToast('Hooks exported as .txt');
 
   return (
@@ -1020,10 +1053,11 @@ export function HookGeneratorPage({ onBack }: HookGeneratorPageProps) {
                   <button
                     type="button"
                     onClick={handleSaveAll}
-                    className="smuggler-press flex items-center gap-1.5 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)] px-3 py-1.5 text-[0.8rem] font-semibold text-[var(--smuggler-text-secondary)] transition-colors hover:border-[var(--smuggler-accent-green)] hover:text-[var(--smuggler-accent-green)]"
+                    disabled={saving}
+                    className={`smuggler-press flex items-center gap-1.5 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)] px-3 py-1.5 text-[0.8rem] font-semibold text-[var(--smuggler-text-secondary)] transition-colors hover:border-[var(--smuggler-accent-green)] hover:text-[var(--smuggler-accent-green)] ${saving ? 'cursor-not-allowed opacity-50' : ''}`}
                   >
-                    <Bookmark size={14} />
-                    Save All
+                    {saving ? <RefreshCw size={14} className="animate-spin" /> : <Bookmark size={14} />}
+                    {saving ? 'Saving...' : 'Save All'}
                   </button>
                   <button
                     type="button"

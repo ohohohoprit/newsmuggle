@@ -14,6 +14,7 @@ import {
   TOOL_COUNT,
   type ToolCategory,
 } from '@/smuggler/data/tools';
+import { useAuthStore } from '@/smuggler/store/useAuthStore';
 import {
   useToolsStore,
   parseUses,
@@ -39,6 +40,8 @@ const SORT_OPTIONS: SortOption[] = [
 export default function AllToolsSection({
   onSelectTool,
 }: AllToolsSectionProps) {
+  const authUser = useAuthStore((s) => s.user);
+  const authSignature = authUser?.name || authUser?.username || authUser?.email || '';
   const searchQuery = useToolsStore((s) => s.searchQuery);
   const setSearchQuery = useToolsStore((s) => s.setSearchQuery);
   const activeCategories = useToolsStore((s) => s.activeCategories);
@@ -219,7 +222,7 @@ export default function AllToolsSection({
                   intention.
                 </p>
                 <p className="mt-2.5 text-right font-serif text-[1.1rem] italic">
-                  - Agent Smith
+                  - {authSignature}
                 </p>
               </div>
 

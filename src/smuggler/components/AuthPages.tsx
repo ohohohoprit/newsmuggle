@@ -715,22 +715,29 @@ function MobileOtpForm({
 function LoginForm({
   onForgot,
   onSuccess,
-  onSocial,
+  socialError,
 }: {
   onForgot: () => void;
   onSuccess: () => void;
-  onSocial: (provider: 'google' | 'facebook') => void;
+  socialError?: string | null;
 }) {
   const [tab, setTab] = useState<'email' | 'mobile'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; social?: string }>({});
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Surface OAuth return errors from parent (query string)
+  useEffect(() => {
+    if (socialError) {
+      setErrors((prev) => ({ ...prev, social: socialError }));
+    }
+  }, [socialError]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const next: { email?: string; password?: string } = {};
     if (!email.trim()) next.email = 'Email is required.';
@@ -741,18 +748,35 @@ function LoginForm({
     if (Object.keys(next).length > 0) return;
 
     setLoading(true);
-    window.setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors({ email: data.message || 'Login failed.' });
+        setLoading(false);
+        return;
+      }
       setLoading(false);
       onSuccess();
-    }, 1100);
+    } catch {
+      setErrors({ email: 'Network error. Please try again.' });
+      setLoading(false);
+    }
   };
 
   const handleSocial = (provider: 'google' | 'facebook') => {
-    setSocialLoading(provider);
-    window.setTimeout(() => {
-      setSocialLoading(null);
-      onSocial(provider);
-    }, 1100);
+    if (provider === 'facebook') {
+      setErrors({ social: 'Facebook login is not available yet. Use Google or email.' });
+      return;
+    }
+    setErrors((prev) => ({ ...prev, social: undefined }));
+    setSocialLoading('google');
+    // Full redirect so Google can set cookies + complete OAuth round-trip
+    window.location.href = '/api/auth/google';
   };
 
   return (
@@ -909,10 +933,10 @@ function LoginForm({
 
 function SignupForm({
   onSuccess,
-  onSocial,
+  socialError,
 }: {
   onSuccess: () => void;
-  onSocial: (provider: 'google' | 'facebook') => void;
+  socialError?: string | null;
 }) {
   const [tab, setTab] = useState<'email' | 'mobile'>('email');
   const [name, setName] = useState('');
@@ -929,13 +953,20 @@ function SignupForm({
     password?: string;
     confirm?: string;
     terms?: string;
+    social?: string;
   }>({});
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
 
   const strength = calcPasswordStrength(password);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (socialError) {
+      setErrors((prev) => ({ ...prev, social: socialError }));
+    }
+  }, [socialError]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const next: typeof errors = {};
     if (!name.trim()) next.name = 'Full name is required.';
@@ -950,18 +981,34 @@ function SignupForm({
     if (Object.keys(next).length > 0) return;
 
     setLoading(true);
-    window.setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors({ email: data.message || 'Registration failed.' });
+        setLoading(false);
+        return;
+      }
       setLoading(false);
       onSuccess();
-    }, 1200);
+    } catch {
+      setErrors({ email: 'Network error. Please try again.' });
+      setLoading(false);
+    }
   };
 
   const handleSocial = (provider: 'google' | 'facebook') => {
-    setSocialLoading(provider);
-    window.setTimeout(() => {
-      setSocialLoading(null);
-      onSocial(provider);
-    }, 1100);
+    if (provider === 'facebook') {
+      setErrors({ social: 'Facebook login is not available yet. Use Google or email.' });
+      return;
+    }
+    setErrors((prev) => ({ ...prev, social: undefined }));
+    setSocialLoading('google');
+    window.location.href = '/api/auth/google';
   };
 
   return (

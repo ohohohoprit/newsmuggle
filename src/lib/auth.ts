@@ -373,6 +373,10 @@ export interface GoogleUserinfo {
 }
 
 export async function handleGoogleCallback(userinfo: GoogleUserinfo, req: Request): Promise<SessionData> {
+  if (!userinfo?.sub) {
+    throw new AuthError('INVALID_GOOGLE_PROFILE', 'Google profile is missing a subject id.');
+  }
+
   // Find existing account
   let account = await db.account.findUnique({
     where: {
@@ -386,11 +390,10 @@ export async function handleGoogleCallback(userinfo: GoogleUserinfo, req: Reques
 
   let user = account?.user ?? null;
 
-  // If no account, check if user exists by email
+  // If no account, check if user exists by email (link Google to existing account)
   if (!user && userinfo.email) {
     user = await db.user.findUnique({ where: { email: userinfo.email } });
     if (user) {
-      // Link Google account to existing user
       await db.account.create({
         data: {
           userId: user.id,
@@ -403,12 +406,14 @@ export async function handleGoogleCallback(userinfo: GoogleUserinfo, req: Reques
 
   // If still no user, create one
   if (!user) {
+    const emailLocal = userinfo.email?.split('@')[0] || 'agent';
+    const safeLocal = emailLocal.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20) || 'agent';
     user = await db.user.create({
       data: {
-        email: userinfo.email,
-        name: userinfo.name,
-        avatar: userinfo.picture,
-        username: userinfo.email.split('@')[0] + Math.floor(Math.random() * 1000),
+        email: userinfo.email || null,
+        name: userinfo.name || null,
+        avatar: userinfo.picture || null,
+        username: `${safeLocal}${Math.floor(Math.random() * 10000)}`,
       },
     });
     await db.account.create({
@@ -418,9 +423,15 @@ export async function handleGoogleCallback(userinfo: GoogleUserinfo, req: Reques
         providerAccountId: userinfo.sub,
       },
     });
-  } else if (account) {
-    // Update account tokens if needed
-    // (tokens are passed from the route handler)
+  } else {
+    // Refresh profile fields when Google returns fresher data
+    const updates: { name?: string; avatar?: string; email?: string } = {};
+    if (userinfo.name && userinfo.name !== user.name) updates.name = userinfo.name;
+    if (userinfo.picture && userinfo.picture !== user.avatar) updates.avatar = userinfo.picture;
+    if (userinfo.email && !user.email) updates.email = userinfo.email;
+    if (Object.keys(updates).length > 0) {
+      user = await db.user.update({ where: { id: user.id }, data: updates });
+    }
   }
 
   await auditLog('google_login', user.id, req);

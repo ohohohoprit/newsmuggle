@@ -397,7 +397,7 @@ export async function runTool(
   // 6. Render prompt
   const promptTemplate = parsePromptTemplate(toolRaw.promptTemplate);
   const modelConfig = safeParseJson<ModelConfig>(toolRaw.modelConfig, {
-    provider: 'zai',
+    provider: 'gemini',
     model: 'default',
     temperature: DEFAULT_TEMPERATURE,
   });

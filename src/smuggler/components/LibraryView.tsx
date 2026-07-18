@@ -38,8 +38,6 @@ import {
   RotateCcw,
   Sparkles,
   Crosshair,
-  Eye,
-  Heart,
   TrendingUp,
   Trophy,
   Crown,
@@ -60,6 +58,7 @@ import {
   LIBRARY_TYPE_LABELS,
   formatTimeAgo,
 } from '@/smuggler/store/useLibraryStore';
+import { useUserStore } from '@/smuggler/store/useUserStore';
 import BackButton from '@/smuggler/components/BackButton';
 
 /* ============================================================
@@ -1672,7 +1671,11 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
   const folders = useLibraryStore((s) => s.folders);
   const activity = useLibraryStore((s) => s.activity);
   const hydrated = useLibraryStore((s) => s.hydrated);
+  const loading = useLibraryStore((s) => s.loading);
+  const storeError = useLibraryStore((s) => s.error);
   const hydrate = useLibraryStore((s) => s.hydrate);
+
+  const billing = useUserStore((s) => s.billing);
 
   const createFolder = useLibraryStore((s) => s.createFolder);
   const renameFolder = useLibraryStore((s) => s.renameFolder);
@@ -2012,6 +2015,39 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
       className="relative min-h-screen w-full"
       style={{ backgroundColor: 'var(--smuggler-bg)' }}
     >
+      {/* Loading overlay */}
+      {loading && !hydrated && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'var(--smuggler-bg)' }}>
+          <div className="flex flex-col items-center gap-3">
+            <div
+              className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+              style={{ borderColor: 'var(--smuggler-gold)', borderTopColor: 'transparent' }}
+            />
+            <span className="text-xs font-semibold" style={{ color: 'var(--smuggler-text-muted)' }}>
+              Loading your library...
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Error banner */}
+      {storeError && (
+        <div
+          className="relative z-50 mx-auto max-w-[1400px] px-4 pt-4 sm:px-8 lg:px-16"
+        >
+          <div
+            className="rounded-lg border px-4 py-3 text-xs font-medium"
+            style={{
+              backgroundColor: 'rgba(220,38,38,0.1)',
+              borderColor: 'rgba(220,38,38,0.3)',
+              color: 'var(--smuggler-red)',
+            }}
+          >
+            {storeError}
+          </div>
+        </div>
+      )}
+
       {/* ====== Hero Header ====== */}
       <section
         ref={heroRef}
@@ -2275,17 +2311,17 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
                     className="flex items-center gap-1 rounded px-2 py-0.5 text-[0.7rem]"
                     style={{ backgroundColor: 'rgba(192,152,88,0.15)', color: 'var(--smuggler-gold)' }}
                   >
-                    <Crown size={11} className="fill-current" /> Creator
+                    <Crown size={11} className="fill-current" />{billing.plan.charAt(0).toUpperCase() + billing.plan.slice(1)}
                   </span>
                 </div>
                 <div className="mb-2 flex justify-between text-[0.85rem]" style={{ color: 'var(--smuggler-text-secondary)' }}>
                   <span>Usage this month</span>
-                  <span>{activeItems.length} / 100</span>
+                  <span>{billing.usage} / {billing.usageLimit}</span>
                 </div>
                 <div className="mb-2 h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'var(--smuggler-border)' }}>
                   <motion.div
                     initial={{ width: 0 }}
-                    whileInView={{ width: `${Math.min(activeItems.length, 100)}%` }}
+                    whileInView={{ width: `${Math.min(billing.usage / billing.usageLimit * 100, 100)}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 1, ease: 'easeOut' }}
                     className="h-full rounded-full"
@@ -2293,7 +2329,7 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
                   />
                 </div>
                 <div className="mb-4 text-[0.72rem]" style={{ color: 'var(--smuggler-text-muted)' }}>
-                  Resets on the 1st of next month
+                  {billing.renewsOn ? `Renews ${billing.renewsOn}` : 'Resets on the 1st of next month'}
                 </div>
               </div>
               <button
@@ -2306,7 +2342,8 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
             </motion.div>
           </div>
 
-          {/* Creator Stats Row (5 cards with sparklines) */}
+          {/* Library Stats Row (5 real data cards) */}
+          {activeItems.length > 0 && (
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -2315,11 +2352,11 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
             className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
           >
             {[
-              { icon: Eye, iconBg: 'var(--smuggler-accent-green)', label: 'Views Generated', value: '2.4M', trend: '↑ 32%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-green' },
-              { icon: Heart, iconBg: '#9B3D3D', label: 'Engagement', value: '142K', trend: '↑ 24%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-red' },
-              { icon: TrendingUp, iconBg: 'var(--smuggler-gold)', label: 'Content Created', value: String(activeItems.length), trend: '↑ 18%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-gold' },
-              { icon: Clock, iconBg: '#624B8B', label: 'Time Saved', value: '28.5 hrs', trend: '↑ 30%', trendSub: 'vs last 7d', sparkline: 'smuggler-sparkline smuggler-sparkline-purple' },
-              { icon: Trophy, iconBg: '#C28B5E', label: 'Top Tool', value: 'Hook Gen', trend: '42% usage', trendSub: '', sparkline: 'smuggler-sparkline smuggler-sparkline-bronze' },
+              { icon: TrendingUp, iconBg: 'var(--smuggler-accent-green)', label: 'Total Items', value: String(activeItems.length) },
+              { icon: Folder, iconBg: '#9B3D3D', label: 'Folders', value: String(folders.length) },
+              { icon: Star, iconBg: 'var(--smuggler-gold)', label: 'Favorites', value: String(favoriteCount) },
+              { icon: Pin, iconBg: '#624B8B', label: 'Pinned', value: String(pinnedCount) },
+              { icon: Archive, iconBg: '#C28B5E', label: 'Storage', value: storageLabel },
             ].map((stat) => {
               const Icon = stat.icon;
               return (
@@ -2338,15 +2375,13 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
                     </div>
                     <div className="text-[0.75rem] font-semibold" style={{ color: 'var(--smuggler-text-muted)' }}>{stat.label}</div>
                     <div className="my-0.5 text-[1.5rem] font-extrabold" style={{ color: 'var(--smuggler-text)' }}>{stat.value}</div>
-                    <div className="text-[0.7rem] font-bold" style={{ color: 'var(--smuggler-accent-green)' }}>
-                      {stat.trend} {stat.trendSub && <span className="font-normal" style={{ color: 'var(--smuggler-text-muted)' }}>{stat.trendSub}</span>}
-                    </div>
-                    <div className={stat.sparkline} />
+                    <div className="h-6" />
                   </div>
                 </motion.div>
               );
             })}
           </motion.div>
+          )}
 
           {/* 3-column: Popular Tools + Quick Actions + Calendar + Agent Tip */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr_1fr]">
@@ -2426,25 +2461,24 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
                   <h3 className="smuggler-section-heading text-[1.05rem]" style={{ color: 'var(--smuggler-text)' }}>Today's Schedule</h3>
                   <Calendar size={16} style={{ color: 'var(--smuggler-text-muted)' }} />
                 </div>
-                <div className="mb-3 flex items-center justify-between border-b border-dashed pb-3" style={{ borderColor: 'var(--smuggler-border)' }}>
-                  <span className="text-[0.82rem] font-bold" style={{ color: 'var(--smuggler-text)' }}>
-                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold text-white" style={{ backgroundColor: 'var(--smuggler-accent-green)' }}>3</span>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {[
-                    { time: '11:00 AM', icon: '▶', bg: '#FF0000', title: 'YouTube Video', tag: 'Scheduled' },
-                    { time: '02:00 PM', icon: '📸', bg: '#E1306C', title: 'Instagram Post', tag: 'Scheduled' },
-                    { time: '07:00 PM', icon: '🐦', bg: '#1DA1F2', title: 'Twitter Thread', tag: 'Draft' },
-                  ].map((c) => (
-                    <div key={c.title} className="flex items-center gap-2.5">
-                      <span className="w-[55px] text-[0.72rem]" style={{ color: 'var(--smuggler-text-muted)' }}>{c.time}</span>
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full text-[0.6rem] text-white" style={{ backgroundColor: c.bg }}>{c.icon}</div>
-                      <span className="flex-1 text-[0.8rem] font-semibold" style={{ color: 'var(--smuggler-text)' }}>{c.title}</span>
-                      <span className="rounded px-1.5 py-0.5 text-[0.6rem]" style={{ border: '1px solid var(--smuggler-border)', color: 'var(--smuggler-text-muted)' }}>{c.tag}</span>
-                    </div>
-                  ))}
+                <div className="flex flex-col items-center gap-3 py-6 text-center">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-full"
+                    style={{ backgroundColor: 'rgba(192,152,88,0.1)', color: 'var(--smuggler-text-muted)' }}
+                  >
+                    <Calendar size={20} />
+                  </div>
+                  <p className="text-sm" style={{ color: 'var(--smuggler-text-secondary)' }}>
+                    No content scheduled today
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('tools')}
+                    className="smuggler-cta-gold !px-4 !py-1.5 !text-xs"
+                  >
+                    <Sparkles size={12} />
+                    Generate Content
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -2496,13 +2530,7 @@ export function LibraryView({ onNavigate, onSelectTool }: LibraryViewProps) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <p className="m-0 text-[0.78rem] font-semibold" style={{ color: 'var(--smuggler-text-secondary)' }}>Trusted by 10,000+ Creators</p>
-              <div className="flex">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <img key={i} src={`https://i.pravatar.cc/100?img=${i}`} alt="" className="h-7 w-7 rounded-full border-2 object-cover -ml-2 first:ml-0" style={{ borderColor: 'var(--smuggler-border)' }} />
-                ))}
-                <div className="z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 text-[0.6rem] font-bold text-white -ml-2" style={{ borderColor: 'var(--smuggler-border)', backgroundColor: 'var(--smuggler-text)' }}>+9.5K</div>
-              </div>
+              <p className="m-0 text-[0.78rem] font-semibold" style={{ color: 'var(--smuggler-text-secondary)' }}>{activeItems.length} item{activeItems.length !== 1 ? 's' : ''} saved · {folders.length} folder{folders.length !== 1 ? 's' : ''}</p>
             </div>
           </motion.div>
         </div>

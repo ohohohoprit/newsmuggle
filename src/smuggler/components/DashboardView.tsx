@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, animate, type Variants } from 'framer-motion';
 import {
   Paperclip,
@@ -18,6 +18,8 @@ import {
   ArrowRight,
   type LucideIcon,
 } from 'lucide-react';
+import { useAuthStore } from '@/smuggler/store/useAuthStore';
+import { useUserStore } from '@/smuggler/store/useUserStore';
 
 export interface DashboardViewProps {
   onSelectTool: (toolId: string) => void;
@@ -229,10 +231,21 @@ const CALENDAR_ITEMS = [
 
 const TRUSTED_AVATARS = [1, 2, 3, 4, 5, 6, 7, 8];
 
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  return 'evening';
+}
+
 export function DashboardView({
   onSelectTool,
   onExploreTools,
 }: DashboardViewProps) {
+  const authUser = useAuthStore((s) => s.user);
+  const userName = authUser?.name || authUser?.username || authUser?.email || 'Agent';
+  const billing = useUserStore((s) => s.billing);
+  const usagePct = billing.usageLimit > 0 ? Math.round((billing.usage / billing.usageLimit) * 100) : 0;
   return (
     <section
       className="relative min-h-screen overflow-hidden"
@@ -297,7 +310,7 @@ export function DashboardView({
                 className="mb-2.5 font-serif text-[1.8rem] font-bold text-[#111]"
                 style={{ fontFamily: 'var(--font-heading)' }}
               >
-                Good morning, Agent Smith.
+                Good {getGreeting()}, {userName}.
               </h2>
               <p className="mb-4 text-[1rem] text-[#444]">
                 Your dashboard is fully decrypted and ready for operation.
@@ -348,14 +361,14 @@ export function DashboardView({
               <span
                 className="flex items-center gap-1 rounded bg-[rgba(228,216,180,0.15)] px-2 py-1 text-[0.7rem] text-[var(--smuggler-gold)]"
               >
-                <Crown size={12} className="fill-current" /> Creator Plan
+                <Crown size={12} className="fill-current" /> {billing.plan === 'starter' ? 'Starter' : billing.plan === 'agency' ? 'Agency' : 'Creator'} Plan
               </span>
             </div>
 
             <div className="mt-5">
               <div className="mb-2.5 flex justify-between text-[0.9rem]">
                 <span>Usage this month</span>
-                <span>12 / 100</span>
+                <span>{billing.usage} / {billing.usageLimit}</span>
               </div>
               <div
                 className="mb-2.5 h-2 overflow-hidden rounded"
@@ -363,14 +376,14 @@ export function DashboardView({
               >
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: '12%' }}
+                  animate={{ width: `${usagePct}%` }}
                   transition={{ duration: 1.2, ease: 'easeOut', delay: 0.5 }}
                   className="h-full"
-                  style={{ backgroundColor: '#4C6B4A' }}
+                  style={{ backgroundColor: usagePct > 80 ? '#C0392B' : '#4C6B4A' }}
                 />
               </div>
               <div className="mb-5 text-[0.75rem] text-[#666]">
-                Resets on 01 Jun, 2025
+                {billing.renewsOn ? `Resets on ${billing.renewsOn}` : ''}
               </div>
             </div>
 

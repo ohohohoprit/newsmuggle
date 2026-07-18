@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/rbac';
 import { runTool } from '@/lib/tools/engine';
 import { ToolError } from '@/lib/tools/types';
+import { applySecurity } from '@/lib/security/middleware';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -21,6 +22,10 @@ export async function POST(
   req: Request,
   ctx: { params: Promise<{ slug: string }> },
 ) {
+  // Rate limit + abuse guard runs first (IP-scoped, before auth).
+  const guard = await applySecurity(req, { routeKey: 'tool:run' });
+  if (guard.error) return guard.error;
+
   const auth = await requireAuth(req);
   if (!auth.authenticated) {
     return NextResponse.json({ error: 'UNAUTHENTICATED' }, { status: 401 });

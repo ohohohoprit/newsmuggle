@@ -164,7 +164,7 @@ export function validateFieldConfigs(raw: unknown): FieldConfig[] {
 
 export function validateModelConfig(raw: unknown): ModelConfig {
   if (raw === undefined || raw === null) {
-    return { provider: 'zai', model: 'default', temperature: 0.8 };
+    return { provider: 'gemini', model: 'default', temperature: 0.8 };
   }
   if (typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('modelConfig must be a JSON object.');

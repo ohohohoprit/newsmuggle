@@ -28,6 +28,7 @@ import { generateContent } from '@/smuggler/lib/generate-client';
 import { getToolTips } from '@/smuggler/lib/tool-tips';
 import { getToolConfig, type FieldConfig, type MetricConfig } from '@/smuggler/lib/tool-configs';
 import { ALL_TOOLS, type SmugglerTool } from '@/smuggler/data/tools';
+import { useLibraryStore } from '@/smuggler/store/useLibraryStore';
 
 export interface ToolPageEngineProps {
   toolId: string;
@@ -512,6 +513,8 @@ export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
   const [items, setItems] = useState<GeneratedItem[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const savedContentRef = useRef<string | null>(null);
   const [analysisSummary, setAnalysisSummary] = useState('');
   const [liveMetrics, setLiveMetrics] = useState<Array<{ label: string; value: number; percent: number; color: string }>>([]);
 
@@ -587,7 +590,47 @@ export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, favorited: !it.favorited } : it)));
   };
 
-  const handleSaveAll = () => showToast('Saved to your vault');
+  const handleSaveAll = async () => {
+    if (saving || items.length === 0) return;
+    const contentStr = items.map((it) => it.text).join('\n---\n');
+    if (savedContentRef.current === contentStr) {
+      showToast('Already saved to your vault');
+      return;
+    }
+    setSaving(true);
+    try {
+      const addItem = useLibraryStore.getState().addItem;
+      const typeMap: Record<string, string> = {
+        'hook-generator': 'hook',
+        'script-writer': 'script',
+        'podcast-script-writer': 'script',
+        'caption-generator': 'caption',
+        'instagram-caption-generator': 'caption',
+        'title-generator': 'title',
+        'thumbnail-creator': 'thumbnail',
+      };
+      const itemType = typeMap[toolId] || 'ai-output';
+      await addItem({
+        title: items[0].text.length > 60 ? items[0].text.slice(0, 57) + '...' : items[0].text,
+        content: contentStr,
+        type: itemType as any,
+        toolName: tool?.name ?? toolId,
+        category: tool?.category ?? 'AI Utility',
+        folderId: null,
+        tags: [],
+        favorite: false,
+        pinned: false,
+        status: 'active',
+        score: Math.round(items.reduce((s, it) => s + it.score, 0) / items.length),
+      });
+      savedContentRef.current = contentStr;
+      showToast('Saved to your vault');
+    } catch {
+      showToast('Failed to save — please try again');
+    } finally {
+      setSaving(false);
+    }
+  };
   const handleExport = () => showToast('Exported as .txt');
 
   if (!tool) {
@@ -735,7 +778,7 @@ export function ToolPageEngine({ toolId, onBack }: ToolPageEngineProps) {
               </div>
               {hasGenerated && (
                 <div className="flex gap-2">
-                  <button type="button" onClick={handleSaveAll} className="smuggler-press flex items-center gap-1.5 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)] px-3 py-1.5 text-[0.8rem] font-semibold text-[var(--smuggler-text-secondary)] transition-colors hover:border-[var(--smuggler-accent-green)] hover:text-[var(--smuggler-accent-green)]"><Bookmark size={14} />Save All</button>
+                  <button type="button" onClick={handleSaveAll} disabled={saving} className={`smuggler-press flex items-center gap-1.5 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)] px-3 py-1.5 text-[0.8rem] font-semibold text-[var(--smuggler-text-secondary)] transition-colors hover:border-[var(--smuggler-accent-green)] hover:text-[var(--smuggler-accent-green)] ${saving ? 'cursor-not-allowed opacity-50' : ''}`}>{saving ? <RefreshCw size={14} className="animate-spin" /> : <Bookmark size={14} />}{saving ? 'Saving...' : 'Save All'}</button>
                   <button type="button" onClick={handleExport} className="smuggler-press flex items-center gap-1.5 rounded-lg border border-[var(--smuggler-border)] bg-[var(--smuggler-bg-panel)] px-3 py-1.5 text-[0.8rem] font-semibold text-[var(--smuggler-text-secondary)] transition-colors hover:border-[var(--smuggler-accent-green)] hover:text-[var(--smuggler-accent-green)]"><Download size={14} />Export</button>
                 </div>
               )}

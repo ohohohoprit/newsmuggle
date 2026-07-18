@@ -87,7 +87,7 @@ export interface ModelConfig {
 }
 
 export const DEFAULT_MODEL_CONFIG: ModelConfig = {
-  provider: 'zai',
+  provider: 'gemini',
   model: 'default',
   temperature: 0.8,
   thinkingEnabled: false,

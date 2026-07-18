@@ -1,8 +1,4 @@
-/**
- * Client-side helper for calling /api/generate.
- * Used by HookGeneratorPage and ToolModal.
- */
-import type { GenerateRequest, GenerateResponse } from './tool-prompts';
+import type { GenerateResponse } from './tool-prompts';
 
 export async function generateContent(
   toolId: string,
@@ -10,16 +6,28 @@ export async function generateContent(
   count: number = 5,
   signal?: AbortSignal,
 ): Promise<GenerateResponse> {
-  const body: GenerateRequest = { toolId, inputs, count };
-  const res = await fetch('/api/generate', {
+  const res = await fetch(`/api/tools/${toolId}/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...inputs, count }),
     signal,
   });
   if (!res.ok) {
     const text = await res.text().catch(() => 'Request failed');
+    if (res.status === 401) {
+      throw new Error('Please log in to generate content.');
+    }
+    if (res.status === 429) {
+      throw new Error('Monthly generation limit reached. Upgrade your plan to continue.');
+    }
     throw new Error(`Generate failed (${res.status}): ${text}`);
   }
-  return (await res.json()) as GenerateResponse;
+  const json = await res.json();
+  const result = json.result ?? json;
+  return {
+    toolId,
+    items: result.items ?? [],
+    summary: result.summary ?? '',
+    metrics: result.metrics ?? { curiosity: 0, specificity: 0, benefitDriven: 0, emotionalImpact: 0 },
+  } as GenerateResponse;
 }
