@@ -1803,11 +1803,6 @@ export function AuthPages({
     setSubView('auth');
     onSwitchMode(next);
   };
-
-  const handleSocialSuccess = (_provider: 'google' | 'facebook') => {
-    onSuccess();
-  };
-
   const isLogin = mode === 'login';
   const title =
     subView === 'forgot'
@@ -1930,12 +1925,10 @@ export function AuthPages({
                     <LoginForm
                       onForgot={() => setSubView('forgot')}
                       onSuccess={onSuccess}
-                      onSocial={handleSocialSuccess}
                     />
                   ) : (
                     <SignupForm
                       onSuccess={onSuccess}
-                      onSocial={handleSocialSuccess}
                     />
                   )}
                 </motion.div>
